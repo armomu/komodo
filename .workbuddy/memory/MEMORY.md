@@ -16,3 +16,13 @@
 - minSdkVersion 21 (flutter_blue_plus要求)
 - Android Maven: 阿里云镜像加速
 - 应用ID: com.example.hybridart (待替换)
+
+## UI设计特点
+- 音乐tab采用深色主题设计
+- 使用card_swiper实现堆叠轮播卡片效果
+- 新增音乐歌词卡片组件，包含：
+  - 黑色主题卡片
+  - 歌曲信息行（绿色音乐图标 + 歌曲信息 + 歌手头像）
+  - 歌词展示区域
+- 卡片包含细致的分割线和层次感设计
+- 适配深色主题的透明度控制
