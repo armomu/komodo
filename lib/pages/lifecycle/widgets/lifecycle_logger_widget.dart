@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../controllers/lifecycle_controller.dart';
+import '../lifecycle_controller.dart';
 
 /// 生命周期日志显示组件
 class LifecycleLoggerWidget extends StatelessWidget {
@@ -34,13 +34,15 @@ class LifecycleLoggerWidget extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Obx(() => ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: controller.logs.length,
-              itemBuilder: (context, index) {
-                return _buildLogItem(controller.logs[index]);
-              },
-            )),
+            child: Obx(
+              () => ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: controller.logs.length,
+                itemBuilder: (context, index) {
+                  return _buildLogItem(controller.logs[index]);
+                },
+              ),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),

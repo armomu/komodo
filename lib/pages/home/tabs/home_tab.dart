@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:card_swiper/card_swiper.dart';
@@ -99,47 +98,32 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF000000),
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            // ========== ① 导航栏 ==========
-            _buildNavBar(),
-
-            // ========== ② 堆叠轮播卡片（card_swiper） ==========
-            Expanded(child: _buildCarouselCards()),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ════════════════════════════════════════════════════════════════════════
-  // ① 导航栏 — 纯黑背景，「发现」标题 + 搜索图标
-  // ════════════════════════════════════════════════════════════════════════
-
-  Widget _buildNavBar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
-      child: Row(
-        children: [
-          const Text(
-            '发现',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              letterSpacing: -0.5,
+    return NestedScrollView(
+      headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+        return <Widget>[
+          const SliverAppBar(
+            // backgroundColor: Colors.black,
+            expandedHeight: 100,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(
+                '发现',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              titlePadding: EdgeInsets.all(16),
             ),
           ),
-          const Spacer(),
-          GestureDetector(
-            onTap: () =>
-                Get.snackbar('', '点击了搜索', backgroundColor: Colors.grey[900]),
-            child: const Icon(Icons.search, size: 26, color: Colors.white),
-          ),
+        ];
+      },
+      body: ListView(
+        children: [
+          // ========== ② 堆叠轮播卡片（card_swiper） ==========
+          _buildCarouselCards(context),
         ],
       ),
     );
@@ -149,89 +133,22 @@ class _HomeTabState extends State<HomeTab> {
   // ② 堆叠轮播卡片 — 基于 card_swiper 的自定义堆叠动画
   // ════════════════════════════════════════════════════════════════════════
 
-  Widget _buildCarouselCards() {
-    return const Text('堆叠轮播卡片');
-  }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// 堆叠卡片组件 — 正方形主体 + 右侧多层伪堆叠边缘
-// ══════════════════════════════════════════════════════════════════════════════
-
-class _StackedCarouselCard extends StatelessWidget {
-  final _CarouselCardData data;
-
-  const _StackedCarouselCard({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    // 堆叠层数：每层比前一层 小一点 + 右偏多一点 + 颜色不同
-    // 最底层先画，最上层最后画（主卡片）
-    final stackLayers = [
-      _StackLayer(
-          offsetX: 18, offsetY: 6, scale: 0.96, color: data.stackColors[2]),
-      _StackLayer(
-          offsetX: 11, offsetY: 3, scale: 0.98, color: data.stackColors[1]),
-      _StackLayer(
-          offsetX: 4, offsetY: 1, scale: 0.99, color: data.stackColors[0]),
-    ];
-
-    return SizedBox(
-      // ★ 关键：固定 0.88 近正方形比例（类似专辑封面）
-      child: AspectRatio(
-        aspectRatio: 0.88,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // ── 后面的堆叠层（从底到顶）──
-            for (int i = 0; i < stackLayers.length; i++)
-              Positioned.fill(
-                child: Transform.translate(
-                  offset:
-                      Offset(stackLayers[i].offsetX, stackLayers[i].offsetY),
-                  child: Transform.scale(
-                    scale: stackLayers[i].scale,
-                    alignment: Alignment.topLeft,
-                    child: _buildStackLayerCard(color: stackLayers[i].color),
-                  ),
-                ),
-              ),
-
-            // ── 主卡片（最上层）──
-            Positioned.fill(
-              child: _MainCardContent(data: data),
-            ),
-          ],
-        ),
-      ),
+  Widget _buildCarouselCards(BuildContext context) {
+    final double itemWidth = MediaQuery.of(context).size.width;
+    final double itemHeight = itemWidth * 0.5625;
+    return Swiper(
+      itemBuilder: (BuildContext context, int index) {
+        return _MainCardContent(data: _carouselCards[index]);
+        // return _MainCardContent(data: _carouselCards[index]);
+      },
+      axisDirection: AxisDirection.right,
+      itemWidth: itemWidth - 32,
+      itemHeight: itemHeight,
+      layout: SwiperLayout.STACK,
+      controller: _swiperController,
+      itemCount: _carouselCards.length,
     );
   }
-
-  /// 堆叠层卡片 — 只有纯色圆角边框 + 暗色填充（模拟后方卡片）
-  Widget _buildStackLayerCard({required Color color}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.65), width: 2.2),
-      ),
-    );
-  }
-}
-
-/// 堆叠层参数
-class _StackLayer {
-  final double offsetX;
-  final double offsetY;
-  final double scale;
-  final Color color;
-
-  const _StackLayer({
-    required this.offsetX,
-    required this.offsetY,
-    required this.scale,
-    required this.color,
-  });
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -247,14 +164,8 @@ class _MainCardContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
+        border: Border.all(color: Colors.blue, width: 1),
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.55),
-            blurRadius: 28,
-            offset: const Offset(0, 14),
-          ),
-        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
@@ -266,8 +177,11 @@ class _MainCardContent extends StatelessWidget {
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) => Container(
               color: const Color(0xFF1A1A2E),
-              child: const Icon(Icons.music_video,
-                  size: 56, color: Colors.white12),
+              child: const Icon(
+                Icons.music_video,
+                size: 56,
+                color: Colors.white12,
+              ),
             ),
             loadingBuilder: (context, child, progress) {
               if (progress == null) return child;
@@ -277,7 +191,7 @@ class _MainCardContent extends StatelessWidget {
                   child: CircularProgressIndicator(
                     value: progress.expectedTotalBytes != null
                         ? progress.cumulativeBytesLoaded /
-                            progress.expectedTotalBytes!
+                              progress.expectedTotalBytes!
                         : null,
                     strokeWidth: 2,
                     color: data.accentColor,
@@ -329,25 +243,34 @@ class _MainCardContent extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(data.tag,
-                  style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.black87)),
+              Text(
+                data.tag,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black87,
+                ),
+              ),
               const SizedBox(width: 4),
-              Text('${data.currentIndex}/${data.totalCount}',
-                  style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.black87,
-                      letterSpacing: -0.5)),
+              Text(
+                '${data.currentIndex}/${data.totalCount}',
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black87,
+                  letterSpacing: -0.5,
+                ),
+              ),
             ],
           ),
-          Text(data.tagSub,
-              style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black54)),
+          Text(
+            data.tagSub,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Colors.black54,
+            ),
+          ),
         ],
       ),
     );
@@ -404,25 +327,32 @@ class _MainCardContent extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               color: Colors.black38,
             ),
-            child: const Icon(Icons.play_arrow_rounded,
-                size: 22, color: Colors.white),
+            child: const Icon(
+              Icons.play_arrow_rounded,
+              size: 22,
+              color: Colors.white,
+            ),
           ),
           // 时长标签
           Positioned(
-              right: 2,
-              bottom: 2,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.65),
-                  borderRadius: BorderRadius.circular(3),
+            right: 2,
+            bottom: 2,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.65),
+                borderRadius: BorderRadius.circular(3),
+              ),
+              child: Text(
+                data.duration,
+                style: const TextStyle(
+                  fontSize: 9,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
                 ),
-                child: Text(data.duration,
-                    style: const TextStyle(
-                        fontSize: 9,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600)),
-              )),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -434,14 +364,21 @@ class _MainCardContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('${data.viewCount}人看过',
-            style: const TextStyle(fontSize: 13, color: Colors.white70)),
+        Text(
+          '${data.viewCount}人看过',
+          style: const TextStyle(fontSize: 13, color: Colors.white70),
+        ),
         const SizedBox(height: 4),
-        Text(data.title,
-            style: const TextStyle(
-                fontSize: 17, fontWeight: FontWeight.w700, color: Colors.white),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis),
+        Text(
+          data.title,
+          style: const TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ],
     );
   }

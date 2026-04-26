@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../controllers/lifecycle_controller.dart';
-import '../home/widgets/lifecycle_test_widget.dart';
+import 'lifecycle_controller.dart';
+import 'widgets/lifecycle_test_widget.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 生命周期 Demo 页面入口
@@ -117,16 +117,18 @@ class _LifecycleDemoViewState extends State<_LifecycleDemoView> {
           Row(
             children: [
               Expanded(
-                child: Obx(() => _ActionButton(
-                      icon: _ctrl.showChildWidget.value
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      label: _ctrl.showChildWidget.value ? '隐藏子组件' : '显示子组件',
-                      color: _ctrl.showChildWidget.value
-                          ? Colors.orange
-                          : Colors.green,
-                      onTap: _ctrl.toggleChildWidget,
-                    )),
+                child: Obx(
+                  () => _ActionButton(
+                    icon: _ctrl.showChildWidget.value
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    label: _ctrl.showChildWidget.value ? '隐藏子组件' : '显示子组件',
+                    color: _ctrl.showChildWidget.value
+                        ? Colors.orange
+                        : Colors.green,
+                    onTap: _ctrl.toggleChildWidget,
+                  ),
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -208,14 +210,16 @@ class _LifecycleDemoViewState extends State<_LifecycleDemoView> {
                   ),
                 ),
                 const Spacer(),
-                Obx(() => Text(
-                      '${_ctrl.logCount} 条',
-                      style: const TextStyle(
-                        color: Colors.white38,
-                        fontSize: 11,
-                        fontFamily: 'monospace',
-                      ),
-                    )),
+                Obx(
+                  () => Text(
+                    '${_ctrl.logCount} 条',
+                    style: const TextStyle(
+                      color: Colors.white38,
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -232,7 +236,10 @@ class _LifecycleDemoViewState extends State<_LifecycleDemoView> {
                 );
               }
               return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 itemCount: _ctrl.logCount,
                 itemBuilder: (context, index) {
                   final log = _ctrl.logs[index];
@@ -258,9 +265,13 @@ class _LifecycleDemoViewState extends State<_LifecycleDemoView> {
 
   /// 根据日志内容给不同颜色
   Color _logColor(String log) {
-    if (log.contains('dispose') || log.contains('销毁') || log.contains('deactivate')) {
+    if (log.contains('dispose') ||
+        log.contains('销毁') ||
+        log.contains('deactivate')) {
       return Colors.redAccent;
-    } else if (log.contains('initState') || log.contains('onReady') || log.contains('初始化')) {
+    } else if (log.contains('initState') ||
+        log.contains('onReady') ||
+        log.contains('初始化')) {
       return Colors.greenAccent;
     } else if (log.contains('build') || log.contains('构建')) {
       return Colors.lightBlueAccent;

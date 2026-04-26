@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../controllers/lifecycle_controller.dart';
+import '../lifecycle_controller.dart';
 
 /// 生命周期测试子组件
 class LifecycleTestWidget extends StatefulWidget {
   final String title;
 
-  const LifecycleTestWidget({
-    super.key,
-    required this.title,
-  });
+  const LifecycleTestWidget({super.key, required this.title});
 
   @override
   State<LifecycleTestWidget> createState() {
