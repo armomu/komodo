@@ -20,12 +20,12 @@ class AppTheme {
         seedColor: primaryColor,
         brightness: Brightness.light,
       ),
-      scaffoldBackgroundColor: const Color(0xFFF5F5F5),
+      scaffoldBackgroundColor: Colors.white,
       appBarTheme: const AppBarTheme(
         elevation: 0,
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
       cardTheme: CardThemeData(
         elevation: 4,

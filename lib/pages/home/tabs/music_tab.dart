@@ -3,14 +3,14 @@ import 'package:get/get.dart';
 import 'package:card_swiper/card_swiper.dart';
 
 /// 发现页 — 深色主题，堆叠轮播卡片设计（基于 card_swiper）
-class HomeTab extends StatefulWidget {
-  const HomeTab({super.key});
+class MusicTab extends StatefulWidget {
+  const MusicTab({super.key});
 
   @override
-  State<HomeTab> createState() => _HomeTabState();
+  State<MusicTab> createState() => _MusicTabState();
 }
 
-class _HomeTabState extends State<HomeTab> {
+class _MusicTabState extends State<MusicTab> {
   /// Swiper 控制器
   final SwiperController _swiperController = SwiperController();
 
@@ -101,26 +101,42 @@ class _HomeTabState extends State<HomeTab> {
     return NestedScrollView(
       headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
         return <Widget>[
-          const SliverAppBar(
+          SliverAppBar(
             // backgroundColor: Colors.black,
-            expandedHeight: 100,
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            expandedHeight: 80,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                '发现',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -0.5,
-                ),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'KOMODO',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Theme.of(context).colorScheme.onSurface,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    icon: Icon(
+                      Icons.all_inclusive,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ],
               ),
-              titlePadding: EdgeInsets.all(16),
+
+              titlePadding: const EdgeInsets.fromLTRB(16, 16, 0, 16),
             ),
           ),
         ];
       },
       body: ListView(
+        padding: const EdgeInsets.only(top: 8, bottom: 8),
         children: [
           // ========== ② 堆叠轮播卡片（card_swiper） ==========
           _buildCarouselCards(context),
@@ -164,7 +180,7 @@ class _MainCardContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.blue, width: 1),
+        // border: Border.all(color: Colors.blue, width: 1),
         borderRadius: BorderRadius.circular(20),
       ),
       clipBehavior: Clip.antiAlias,

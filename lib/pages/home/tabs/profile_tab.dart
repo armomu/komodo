@@ -10,19 +10,20 @@ class ProfileTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        title: const Text(
-          '',
-          style: TextStyle(
-            fontSize: 32,
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
+      // appBar: AppBar(
+      //   backgroundColor: theme.scaffoldBackgroundColor,
+      //   title: const Text(
+      //     '',
+      //     style: TextStyle(
+      //       fontSize: 32,
+      //     ),
+      //   ),
+      //   iconTheme: const IconThemeData(color: Colors.black),
+      // ),
       body: SingleChildScrollView(
         child: Column(
           children: [
+            const SizedBox(height: 54),
             _buildUserInfo(context),
             // const SizedBox(height: 16),
             // _buildFeatureGrid(context),
@@ -66,17 +67,11 @@ class ProfileTab extends StatelessWidget {
                 Row(
                   children: [
                     // 糖果图标
-                    const Icon(
-                      Icons.ice_skating,
-                      size: 16,
-                    ),
+                    const Icon(Icons.ice_skating, size: 16),
                     const SizedBox(width: 4),
                     Text(
                       '糖果币',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[500],
-                      ),
+                      style: TextStyle(fontSize: 13, color: Colors.grey[500]),
                     ),
                   ],
                 ),
@@ -115,8 +110,9 @@ class ProfileTab extends StatelessWidget {
                   borderRadius: BorderRadius.circular(40),
                   color: Colors.grey[200],
                   image: const DecorationImage(
-                    image:
-                        NetworkImage('https://picsum.photos/seed/user/200/200'),
+                    image: NetworkImage(
+                      'https://picsum.photos/seed/user/200/200',
+                    ),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -131,9 +127,9 @@ class ProfileTab extends StatelessWidget {
   Widget _buildWithdrawButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('立即提现')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('立即提现')));
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -201,32 +197,37 @@ class ProfileTab extends StatelessWidget {
       _FeatureItem(
         icon: Icons.favorite_border,
         label: '收藏',
-        onTap: () => ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('点击了 收藏'))),
+        onTap: () => ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('点击了 收藏'))),
       ),
       _FeatureItem(
         icon: Icons.history,
         label: '历史',
-        onTap: () => ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('点击了 历史'))),
+        onTap: () => ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('点击了 历史'))),
       ),
       _FeatureItem(
         icon: Icons.bookmark_border,
         label: '书签',
-        onTap: () => ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('点击了 书签'))),
+        onTap: () => ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('点击了 书签'))),
       ),
       _FeatureItem(
         icon: Icons.share_outlined,
         label: '分享',
-        onTap: () => ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('点击了 分享'))),
+        onTap: () => ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('点击了 分享'))),
       ),
       _FeatureItem(
         icon: Icons.download_outlined,
         label: '下载',
-        onTap: () => ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('点击了 下载'))),
+        onTap: () => ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('点击了 下载'))),
       ),
     ];
 
@@ -320,8 +321,10 @@ class ProfileTab extends StatelessWidget {
                   children: [
                     Text(
                       '设置',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Icon(Icons.chevron_right, size: 20, color: Colors.grey),
                   ],
@@ -335,16 +338,18 @@ class ProfileTab extends StatelessWidget {
                     context,
                     icon: Icons.shield_outlined,
                     label: '权限管理',
-                    onTap: () => ScaffoldMessenger.of(context)
-                        .showSnackBar(const SnackBar(content: Text('权限管理'))),
+                    onTap: () => ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(const SnackBar(content: Text('权限管理'))),
                   ),
                   const SizedBox(width: 24),
                   _buildPersonalizationItem(
                     context,
                     icon: Icons.mic_outlined,
                     label: '语音助手',
-                    onTap: () => ScaffoldMessenger.of(context)
-                        .showSnackBar(const SnackBar(content: Text('语音助手'))),
+                    onTap: () => ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(const SnackBar(content: Text('语音助手'))),
                   ),
                 ],
               ),
@@ -381,10 +386,7 @@ class ProfileTab extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 14),
-            ),
+            Text(label, style: const TextStyle(fontSize: 14)),
           ],
         ),
       ),
@@ -479,7 +481,9 @@ class ProfileTab extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-              fontSize: 12, color: isDark ? Colors.white54 : Colors.grey[600]),
+            fontSize: 12,
+            color: isDark ? Colors.white54 : Colors.grey[600],
+          ),
         ),
       ],
     );

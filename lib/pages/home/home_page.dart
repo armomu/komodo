@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:komodo/pages/ble_demo/ble_demo_controller.dart';
 import 'package:komodo/pages/home/tabs/video_feed_view.dart';
-import 'tabs/home_tab.dart';
+import 'tabs/music_tab.dart';
 import 'tabs/short_video_tab.dart';
 import 'tabs/message_tab.dart';
 import 'tabs/profile_tab.dart';
@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
     if (!_tabPages.containsKey(pageIndex)) {
       switch (pageIndex) {
         case 0:
-          _tabPages[pageIndex] = const HomeTab();
+          _tabPages[pageIndex] = const MusicTab();
           break;
         case 1:
           _tabPages[pageIndex] = const ShortVideoTab();
@@ -109,21 +109,21 @@ class _HomePageState extends State<HomePage> {
     final isVideoTab = _currentIndex == 1;
     final bgColor = isVideoTab
         ? Colors.black
-        : Theme.of(context).colorScheme.surface;
-    final shadowColor = isVideoTab
-        ? Colors.transparent
-        : Colors.black.withOpacity(0.08);
+        : Theme.of(context).bottomAppBarTheme.color;
+    // final shadowColor = isVideoTab
+    //     ? Colors.transparent
+    //     : Colors.black.withOpacity(0.08);
 
     return Container(
       decoration: BoxDecoration(
         color: bgColor,
-        boxShadow: [
-          BoxShadow(
-            color: shadowColor,
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: shadowColor,
+        //     blurRadius: 8,
+        //     offset: const Offset(0, -2),
+        //   ),
+        // ],
       ),
       child: SafeArea(
         child: SizedBox(
@@ -134,7 +134,7 @@ class _HomePageState extends State<HomePage> {
                 context,
                 icon: Icons.home_outlined,
                 activeIcon: Icons.home,
-                label: '首页',
+                label: '音乐',
                 navIndex: 0,
               ),
               _buildNavItem(
@@ -181,7 +181,7 @@ class _HomePageState extends State<HomePage> {
     final color = isDarkBg
         ? (isActive ? Colors.white : Colors.white70)
         : (isActive
-              ? Theme.of(context).colorScheme.primary
+              ? Theme.of(context).textTheme.bodyLarge?.color
               : Colors.grey[600]!);
 
     return Expanded(
@@ -233,10 +233,14 @@ class _HomePageState extends State<HomePage> {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(Icons.add, color: Colors.white, size: 22),
+            child: Icon(
+              Icons.add,
+              color: Theme.of(context).colorScheme.surface,
+              size: 22,
+            ),
           ),
         ),
       ),

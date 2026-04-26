@@ -96,6 +96,7 @@ class _ShortVideoTabState extends State<ShortVideoTab>
       elevation: 0,
       centerTitle: true,
       automaticallyImplyLeading: false,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: titles.asMap().entries.map((e) {
