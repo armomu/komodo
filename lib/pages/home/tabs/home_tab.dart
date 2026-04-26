@@ -1,7 +1,9 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:card_swiper/card_swiper.dart';
 
-/// 首页 Tab - 静态UI（支持亮色/暗色主题）
+/// 发现页 — 深色主题，堆叠轮播卡片设计（基于 card_swiper）
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
 
@@ -10,851 +12,469 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
-  final PageController _funcPageController = PageController();
-  int _funcPageIndex = 0;
+  /// Swiper 控制器
+  final SwiperController _swiperController = SwiperController();
+
+  // ════════════════════════════════════════════════════════════════════════
+  // 模拟数据 — 正方形专辑封面图
+  // ════════════════════════════════════════════════════════════════════════
+
+  static const List<_CarouselCardData> _carouselCards = [
+    _CarouselCardData(
+      imageUrl: 'https://picsum.photos/seed/mv1/600/600',
+      tag: 'MV',
+      currentIndex: 1,
+      totalCount: 10,
+      tagSub: '抢先看',
+      thumbnailUrl: 'https://picsum.photos/seed/mv1thumb/200/200',
+      duration: '00:10',
+      viewCount: '284.7万',
+      title: 'SUNMI · Narcissism',
+      accentColor: Color(0xFFCCFF00),
+      stackColors: [Color(0xFF9B59B6), Color(0xFFCCFF00), Color(0xFFE74C3C)],
+    ),
+    _CarouselCardData(
+      imageUrl: 'https://picsum.photos/seed/mv2/600/600',
+      tag: 'MV',
+      currentIndex: 2,
+      totalCount: 10,
+      tagSub: '新上线',
+      thumbnailUrl: 'https://picsum.photos/seed/mv2thumb/200/200',
+      duration: '03:45',
+      viewCount: '156.2万',
+      title: 'BLACKPINK · Pink Venom',
+      accentColor: Color(0xFF9B59B6),
+      stackColors: [Color(0xFF3498DB), Color(0xFF9B59B6), Color(0xFFF39C12)],
+    ),
+    _CarouselCardData(
+      imageUrl: 'https://picsum.photos/seed/mv3/600/600',
+      tag: 'MV',
+      currentIndex: 3,
+      totalCount: 10,
+      tagSub: '独家',
+      thumbnailUrl: 'https://picsum.photos/seed/mv3thumb/200/200',
+      duration: '04:20',
+      viewCount: '98.5万',
+      title: 'Bruno Mars · Die With A Smile',
+      accentColor: Color(0xFFE74C3C),
+      stackColors: [Color(0xFFCCFF00), Color(0xFFE74C3C), Color(0xFF2ECC71)],
+    ),
+    _CarouselCardData(
+      imageUrl: 'https://picsum.photos/seed/mv4/600/600',
+      tag: 'MV',
+      currentIndex: 4,
+      totalCount: 10,
+      tagSub: '热播中',
+      thumbnailUrl: 'https://picsum.photos/seed/mv4thumb/200/200',
+      duration: '03:12',
+      viewCount: '320.8万',
+      title: 'Taylor Swift · Fortnight',
+      accentColor: Color(0xFF3498DB),
+      stackColors: [Color(0xFFE74C3C), Color(0xFF3498DB), Color(0xFF9B59B6)],
+    ),
+    _CarouselCardData(
+      imageUrl: 'https://picsum.photos/seed/mv5/600/600',
+      tag: 'MV',
+      currentIndex: 5,
+      totalCount: 10,
+      tagSub: '推荐',
+      thumbnailUrl: 'https://picsum.photos/seed/mv5thumb/200/200',
+      duration: '02:58',
+      viewCount: '67.3万',
+      title: 'Ariana Grande · Yes, And?',
+      accentColor: Color(0xFFF39C12),
+      stackColors: [Color(0xFF9B59B6), Color(0xFFF39C12), Color(0xFFCCFF00)],
+    ),
+  ];
 
   @override
   void dispose() {
-    _funcPageController.dispose();
+    _swiperController.dispose();
     super.dispose();
   }
 
-  // ================================================================
-  // 主题色抽取引擎
-  // ================================================================
-  _HomeColors get _c {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return _HomeColors(
-      isDark: isDark,
-      scaffoldBg: theme.scaffoldBackgroundColor,
-      card: colorScheme.surface,
-      cardShadow: isDark
-          ? Colors.black.withOpacity(0.3)
-          : Colors.black.withOpacity(0.05),
-      textPrimary: colorScheme.onSurface,
-      textSecondary: colorScheme.onSurface.withOpacity(0.6),
-      textHint: colorScheme.onSurface.withOpacity(0.4),
-      divider: colorScheme.outlineVariant,
-      searchBg: colorScheme.surface,
-      primary: const Color(0xFF667eea), // 品牌主色（渐变起点）
-      primaryLight: const Color(0xFF764ba2), // 渐变终点
-      accent1: const Color(0xFFFF6B6B), // 红
-      accent2: const Color(0xFF52C41A), // 绿
-      accent3: const Color(0xFFFAAD14), // 黄
-      white: Colors.white,
-    );
-  }
+  // ════════════════════════════════════════════════════════════════════════
+  // Build
+  // ════════════════════════════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _c.scaffoldBg,
-      body: Column(
-        children: [
-          // ========== 头部区域（渐变背景） ==========
-          _buildHeader(context),
+      backgroundColor: const Color(0xFF000000),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            // ========== ① 导航栏 ==========
+            _buildNavBar(),
 
-          // ========== 内容区域（可滚动 + 下拉刷新） ==========
-          Expanded(
-            child: RefreshIndicator(
-              color: _c.primary,
-              onRefresh: () async {
-                // 模拟网络请求延迟
-                await Future.delayed(const Duration(seconds: 1));
-                if (mounted) {
-                  Get.snackbar('', '刷新成功');
-                }
-              },
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
-                ),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-
-                    // -------- 四个带Label的图标按钮 --------
-                    _buildIconButtonsRow(),
-
-                    const SizedBox(height: 16),
-
-                    // -------- 可左右滑动的功能卡片 --------
-                    _buildFunctionCard(),
-
-                    const SizedBox(height: 16),
-
-                    // -------- 消息通知横条 --------
-                    _buildNotificationBanner(),
-
-                    const SizedBox(height: 16),
-
-                    // -------- 16:9 区块组合 --------
-                    _buildFeaturedBlocks(),
-
-                    const SizedBox(height: 16),
-
-                    // -------- 信息列表 --------
-                    _buildInfoList(),
-
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 头部栏 - 渐变背景（渐变色不变，保持品牌感）
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            _c.primary,
-            _c.primaryLight,
+            // ========== ② 堆叠轮播卡片（card_swiper） ==========
+            Expanded(child: _buildCarouselCards()),
           ],
         ),
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              // 左边 - 我的图标
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: _c.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Icon(
-                  Icons.person,
-                  color: _c.white,
-                  size: 24,
-                ),
-              ),
-
-              const SizedBox(width: 12),
-
-              // 中间 - 搜索输入框
-              Expanded(
-                child: Container(
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: _c.searchBg,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: TextField(
-                    readOnly: true,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('点击了搜索框')),
-                      );
-                    },
-                    decoration: InputDecoration(
-                      hintText: '搜索内容...',
-                      hintStyle: TextStyle(
-                        color: _c.textHint,
-                        fontSize: 14,
-                      ),
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: _c.textHint,
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 12),
-
-              // 右边 - 通知图标
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: _c.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Stack(
-                  children: [
-                    Center(
-                      child: Icon(
-                        Icons.notifications,
-                        color: _c.white,
-                        size: 24,
-                      ),
-                    ),
-                    // 通知红点
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
-  /// 四个带Label的图标按钮（无背景）
-  Widget _buildIconButtonsRow() {
-    final icons = [
-      {'icon': Icons.qr_code, 'label': '扫码'},
-      {'icon': Icons.payment, 'label': '付款'},
-      {'icon': Icons.savings, 'label': '储蓄'},
-      {'icon': Icons.more_horiz, 'label': '更多'},
-    ];
+  // ════════════════════════════════════════════════════════════════════════
+  // ① 导航栏 — 纯黑背景，「发现」标题 + 搜索图标
+  // ════════════════════════════════════════════════════════════════════════
 
+  Widget _buildNavBar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: icons.map((item) {
-          return Column(
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: _c.card,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: _c.cardShadow,
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  item['icon'] as IconData,
-                  size: 28,
-                  color: _c.primary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                item['label'] as String,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: _c.textPrimary,
-                ),
-              ),
-            ],
-          );
-        }).toList(),
+        children: [
+          const Text(
+            '发现',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const Spacer(),
+          GestureDetector(
+            onTap: () =>
+                Get.snackbar('', '点击了搜索', backgroundColor: Colors.grey[900]),
+            child: const Icon(Icons.search, size: 26, color: Colors.white),
+          ),
+        ],
       ),
     );
   }
 
-  /// 可左右滑动的功能卡片（PageView，每页 2行×5列=10个图标）
-  Widget _buildFunctionCard() {
-    // 每页 10 个图标（2行×5列），目前 2 页
-    final pages = [
-      [
-        {'icon': Icons.local_play, 'label': '优惠券'},
-        {'icon': Icons.shopping_cart, 'label': '购物车'},
-        {'icon': Icons.history, 'label': '历史'},
-        {'icon': Icons.favorite, 'label': '收藏'},
-        {'icon': Icons.card_giftcard, 'label': '礼品卡'},
-        {'icon': Icons.credit_card, 'label': '银行卡'},
-        {'icon': Icons.location_on, 'label': '地址'},
-        {'icon': Icons.security, 'label': '安全'},
-        {'icon': Icons.help, 'label': '帮助'},
-        {'icon': Icons.settings, 'label': '设置'},
-      ],
-      [
-        {'icon': Icons.directions_car, 'label': '出行'},
-        {'icon': Icons.flight, 'label': '旅行'},
-        {'icon': Icons.hotel, 'label': '酒店'},
-        {'icon': Icons.restaurant, 'label': '美食'},
-        {'icon': Icons.local_hospital, 'label': '医疗'},
-        {'icon': Icons.school, 'label': '教育'},
-        {'icon': Icons.sports_esports, 'label': '游戏'},
-        {'icon': Icons.movie, 'label': '影视'},
-        {'icon': Icons.music_note, 'label': '音乐'},
-        {'icon': Icons.photo_camera, 'label': '摄影'},
-      ],
+  // ════════════════════════════════════════════════════════════════════════
+  // ② 堆叠轮播卡片 — 基于 card_swiper 的自定义堆叠动画
+  // ════════════════════════════════════════════════════════════════════════
+
+  Widget _buildCarouselCards() {
+    return const Text('堆叠轮播卡片');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 堆叠卡片组件 — 正方形主体 + 右侧多层伪堆叠边缘
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _StackedCarouselCard extends StatelessWidget {
+  final _CarouselCardData data;
+
+  const _StackedCarouselCard({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    // 堆叠层数：每层比前一层 小一点 + 右偏多一点 + 颜色不同
+    // 最底层先画，最上层最后画（主卡片）
+    final stackLayers = [
+      _StackLayer(
+          offsetX: 18, offsetY: 6, scale: 0.96, color: data.stackColors[2]),
+      _StackLayer(
+          offsetX: 11, offsetY: 3, scale: 0.98, color: data.stackColors[1]),
+      _StackLayer(
+          offsetX: 4, offsetY: 1, scale: 0.99, color: data.stackColors[0]),
     ];
 
-    return Container(
-      height: 160,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: _c.card,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: _c.cardShadow,
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // PageView 图标区域
-          Expanded(
-            child: PageView.builder(
-              controller: _funcPageController,
-              itemCount: pages.length,
-              onPageChanged: (index) {
-                setState(() => _funcPageIndex = index);
-              },
-              itemBuilder: (context, pageIndex) {
-                final icons = pages[pageIndex];
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 16, 8, 0),
-                  child: Column(
-                    children: [
-                      // 第一行 5 个
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: icons
-                            .take(5)
-                            .map((e) => _buildFunctionItem(
-                                  icon: e['icon'] as IconData,
-                                  label: e['label'] as String,
-                                ))
-                            .toList(),
-                      ),
-                      const SizedBox(height: 12),
-                      // 第二行 5 个
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: icons
-                            .skip(5)
-                            .map((e) => _buildFunctionItem(
-                                  icon: e['icon'] as IconData,
-                                  label: e['label'] as String,
-                                ))
-                            .toList(),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-
-          // 底部分页指示器
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10, top: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(pages.length, (i) {
-                final active = i == _funcPageIndex;
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: active ? 16 : 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: active ? _c.primary : _c.textHint,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                );
-              }),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFunctionItem({required IconData icon, required String label}) {
     return SizedBox(
-      width: 56,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 28, color: _c.primary),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: TextStyle(fontSize: 11, color: _c.textPrimary),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
+      // ★ 关键：固定 0.88 近正方形比例（类似专辑封面）
+      child: AspectRatio(
+        aspectRatio: 0.88,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // ── 后面的堆叠层（从底到顶）──
+            for (int i = 0; i < stackLayers.length; i++)
+              Positioned.fill(
+                child: Transform.translate(
+                  offset:
+                      Offset(stackLayers[i].offsetX, stackLayers[i].offsetY),
+                  child: Transform.scale(
+                    scale: stackLayers[i].scale,
+                    alignment: Alignment.topLeft,
+                    child: _buildStackLayerCard(color: stackLayers[i].color),
+                  ),
+                ),
+              ),
 
-  /// 消息通知横条
-  Widget _buildNotificationBanner() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: _c.primary.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: _c.primary.withOpacity(0.15),
+            // ── 主卡片（最上层）──
+            Positioned.fill(
+              child: _MainCardContent(data: data),
+            ),
+          ],
         ),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: _c.primary,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              '公告',
-              style: TextStyle(
-                color: _c.white,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              '欢迎使用 HybridArt 应用，更多精彩功能等您探索！',
-              style: TextStyle(fontSize: 13, color: _c.textPrimary),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          Icon(Icons.chevron_right, color: _c.textHint, size: 20),
-        ],
-      ),
     );
   }
 
-  /// 16:9 区块组合
-  Widget _buildFeaturedBlocks() {
+  /// 堆叠层卡片 — 只有纯色圆角边框 + 暗色填充（模拟后方卡片）
+  Widget _buildStackLayerCard({required Color color}) {
     return Container(
-      height: 180,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          // 左边 40% 竖形块（渐变背景，保持品牌感）
-          Expanded(
-            flex: 4,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [_c.primary, _c.primaryLight],
-                ),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  bottomLeft: Radius.circular(16),
-                ),
-              ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    left: 16,
-                    top: 16,
-                    child: Text(
-                      '精选推荐',
-                      style: TextStyle(
-                        color: _c.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 16,
-                    bottom: 16,
-                    child: Text(
-                      '更多精彩',
-                      style: TextStyle(
-                        color: _c.white.withOpacity(0.7),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    right: 16,
-                    bottom: 16,
-                    child: Icon(
-                      Icons.arrow_forward,
-                      color: _c.white.withOpacity(0.5),
-                      size: 32,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // 右边 60% 上下两块
-          Expanded(
-            flex: 6,
-            child: Column(
-              children: [
-                // 上边横块
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: _c.card,
-                      borderRadius: const BorderRadius.only(
-                        topRight: Radius.circular(16),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: _c.cardShadow,
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  '限时优惠',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: _c.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '立即查看',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: _c.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Container(
-                          width: 50,
-                          height: 50,
-                          margin: const EdgeInsets.only(right: 12),
-                          decoration: BoxDecoration(
-                            color: _c.accent1.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Icons.local_offer,
-                            color: _c.accent1,
-                            size: 28,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // 下边两个小块
-                Expanded(
-                  child: Row(
-                    children: [
-                      // 左小块 - 新用户（图标+文字）
-                      Expanded(
-                        child: Container(
-                          margin: const EdgeInsets.only(top: 8),
-                          decoration: BoxDecoration(
-                            color: _c.card,
-                            borderRadius: const BorderRadius.only(
-                              bottomRight: Radius.circular(16),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: _c.cardShadow,
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: _c.accent2.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Icon(
-                                  Icons.card_giftcard,
-                                  color: _c.accent2,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                '新用户',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: _c.textPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(width: 8),
-
-                      // 右小块 - 签到（图标+文字）
-                      Expanded(
-                        child: Container(
-                          margin: const EdgeInsets.only(top: 8),
-                          decoration: BoxDecoration(
-                            color: _c.card,
-                            borderRadius: const BorderRadius.only(
-                              bottomRight: Radius.circular(16),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: _c.cardShadow,
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: _c.accent3.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Icon(
-                                  Icons.calendar_today,
-                                  color: _c.accent3,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                '签到',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: _c.textPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 信息列表
-  Widget _buildInfoList() {
-    final items = [
-      {
-        'icon': Icons.trending_up,
-        'title': '热门资讯',
-        'subtitle': '查看最新动态',
-        'color': _c.accent1,
-      },
-      {
-        'icon': Icons.new_releases,
-        'title': '新功能上线',
-        'subtitle': '了解最新功能',
-        'color': _c.primary,
-      },
-      {
-        'icon': Icons.star,
-        'title': '用户好评',
-        'subtitle': '看看大家怎么说',
-        'color': _c.accent3,
-      },
-      {
-        'icon': Icons.support_agent,
-        'title': '联系客服',
-        'subtitle': '遇到问题？联系我们',
-        'color': _c.accent2,
-      },
-    ];
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: _c.card,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: _c.cardShadow,
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // 列表头
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '便捷服务',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: _c.textPrimary,
-                  ),
-                ),
-                Text(
-                  '查看全部 >',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: _c.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // 分割线
-          Container(height: 1, color: _c.divider),
-
-          // 列表项
-          ...items.asMap().entries.map((entry) {
-            final index = entry.key;
-            final item = entry.value;
-            return Column(
-              children: [
-                ListTile(
-                  leading: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: (item['color'] as Color).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      item['icon'] as IconData,
-                      color: item['color'] as Color,
-                      size: 22,
-                    ),
-                  ),
-                  title: Text(
-                    item['title'] as String,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: _c.textPrimary,
-                    ),
-                  ),
-                  subtitle: Text(
-                    item['subtitle'] as String,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _c.textSecondary,
-                    ),
-                  ),
-                  trailing: Icon(
-                    Icons.chevron_right,
-                    color: _c.textSecondary,
-                  ),
-                  onTap: () {},
-                ),
-                if (index < items.length - 1)
-                  Container(
-                    height: 1,
-                    margin: const EdgeInsets.only(left: 70),
-                    color: _c.divider.withOpacity(0.5),
-                  ),
-              ],
-            );
-          }),
-
-          const SizedBox(height: 8),
-        ],
+        color: const Color(0xFF1A1A2E),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.65), width: 2.2),
       ),
     );
   }
 }
 
-/// 首页专属主题色抽取引擎
-class _HomeColors {
-  final bool isDark;
-  final Color scaffoldBg;
-  final Color card;
-  final Color cardShadow;
-  final Color textPrimary;
-  final Color textSecondary;
-  final Color textHint;
-  final Color divider;
-  final Color searchBg;
-  final Color primary;
-  final Color primaryLight;
-  final Color accent1;
-  final Color accent2;
-  final Color accent3;
-  final Color white;
+/// 堆叠层参数
+class _StackLayer {
+  final double offsetX;
+  final double offsetY;
+  final double scale;
+  final Color color;
 
-  _HomeColors({
-    required this.isDark,
-    required this.scaffoldBg,
-    required this.card,
-    required this.cardShadow,
-    required this.textPrimary,
-    required this.textSecondary,
-    required this.textHint,
-    required this.divider,
-    required this.searchBg,
-    required this.primary,
-    required this.primaryLight,
-    required this.accent1,
-    required this.accent2,
-    required this.accent3,
-    required this.white,
+  const _StackLayer({
+    required this.offsetX,
+    required this.offsetY,
+    required this.scale,
+    required this.color,
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 主卡片内容 — 图片 + 标签 + 底部信息
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _MainCardContent extends StatelessWidget {
+  final _CarouselCardData data;
+
+  const _MainCardContent({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.55),
+            blurRadius: 28,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // ====== 封面图（正方形 BoxFit.cover） ======
+          Image.network(
+            data.imageUrl,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              color: const Color(0xFF1A1A2E),
+              child: const Icon(Icons.music_video,
+                  size: 56, color: Colors.white12),
+            ),
+            loadingBuilder: (context, child, progress) {
+              if (progress == null) return child;
+              return Container(
+                color: const Color(0xFF1A1A2E),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    value: progress.expectedTotalBytes != null
+                        ? progress.cumulativeBytesLoaded /
+                            progress.expectedTotalBytes!
+                        : null,
+                    strokeWidth: 2,
+                    color: data.accentColor,
+                  ),
+                ),
+              );
+            },
+          ),
+
+          // ====== 底部渐变遮罩 ======
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.08),
+                    Colors.black.withOpacity(0.55),
+                  ],
+                  stops: const [0.45, 1.0],
+                ),
+              ),
+            ),
+          ),
+
+          // ====== 左上角荧光标签 ======
+          Positioned(left: 13, top: 13, child: _buildTag()),
+
+          // ====== 底部信息栏 ======
+          Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomInfo()),
+        ],
+      ),
+    );
+  }
+
+  /// 左上角标签
+  Widget _buildTag() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: data.accentColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(data.tag,
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black87)),
+              const SizedBox(width: 4),
+              Text('${data.currentIndex}/${data.totalCount}',
+                  style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black87,
+                      letterSpacing: -0.5)),
+            ],
+          ),
+          Text(data.tagSub,
+              style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black54)),
+        ],
+      ),
+    );
+  }
+
+  /// 底部信息区
+  Widget _buildBottomInfo() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 分割线
+          Container(height: 0.7, color: Colors.white30),
+          const SizedBox(height: 10),
+
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _buildThumbnail(),
+              const SizedBox(width: 11),
+              Expanded(child: _buildTextInfo()),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 缩略图 + 播放按钮 + 时长
+  Widget _buildThumbnail() {
+    return SizedBox(
+      width: 52,
+      height: 52,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              data.thumbnailUrl,
+              width: 52,
+              height: 52,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(color: Colors.grey[850]),
+            ),
+          ),
+          // 播放遮罩
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: Colors.black38,
+            ),
+            child: const Icon(Icons.play_arrow_rounded,
+                size: 22, color: Colors.white),
+          ),
+          // 时长标签
+          Positioned(
+              right: 2,
+              bottom: 2,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.65),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: Text(data.duration,
+                    style: const TextStyle(
+                        fontSize: 9,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600)),
+              )),
+        ],
+      ),
+    );
+  }
+
+  /// 文字信息
+  Widget _buildTextInfo() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('${data.viewCount}人看过',
+            style: const TextStyle(fontSize: 13, color: Colors.white70)),
+        const SizedBox(height: 4),
+        Text(data.title,
+            style: const TextStyle(
+                fontSize: 17, fontWeight: FontWeight.w700, color: Colors.white),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis),
+      ],
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 数据模型
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _CarouselCardData {
+  final String imageUrl;
+  final String tag;
+  final int currentIndex;
+  final int totalCount;
+  final String tagSub;
+  final String thumbnailUrl;
+  final String duration;
+  final String viewCount;
+  final String title;
+  final Color accentColor;
+  final List<Color> stackColors; // 堆叠层的颜色
+
+  const _CarouselCardData({
+    required this.imageUrl,
+    required this.tag,
+    required this.currentIndex,
+    required this.totalCount,
+    required this.tagSub,
+    required this.thumbnailUrl,
+    required this.duration,
+    required this.viewCount,
+    required this.title,
+    required this.accentColor,
+    required this.stackColors,
   });
 }

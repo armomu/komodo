@@ -4,20 +4,19 @@
     // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-    
         {
-            "name": "hybridart",
+            "name": "komodo",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "hybridart (profile mode)",
+            "name": "komodo (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "hybridart (release mode)",
+            "name": "komodo (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

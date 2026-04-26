@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:get/get.dart';
-import 'package:hybridart/routes/app_routes.dart';
+import 'package:komodo/routes/app_routes.dart';
 
 /// BLE 示例日志条目
 class BleLogEntry {
@@ -156,8 +156,9 @@ class BleDemoController extends GetxController {
           if (char.properties.notify || char.properties.indicate) {
             await char.setNotifyValue(true);
             _notifySub?.cancel();
-            _notifySub = char.onValueReceived
-                .listen((value) => _handleNotification(value));
+            _notifySub = char.onValueReceived.listen(
+              (value) => _handleNotification(value),
+            );
           }
         }
       }

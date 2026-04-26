@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hybridart/pages/ble_demo/ble_demo_controller.dart';
-import 'package:hybridart/pages/home/tabs/video_feed_view.dart';
+import 'package:komodo/pages/ble_demo/ble_demo_controller.dart';
+import 'package:komodo/pages/home/tabs/video_feed_view.dart';
 import 'tabs/home_tab.dart';
 import 'tabs/short_video_tab.dart';
 import 'tabs/message_tab.dart';
@@ -82,10 +82,7 @@ class _HomePageState extends State<HomePage> {
 
   void _onPlusPressed() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('点击了 + 按钮'),
-        duration: Duration(seconds: 1),
-      ),
+      const SnackBar(content: Text('点击了 + 按钮'), duration: Duration(seconds: 1)),
     );
   }
 
@@ -110,10 +107,12 @@ class _HomePageState extends State<HomePage> {
   Widget _buildBottomNavBar(BuildContext context) {
     // 短视频Tab选中时，底部导航栏使用深色背景
     final isVideoTab = _currentIndex == 1;
-    final bgColor =
-        isVideoTab ? Colors.black : Theme.of(context).colorScheme.surface;
-    final shadowColor =
-        isVideoTab ? Colors.transparent : Colors.black.withOpacity(0.08);
+    final bgColor = isVideoTab
+        ? Colors.black
+        : Theme.of(context).colorScheme.surface;
+    final shadowColor = isVideoTab
+        ? Colors.transparent
+        : Colors.black.withOpacity(0.08);
 
     return Container(
       decoration: BoxDecoration(
@@ -182,8 +181,8 @@ class _HomePageState extends State<HomePage> {
     final color = isDarkBg
         ? (isActive ? Colors.white : Colors.white70)
         : (isActive
-            ? Theme.of(context).colorScheme.primary
-            : Colors.grey[600]!);
+              ? Theme.of(context).colorScheme.primary
+              : Colors.grey[600]!);
 
     return Expanded(
       child: InkWell(

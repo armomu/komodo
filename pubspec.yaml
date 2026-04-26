@@ -1,4 +1,4 @@
-name: hybridart
+name: komodo
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.3.4 <4.0.0'
+  sdk: '>=3.8.0 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -51,6 +51,9 @@ dependencies:
 
   # Lottie 动画播放
   lottie: ^3.1.0
+
+  # 堆叠卡片轮播（支持 STACK/TINDER 等多种布局）
+  card_swiper: ^3.0.1
 
   # 文件选择（OTA 升级包选择）
   file_picker: ^8.0.5
