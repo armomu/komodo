@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:komodo/pages/live/live_push.dart';
 import 'package:komodo/pages/live/push_demo.dart';
 import '../pages/home/home_page.dart';
 import '../pages/settings/settings_page.dart';
@@ -17,6 +18,7 @@ abstract class Routes {
   static const String live = '/live';
   static const String bleDemo = '/ble-demo';
   static const String livePushDemo = '/live-push-demo';
+  static const String livePush = '/live-push';
 }
 
 /// 路由配置
@@ -68,6 +70,12 @@ class AppPages {
     GetPage(
       name: Routes.livePushDemo,
       page: () => const CameraExampleHome(),
+      transition: Transition.downToUp,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: Routes.livePush,
+      page: () => const LivePushPage(),
       transition: Transition.downToUp,
       transitionDuration: const Duration(milliseconds: 300),
     ),
