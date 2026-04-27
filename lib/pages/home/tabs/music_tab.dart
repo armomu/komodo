@@ -132,7 +132,7 @@ class _MusicTabState extends State<MusicTab> {
                 ],
               ),
 
-              titlePadding: const EdgeInsets.fromLTRB(16, 16, 0, 16),
+              titlePadding: const EdgeInsets.fromLTRB(16, 16, 3, 0),
             ),
           ),
         ];
@@ -182,127 +182,151 @@ class _MusicTabState extends State<MusicTab> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // 标题区域
           const Text(
-            '黑话经典',
+            'Classic slang',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
-          Stack(
-            children: [
-              Row(
-                children: [
-                  // 音乐图标
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF32CD32), // 绿色
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.music_note,
-                      size: 14,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // 歌曲信息
-                  const Text(
-                    'Narcissism',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                  ),
-                  const SizedBox(width: 2),
-                  const Text(
-                    '- SUNMI(이선미)',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-                  ),
+          Swiper(
+            itemBuilder: (BuildContext context, int index) {
+              return _buildMusicSlangCard(context);
+            },
 
-                  // 圆形头像
-                ],
-              ),
-              // 歌词展示区域
-              Container(
-                height: 60,
-                margin: const EdgeInsets.only(top: 34),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A1A1A),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.05),
-                    width: 1,
-                  ),
-                ),
-                clipBehavior: Clip.hardEdge,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // 背景图片（带高斯模糊）
-                      ImageFiltered(
-                        imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Image.network(
-                          'https://picsum.photos/seed/music/72/72',
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      // 可选：加一层遮罩提升可读性
-                      Container(color: Colors.black.withOpacity(0.3)),
-                      // 其他前景内容放这里
-                      Center(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              '当愚昧成为主流，清醒就是犯罪。',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white.withOpacity(0.85),
-                                height: 1.5,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Narcissism · SUNMI',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                                color: Colors.white.withOpacity(0.5),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            itemCount: 3,
+            viewportFraction: 0.8,
+            scale: 0.9,
 
-              Positioned(
-                right: 10,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(40),
-                    border: Border.all(width: 2),
-                  ),
-                  child: const CircleAvatar(
-                    radius: 26, // 半径（不是直径）
-                    // 如果图片加载失败，可显示占位背景
-                    backgroundColor: Color(0xFF32CD32),
-                    backgroundImage: NetworkImage(
-                      'https://picsum.photos/seed/user/60/60',
-                    ), // 可选：fallback 图标
-                  ),
-                ),
-              ),
-            ],
+            // axisDirection: AxisDirection.right,
+            itemWidth: itemWidth - 32,
+            itemHeight: itemHeight,
+            // layout: SwiperLayout.DEFAULT,
+            // controller: _swiperController,
+            // itemCount: 3,
           ),
 
           // 歌曲信息行
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMusicSlangCard(BuildContext context) {
+    return Container(
+      height: 180,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Stack(
+        children: [
+          Row(
+            children: [
+              // 音乐图标
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF32CD32), // 绿色
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.music_note,
+                  size: 14,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(width: 12),
+              // 歌曲信息
+              const Text(
+                'Narcissism',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(width: 2),
+              const Text(
+                '- SUNMI(이선미)',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+              ),
+
+              // 圆形头像
+            ],
+          ),
+          // 歌词展示区域
+          Container(
+            height: 80,
+            margin: const EdgeInsets.only(top: 34),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1A1A),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.05),
+                width: 1,
+              ),
+            ),
+            clipBehavior: Clip.hardEdge,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // 背景图片（带高斯模糊）
+                  ImageFiltered(
+                    imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Image.network(
+                      'https://picsum.photos/seed/music/72/72',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  // 可选：加一层遮罩提升可读性
+                  Container(color: Colors.black.withOpacity(0.3)),
+                  // 其他前景内容放这里
+                  Center(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '当愚昧成为主流，清醒就是犯罪。',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white.withOpacity(0.85),
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Narcissism · SUNMI',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.white.withOpacity(0.5),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          Positioned(
+            right: 10,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(40),
+                border: Border.all(width: 2, color: Colors.white),
+              ),
+              child: const CircleAvatar(
+                radius: 26, // 半径（不是直径）
+                // 如果图片加载失败，可显示占位背景
+                backgroundColor: Color(0xFF32CD32),
+                backgroundImage: NetworkImage(
+                  'https://picsum.photos/id/237/200/200',
+                ), // 可选：fallback 图标
+              ),
+            ),
+          ),
         ],
       ),
     );
