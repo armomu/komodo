@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:card_swiper/card_swiper.dart';
+import 'package:komodo/routes/app_routes.dart';
 
 /// 发现页 — 深色主题，堆叠轮播卡片设计（基于 card_swiper）
 class MusicTab extends StatefulWidget {
@@ -122,9 +123,11 @@ class _MusicTabState extends State<MusicTab> {
                     ),
                   ),
                   IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Get.toNamed(Routes.live);
+                    },
                     icon: Icon(
-                      Icons.all_inclusive,
+                      Icons.live_tv,
                       size: 18,
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
@@ -170,164 +173,98 @@ class _MusicTabState extends State<MusicTab> {
       itemCount: _carouselCards.length,
     );
   }
+  // ════════════════════════════════════════════════════════════════════════
+  // ③ 音乐歌词卡片 — 黑色主题卡片设计，可左右滑动，两侧露出相邻卡片
+  // ════════════════════════════════════════════════════════════════════════
 
-  // ════════════════════════════════════════════════════════════════════════
-  // ③ 音乐歌词卡片 — 黑色主题卡片设计
-  // ════════════════════════════════════════════════════════════════════════
+  static const List<_SlangCardData> _slangCards = [
+    _SlangCardData(
+      songName: 'Narcissism',
+      artist: 'SUNMI(이선미)',
+      lyrics: '当愚昧成为主流，清醒就是犯罪。',
+      avatarUrl: 'https://picsum.photos/id/237/200/200',
+      bgBlurUrl: 'https://picsum.photos/seed/music/72/72',
+      accentColor: Color(0xFF32CD32),
+    ),
+    _SlangCardData(
+      songName: 'Pink Venom',
+      artist: 'BLACKPINK',
+      lyrics: 'This that pink venom, get \'em get \'em get \'em',
+      avatarUrl: 'https://picsum.photos/id/238/200/200',
+      bgBlurUrl: 'https://picsum.photos/seed/music2/72/72',
+      accentColor: Color.fromARGB(255, 30, 176, 50),
+    ),
+    _SlangCardData(
+      songName: 'Die With A Smile',
+      artist: 'Bruno Mars',
+      lyrics: 'If the world was ending, I\'d wanna be next to you.',
+      avatarUrl: 'https://picsum.photos/id/239/200/200',
+      bgBlurUrl: 'https://picsum.photos/seed/music3/72/72',
+      accentColor: Color(0xFFE74C3C),
+    ),
+    _SlangCardData(
+      songName: 'Fortnight',
+      artist: 'Taylor Swift',
+      lyrics: 'And for a fortnight there, we were forever.',
+      avatarUrl: 'https://picsum.photos/id/240/200/200',
+      bgBlurUrl: 'https://picsum.photos/seed/music4/72/72',
+      accentColor: Color(0xFF3498DB),
+    ),
+    _SlangCardData(
+      songName: 'Yes, And?',
+      artist: 'Ariana Grande',
+      lyrics: 'Say that shit with your chest, and be your own fan.',
+      avatarUrl: 'https://picsum.photos/id/241/200/200',
+      bgBlurUrl: 'https://picsum.photos/seed/music5/72/72',
+      accentColor: Color(0xFFF39C12),
+    ),
+  ];
 
   Widget _buildMusicLyricsCard(BuildContext context) {
-    final double itemWidth = MediaQuery.of(context).size.width;
-    final double itemHeight = itemWidth * 0.5625;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           // 标题区域
-          const Text(
-            'Classic slang',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              '黑话 Slang',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+            ),
           ),
           const SizedBox(height: 8),
-          Swiper(
-            itemBuilder: (BuildContext context, int index) {
-              return _buildMusicSlangCard(context);
-            },
-
-            itemCount: 3,
-            viewportFraction: 0.8,
-            scale: 0.9,
-
-            // axisDirection: AxisDirection.right,
-            itemWidth: itemWidth - 32,
-            itemHeight: itemHeight,
-            // layout: SwiperLayout.DEFAULT,
-            // controller: _swiperController,
-            // itemCount: 3,
-          ),
-
-          // 歌曲信息行
+          _buildMusicSlangCard(context),
         ],
       ),
     );
   }
 
   Widget _buildMusicSlangCard(BuildContext context) {
-    return Container(
+    // viewportFraction < 1.0 让左右两侧露出相邻卡片边缘
+    const double viewportFraction = 0.92;
+    const double cardHorizontalMargin = 6.0; // 卡片之间视觉间距
+
+    return SizedBox(
       height: 180,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Stack(
-        children: [
-          Row(
-            children: [
-              // 音乐图标
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF32CD32), // 绿色
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(
-                  Icons.music_note,
-                  size: 14,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // 歌曲信息
-              const Text(
-                'Narcissism',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(width: 2),
-              const Text(
-                '- SUNMI(이선미)',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-              ),
-
-              // 圆形头像
-            ],
-          ),
-          // 歌词展示区域
-          Container(
-            height: 80,
-            margin: const EdgeInsets.only(top: 34),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1A1A1A),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.05),
-                width: 1,
-              ),
+      child: PageView.builder(
+        itemCount: _slangCards.length,
+        padEnds: false, // 关键：让第一页和最后一页也能贴边，两侧露出
+        controller: PageController(
+          viewportFraction: viewportFraction,
+          initialPage: 0,
+        ),
+        itemBuilder: (context, index) {
+          final data = _slangCards[index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: cardHorizontalMargin,
             ),
-            clipBehavior: Clip.hardEdge,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // 背景图片（带高斯模糊）
-                  ImageFiltered(
-                    imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Image.network(
-                      'https://picsum.photos/seed/music/72/72',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  // 可选：加一层遮罩提升可读性
-                  Container(color: Colors.black.withOpacity(0.3)),
-                  // 其他前景内容放这里
-                  Center(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '当愚昧成为主流，清醒就是犯罪。',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white.withOpacity(0.85),
-                            height: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Narcissism · SUNMI',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.white.withOpacity(0.5),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          Positioned(
-            right: 10,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(40),
-                border: Border.all(width: 2, color: Colors.white),
-              ),
-              child: const CircleAvatar(
-                radius: 26, // 半径（不是直径）
-                // 如果图片加载失败，可显示占位背景
-                backgroundColor: Color(0xFF32CD32),
-                backgroundImage: NetworkImage(
-                  'https://picsum.photos/id/237/200/200',
-                ), // 可选：fallback 图标
-              ),
-            ),
-          ),
-        ],
+            child: _SlangCardItem(data: data),
+          );
+        },
       ),
     );
   }
@@ -569,6 +506,167 @@ class _MainCardContent extends StatelessWidget {
 // ══════════════════════════════════════════════════════════════════════════════
 // 数据模型
 // ══════════════════════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Slang 卡片单项 — 保持原有视觉风格
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _SlangCardItem extends StatelessWidget {
+  final _SlangCardData data;
+
+  const _SlangCardItem({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(left: 10),
+      child: Stack(
+        children: [
+          Row(
+            children: [
+              // 音乐图标
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: data.accentColor,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.music_note,
+                  size: 14,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(width: 12),
+              // 歌曲信息
+              Text(
+                data.songName,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(width: 2),
+              Text(
+                '- ${data.artist}',
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+          // 歌词展示区域
+          Container(
+            height: 80,
+            margin: const EdgeInsets.only(top: 34),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1A1A),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.05),
+                width: 1,
+              ),
+            ),
+            clipBehavior: Clip.hardEdge,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // 背景图片（带高斯模糊）
+                  ImageFiltered(
+                    imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Image.network(
+                      data.bgBlurUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) =>
+                          Container(color: const Color(0xFF1A1A2E)),
+                    ),
+                  ),
+                  // 遮罩提升可读性
+                  Container(color: Colors.black.withOpacity(0.3)),
+                  // 前景歌词内容
+                  Center(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            data.lyrics,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white.withOpacity(0.85),
+                              height: 1.5,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${data.songName} · ${data.artist}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.white.withOpacity(0.5),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // 右侧头像
+          Positioned(
+            right: 10,
+            top: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(40),
+                border: Border.all(width: 2, color: Colors.white),
+              ),
+              child: CircleAvatar(
+                radius: 22,
+                backgroundColor: data.accentColor,
+                backgroundImage: NetworkImage(data.avatarUrl),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 数据模型
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _SlangCardData {
+  final String songName;
+  final String artist;
+  final String lyrics;
+  final String avatarUrl;
+  final String bgBlurUrl;
+  final Color accentColor;
+
+  const _SlangCardData({
+    required this.songName,
+    required this.artist,
+    required this.lyrics,
+    required this.avatarUrl,
+    required this.bgBlurUrl,
+    required this.accentColor,
+  });
+}
 
 class _CarouselCardData {
   final String imageUrl;

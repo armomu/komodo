@@ -26,3 +26,52 @@
   - 歌词展示区域
 - 卡片包含细致的分割线和层次感设计
 - 适配深色主题的透明度控制
+
+## 技术问题与解决
+### Swiper高度约束问题
+- **问题1**：Horizontal viewport was given unbounded height错误
+  - **原因**：Swiper在Column(mainAxisSize: MainAxisSize.min)中无法获得足够高度约束
+  - **解决方案**：用SizedBox包裹Swiper并指定明确高度
+  - **代码示例**：`SizedBox(height: 220, child: Swiper(...))`
+
+- **问题2**：Null check operator used on a null value和RenderBox布局错误
+  - **原因分析**：
+    1. ListView中的Swiper缺乏明确的高度约束
+    2. Swiper的itemHeight参数与实际项目高度不匹配
+    3. Column的mainAxisSize: min导致尺寸计算冲突
+    4. 复杂的尺寸计算造成不一致
+  - **解决方案**：
+    1. 为所有Swiper提供明确的父容器高度约束
+    2. 统一Swiper的itemHeight与实际项目高度
+    3. 将Column的mainAxisSize从min改为max避免冲突
+    4. 简化尺寸计算，使用固定值代替复杂计算
+  - **代码示例**：
+    ```dart
+    // 堆叠轮播卡片
+    SizedBox(
+      height: itemHeight + 40,
+      child: Swiper(
+        itemHeight: itemHeight,
+        ...
+      ),
+    )
+    
+    // 音乐歌词卡片
+    SizedBox(
+      height: 200,
+      child: Swiper(
+        itemHeight: 180, // 与项目高度一致
+        ...
+      ),
+    )
+    ```
+
+- **核心经验**：
+  1. 在ListView/Column等可滚动容器中使用Swiper时，必须用SizedBox提供明确高度约束
+  2. Swiper的itemHeight参数必须与实际渲染的项目高度完全一致
+  3. 避免在复杂布局中使用mainAxisSize: MainAxisSize.min与Swiper组合
+  4. 优先使用简单、明确的尺寸值，避免动态计算导致的布局冲突
+  5. 对于card_swiper组件，需要同时考虑itemHeight和包裹容器的高度
+
+- **文件位置**：lib/pages/home/tabs/music_tab.dart
+- **修复时间**：2026-04-27
