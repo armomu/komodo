@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:komodo/pages/ble_demo/ble_demo_controller.dart';
 import 'package:komodo/pages/home/tabs/video_feed_view.dart';
+import 'package:komodo/routes/app_routes.dart';
 import 'tabs/music_tab.dart';
 import 'tabs/short_video_tab.dart';
 import 'tabs/message_tab.dart';
@@ -227,7 +228,9 @@ class _HomePageState extends State<HomePage> {
   Widget _buildPlusItem(BuildContext context) {
     return Expanded(
       child: GestureDetector(
-        onTap: () => _onTabTapped(2),
+        onTap: () {
+          Get.toNamed(Routes.livePushDemo);
+        },
         child: Center(
           child: Container(
             width: 38,

@@ -77,5 +77,10 @@
 	<string>应用需要使用蓝牙连接充电桩设备</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>应用需要使用蓝牙连接充电桩设备</string>
+
+	<key>NSCameraUsageDescription</key>
+	<string>需要使用摄像头</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>需要使用麦克风</string>
 </dict>
 </plist>

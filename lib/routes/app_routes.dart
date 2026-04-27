@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:komodo/pages/live/push_demo.dart';
 import '../pages/home/home_page.dart';
 import '../pages/settings/settings_page.dart';
 import '../pages/lifecycle/lifecycle_detail_page.dart';
@@ -15,6 +16,7 @@ abstract class Routes {
   static const String lifecycleDemo = '/lifecycle-demo';
   static const String live = '/live';
   static const String bleDemo = '/ble-demo';
+  static const String livePushDemo = '/live-push-demo';
 }
 
 /// 路由配置
@@ -62,6 +64,12 @@ class AppPages {
       middlewares: [AuthMiddleware()],
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: Routes.livePushDemo,
+      page: () => const CameraExampleHome(),
+      transition: Transition.downToUp,
+      transitionDuration: const Duration(milliseconds: 300),
     ),
   ];
 }
