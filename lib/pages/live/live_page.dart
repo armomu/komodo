@@ -51,7 +51,7 @@ class _LivePageState extends State<LivePage>
   void _initVlcPlayer() {
     _controller =
         VideoPlayerController.networkUrl(
-            Uri.parse('http://192.168.1.38:8000/live/stream.m3u8'),
+            Uri.parse('http://192.168.1.38:8085/live/stream.m3u8'),
           )
           ..initialize().then((_) {
             // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
