@@ -34,6 +34,19 @@ IconData getCameraLensIcon(CameraLensDirection? direction) {
   }
 }
 
+String _cameraLensLabel(CameraLensDirection? direction) {
+  switch (direction) {
+    case CameraLensDirection.back:
+      return '后置';
+    case CameraLensDirection.front:
+      return '前置';
+    case CameraLensDirection.external:
+      return '外置';
+    default:
+      return '未知';
+  }
+}
+
 void logError(String code, String message) =>
     print('Error: $code\nError Message: $message');
 
@@ -47,24 +60,23 @@ class CameraExampleHomeState extends State<CameraExampleHome>
   String? imagePath;
   String? videoPath;
   VoidCallback? videoPlayerListener;
-  bool enableAudio = true; // 是否启用音频
-  bool isFlashLight = false; // false表示关闭闪光灯，true表示打开闪光灯
+  bool enableAudio = true;
+  bool isFlashLight = false;
   CameraDescription? _cameraDesc;
   final TextEditingController _textFieldController = TextEditingController(
     text: "rtmp://192.168.1.38:1935/live/stream",
   );
 
-  /// RootEncoder 2.7.0+：BT.709 与 RTMP ping/RTT 示例
+  /// RootEncoder 2.7.0+: BT.709 与 RTMP ping/RTT
   bool _forceBt709 = false;
   bool _rtmpShouldSendPings = false;
   Timer? _streamStatsTimer;
   String _androidStreamStatsLine = '';
 
-  /// HaishinKit 2.2.5+：分屏/多任务时保持相机（iOS 17+）
+  /// HaishinKit 2.2.5+: 分屏/多任务时保持相机（iOS 17+）
   bool _iosMultitaskingCamera = false;
 
   bool get isStreaming => controller.value.isStreamingVideoRtmp ?? false;
-
   bool get isControllerInitialized => controller.value.isInitialized ?? false;
   bool get isRecordingVideo => controller.value.isRecordingVideo ?? false;
   bool get isRecordingPaused => controller.value.isRecordingPaused;
@@ -84,13 +96,13 @@ class CameraExampleHomeState extends State<CameraExampleHome>
     } on CameraException catch (e) {
       logError(e.code, e.description ?? "No description found");
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        showInSnackBar("Camera error: ${e.code}");
+        showInSnackBar("相机错误: ${e.code}");
       });
       return;
     }
     if (cameras.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        showInSnackBar("No available cameras");
+        showInSnackBar("未检测到可用相机");
       });
       return;
     }
@@ -108,406 +120,472 @@ class CameraExampleHomeState extends State<CameraExampleHome>
     super.dispose();
   }
 
-  //
   void onDispose() async {
     _streamStatsTimer?.cancel();
     await WakelockPlus.disable();
     await controller.dispose();
   }
-  // @override
-  // Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
-  //   // App state changed before we got the chance to initialize.
-  //   if (!isControllerInitialized) {
-  //     return;
-  //   }
-  //   if (state == AppLifecycleState.paused) {
-
-  //     await pauseVideoRecording();
-  //   } else if (state == AppLifecycleState.resumed) {
-  //     await resumeVideoRecording();
-  //   }
-  // }
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
-    Color color = Colors.grey;
+    Color borderColor = Colors.grey;
 
     if (isRecordingVideo) {
-      color = Colors.redAccent;
+      borderColor = Colors.redAccent;
     } else if (isStreaming) {
-      color = Colors.blueAccent;
+      borderColor = Colors.blueAccent;
     }
 
     return Scaffold(
       key: _scaffoldKey,
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Camera example'),
-        actions: Platform.isAndroid
-            ? [
-                ElevatedButton(
-                  onPressed: isControllerInitialized
-                      ? () async {
-                          await controller.setFilter(0);
-                        }
-                      : null,
-                  child: const Text("set filter"),
-                ),
-                ElevatedButton(
-                  onPressed: isControllerInitialized
-                      ? () async {
-                          await controller.removeFilter(0);
-                        }
-                      : null,
-                  child: const Text("remove filter"),
-                ),
-                ElevatedButton(
-                  onPressed: isControllerInitialized
-                      ? () async {
-                          await controller.setFilter(43);
-                        }
-                      : null,
-                  child: const Text('edge HQ'),
-                ),
-              ]
-            : null,
+        backgroundColor: Colors.black,
+        title: const Text('相机推流', style: TextStyle(color: Colors.white)),
+        iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          if (Platform.isAndroid) ...[
+            // 滤镜按钮组
+            _appBarFilterBtn('原始', () => controller.setFilter(0)),
+            _appBarFilterBtn('美白', () => controller.setFilter(43)),
+            _appBarFilterBtn('关闭', () => controller.removeFilter(0)),
+          ],
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: isControllerInitialized
+                ? () async {
+                    await controller.dispose();
+                  }
+                : null,
+          ),
+        ],
       ),
       body: Column(
         children: <Widget>[
+          // 相机预览区
           Expanded(
-            flex: 2,
+            flex: 3,
             child: Container(
+              margin: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 color: Colors.black,
-                border: Border.all(color: color, width: 3.0),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: borderColor, width: 3.0),
               ),
-              child: Center(child: _cameraPreviewWidget()),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(9),
+                child: _cameraPreviewWidget(),
+              ),
             ),
           ),
-          Expanded(flex: 1, child: _captureControlRowWidget()),
+          // 控制面板
+          Expanded(flex: 2, child: _controlPanel()),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: isControllerInitialized
-            ? () async {
-                await controller.dispose();
-              }
-            : null,
-        child: const Icon(Icons.close),
       ),
     );
   }
 
-  /// Display camera preview (or a message if the preview is not available).
+  Widget _appBarFilterBtn(String label, VoidCallback onPressed) {
+    return TextButton(
+      onPressed: isControllerInitialized ? onPressed : null,
+      child: Text(label, style: const TextStyle(color: Colors.white)),
+    );
+  }
+
+  /// 相机预览（或提示文字）
   Widget _cameraPreviewWidget() {
     if (!isControllerInitialized) {
-      return const Text(
-        'Tap a camera',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 24.0,
-          fontWeight: FontWeight.w900,
+      return const Center(
+        child: Text(
+          '相机初始化中...',
+          style: TextStyle(color: Colors.white54, fontSize: 18),
         ),
       );
     }
-
     return AspectRatio(
       aspectRatio: controller.value.aspectRatio,
       child: CameraPreview(controller),
     );
   }
 
-  /// Display the thumbnail of the captured image or video.
-  Widget _thumbnailWidget() {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          imagePath == null
-              ? Container()
-              : SizedBox(
-                  width: 64.0,
-                  height: 64.0,
-                  child: Image.file(File(imagePath!)),
+  /// 控制面板主体
+  Widget _controlPanel() {
+    if (!isControllerInitialized) return Container();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: const BoxDecoration(
+        color: Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            // ===== 第一行：主操作按钮 =====
+            Row(
+              children: [
+                // 拍照（仅 Android）
+                if (Platform.isAndroid)
+                  Expanded(
+                    child: _actionBtn(
+                      '拍照',
+                      Icons.camera_alt,
+                      Colors.blue,
+                      onTakePictureButtonPressed,
+                      enabled: !(isRecordingVideo || isStreaming),
+                    ),
+                  ),
+                if (Platform.isAndroid) const SizedBox(width: 8),
+                // 本地录制
+                Expanded(
+                  child: _actionBtn(
+                    isRecordingVideo ? '停止录制' : '开始录制',
+                    isRecordingVideo ? Icons.stop : Icons.videocam,
+                    isRecordingVideo ? Colors.red : Colors.blue,
+                    onVideoRecordButtonPressed,
+                  ),
                 ),
+                const SizedBox(width: 8),
+                // 推流
+                Expanded(
+                  child: _actionBtn(
+                    isStreaming ? '停止推流' : '开始推流',
+                    isStreaming ? Icons.stop : Icons.live_tv,
+                    isStreaming ? Colors.red : Colors.orange,
+                    () => startVideoStreaming(),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            // ===== 第二行：同时录制+推流、暂停录制 =====
+            Row(
+              children: [
+                Expanded(
+                  child: _actionBtn(
+                    (isRecordingVideo && isStreaming) ? '停止录推' : '同时录推',
+                    (isRecordingVideo && isStreaming)
+                        ? Icons.stop
+                        : Icons.fiber_new,
+                    (isRecordingVideo && isStreaming)
+                        ? Colors.red
+                        : Colors.deepPurple,
+                    onRecordingAndVideoStreamingButtonPressed,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // 暂停录制（仅 Android）
+                if (Platform.isAndroid)
+                  Expanded(
+                    child: _actionBtn(
+                      isRecordingPaused ? '继续录制' : '暂停录制',
+                      isRecordingPaused ? Icons.play_arrow : Icons.pause,
+                      isRecordingPaused ? Colors.green : Colors.grey,
+                      () async {
+                        if (isRecordingPaused) {
+                          await resumeVideoRecording();
+                        } else {
+                          await pauseVideoRecording();
+                        }
+                      },
+                      enabled: isRecordingVideo,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            const Divider(color: Colors.white24, height: 1),
+            const SizedBox(height: 10),
+
+            // ===== 第三行：相机切换 =====
+            _sectionTitle('切换相机'),
+            const SizedBox(height: 6),
+            _cameraSwitcher(),
+            const SizedBox(height: 14),
+
+            // ===== 第四行：音频 + 闪光灯 =====
+            Row(
+              children: [
+                Expanded(
+                  child: _toggleRow('麦克风', Icons.mic, enableAudio, (v) async {
+                    if (isControllerInitialized) {
+                      await controller.switchAudio(v);
+                      setState(() => enableAudio = v);
+                    } else {
+                      showInSnackBar('请先选择相机');
+                    }
+                  }),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _toggleRow('闪光灯', Icons.flash_on, isFlashLight, (
+                    v,
+                  ) async {
+                    if (isControllerInitialized &&
+                        _cameraDesc?.lensDirection ==
+                            CameraLensDirection.back) {
+                      setState(() => isFlashLight = v);
+                      await controller.switchFlashLight(v);
+                    } else {
+                      showInSnackBar('请先切换到后置相机');
+                    }
+                  }),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // ===== 平台专属设置 =====
+            if (Platform.isAndroid) ...[
+              const Divider(color: Colors.white24, height: 1),
+              const SizedBox(height: 10),
+              _sectionTitle('高级设置（Android）'),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Expanded(
+                    child: _toggleRow(
+                      'BT.709 色彩',
+                      Icons.color_lens,
+                      _forceBt709,
+                      (v) => setState(() => _forceBt709 = v),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _toggleRow(
+                      'RTMP Ping',
+                      Icons.network_ping,
+                      _rtmpShouldSendPings,
+                      (v) => setState(() => _rtmpShouldSendPings = v),
+                    ),
+                  ),
+                ],
+              ),
+              if (_androidStreamStatsLine.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black26,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    _androidStreamStatsLine,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Colors.greenAccent,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ),
+              ],
+            ],
+
+            if (Platform.isIOS) ...[
+              const Divider(color: Colors.white24, height: 1),
+              const SizedBox(height: 10),
+              _sectionTitle('高级设置（iOS）'),
+              const SizedBox(height: 6),
+              _toggleRow(
+                '多任务相机 (iOS 17+)',
+                Icons.tablet_mac,
+                _iosMultitaskingCamera,
+                (v) async {
+                  setState(() => _iosMultitaskingCamera = v);
+                  if (isControllerInitialized) {
+                    try {
+                      await controller.setMultitaskingCameraAccessEnabled(v);
+                    } on CameraException catch (e) {
+                      _showCameraException(e);
+                    }
+                  }
+                },
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.settings, size: 18),
+                  label: const Text('HaishinKit 视频编码示例'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white70,
+                    side: const BorderSide(color: Colors.white24),
+                  ),
+                  onPressed: isControllerInitialized
+                      ? () async {
+                          try {
+                            await controller.setVideoSettings(
+                              expectedFrameRate: 30,
+                              bitRateMode: 'average',
+                            );
+                            showInSnackBar('已设置帧率=30、码率模式=average');
+                          } on CameraException catch (e) {
+                            _showCameraException(e);
+                          }
+                        }
+                      : null,
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 12),
+            // 缩略图预览
+            _thumbnailWidget(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String title) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.white54,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1,
+        ),
+      ),
+    );
+  }
+
+  /// 主操作按钮
+  Widget _actionBtn(
+    String label,
+    IconData icon,
+    Color color,
+    VoidCallback onPressed, {
+    bool enabled = true,
+  }) {
+    return ElevatedButton.icon(
+      icon: Icon(icon, size: 20),
+      label: Text(label, style: const TextStyle(fontSize: 13)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: enabled ? color : Colors.grey,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      onPressed: enabled ? onPressed : null,
+    );
+  }
+
+  /// 开关行
+  Widget _toggleRow(
+    String label,
+    IconData icon,
+    bool value,
+    ValueChanged<bool> onChanged,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(13),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: value ? Colors.greenAccent : Colors.white38,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: value ? Colors.white : Colors.white54,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          Switch(
+            value: value,
+            activeThumbColor: Colors.greenAccent,
+            onChanged: onChanged,
+          ),
         ],
       ),
     );
   }
 
-  /// Display the control bar with buttons to take pictures and record videos.
-  Widget _captureControlRowWidget() {
-    if (!isControllerInitialized) return Container();
-
-    return ListView(
-      children: <Widget>[
-        // Only Android has implemented it
-        if (Platform.isAndroid)
-          ElevatedButton.icon(
-            icon: const Icon(Icons.camera_alt, color: Colors.white),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-            label: const Text(
-              "Take Picture",
-              style: TextStyle(color: Colors.white),
-            ),
-            onPressed:
-                (isControllerInitialized && (isRecordingVideo || isStreaming))
-                ? onTakePictureButtonPressed
-                : null,
+  /// 相机切换
+  Widget _cameraSwitcher() {
+    if (cameras.isEmpty) {
+      return const Text('未检测到相机', style: TextStyle(color: Colors.white54));
+    }
+    return Wrap(
+      spacing: 8,
+      children: cameras.map((c) {
+        final isSelected = _cameraDesc == c;
+        return ChoiceChip(
+          avatar: Icon(
+            getCameraLensIcon(c.lensDirection),
+            size: 18,
+            color: isSelected ? Colors.white : Colors.white54,
           ),
-        const SizedBox(width: 5),
-        // Record Localhost video
-        ElevatedButton.icon(
-          icon: Icon(
-            !isRecordingVideo ? Icons.videocam : Icons.stop,
-            color: Colors.white,
+          label: Text(_cameraLensLabel(c.lensDirection)),
+          selected: isSelected,
+          selectedColor: Colors.blue,
+          backgroundColor: const Color(0xFF2A2A2A),
+          labelStyle: TextStyle(
+            color: isSelected ? Colors.white : Colors.white54,
           ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: !isRecordingVideo ? Colors.blue : Colors.red,
-          ),
-          label: Text(
-            !isRecordingVideo ? "Start Record" : "Stop Record",
-            style: const TextStyle(color: Colors.white),
-          ),
-          onPressed: isControllerInitialized
-              ? () {
-                  if (!isRecordingVideo) {
-                    onVideoRecordButtonPressed();
-                  } else {
-                    stopVideoRecording();
-                  }
-                }
-              : null,
-        ),
-        const SizedBox(width: 5),
-        ElevatedButton.icon(
-          icon: Icon(
-            !isStreaming ? Icons.play_arrow : Icons.stop,
-            color: Colors.white,
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: !isStreaming ? Colors.blue : Colors.red,
-          ),
-          label: Text(
-            !isStreaming ? "Start Streaming" : "Stop Streaming",
-            style: const TextStyle(color: Colors.white),
-          ),
-          onPressed: isControllerInitialized
-              ? () {
-                  if (!isStreaming) {
-                    startVideoStreaming();
-                  } else {
-                    stopVideoStreaming();
-                  }
-                }
-              : null,
-        ),
-        // Only Android has implemented it
-        if (Platform.isAndroid)
-          ElevatedButton.icon(
-            icon: Icon(
-              isRecordingPaused ? Icons.play_arrow : Icons.pause,
-              color: Colors.white,
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: !isStreamingPaused ? Colors.blue : Colors.red,
-            ),
-            label: Text(
-              !isRecordingPaused ? "pause Recording" : "resume Recording",
-              style: const TextStyle(color: Colors.white),
-            ),
-            onPressed: isControllerInitialized && isRecordingVideo
-                ? () async {
-                    if (isRecordingPaused) {
-                      await resumeVideoRecording();
-                    } else {
-                      await pauseVideoRecording();
-                    }
-                  }
-                : null,
-          ),
-        // stop all Streaming and Recording
-        ElevatedButton.icon(
-          icon: Icon(
-            !(isRecordingVideo && isStreaming) ? Icons.play_arrow : Icons.stop,
-            color: Colors.white,
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: !(isRecordingVideo && isStreaming)
-                ? Colors.blue
-                : Colors.red,
-          ),
-          label: Text(
-            !(isRecordingVideo && isStreaming)
-                ? "Start Streaming And Recording"
-                : "Stop Streaming And Recording",
-            style: const TextStyle(color: Colors.white),
-          ),
-          onPressed: isControllerInitialized
-              ? () {
-                  if (isRecordingVideo && isStreaming) {
-                    stopRecordingOrStreaming();
-                  } else {
-                    onRecordingAndVideoStreamingButtonPressed();
-                  }
-                }
-              : null,
-        ),
-        _cameraTogglesRowWidget(),
-        const SizedBox(width: 5),
-        Text('${enableAudio ? 'Enable' : 'Disable'} Audio'),
-        Switch(
-          value: enableAudio,
-          onChanged: (bool value) async {
-            if (isControllerInitialized) {
-              await controller.switchAudio(value);
-              setState(() {
-                enableAudio = value;
-              });
-            } else {
-              showInSnackBar('Please select a camera first.');
+          onSelected: (selected) {
+            if (selected && isControllerInitialized) {
+              onSwitchCameras(c);
             }
           },
-        ),
-        const SizedBox(width: 5),
-        Text('${isFlashLight ? 'Enable' : 'Disable'} FlashLight'),
-        Switch(
-          value: isFlashLight,
-          onChanged: (bool value) async {
-            if (isControllerInitialized &&
-                _cameraDesc?.lensDirection == CameraLensDirection.back) {
-              setState(() {
-                isFlashLight = value;
-              });
-              await controller.switchFlashLight(value);
-            } else {
-              showInSnackBar('Please select a camera first.');
-            }
-          },
-        ),
-        if (Platform.isAndroid) ...[
-          const SizedBox(height: 8),
-          const Text('BT.709 色彩 (RootEncoder 2.7+)'),
-          Switch(
-            value: _forceBt709,
-            onChanged: (v) {
-              setState(() => _forceBt709 = v);
-            },
-          ),
-          const Text('RTMP Ping / RTT (需推流前开启)'),
-          Switch(
-            value: _rtmpShouldSendPings,
-            onChanged: (v) {
-              setState(() => _rtmpShouldSendPings = v);
-            },
-          ),
-          if (_androidStreamStatsLine.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Text(
-                _androidStreamStatsLine,
-                style: const TextStyle(fontSize: 12),
-              ),
-            ),
-        ],
-        if (Platform.isIOS) ...[
-          const SizedBox(height: 8),
-          const Text('多任务相机 (HaishinKit 2.2.5+, iOS 17+)'),
-          Switch(
-            value: _iosMultitaskingCamera,
-            onChanged: (bool v) async {
-              setState(() => _iosMultitaskingCamera = v);
-              if (!isControllerInitialized) {
-                return;
-              }
-              try {
-                await controller.setMultitaskingCameraAccessEnabled(v);
-              } on CameraException catch (e) {
-                _showCameraException(e);
-              }
-            },
-          ),
-          ElevatedButton(
-            onPressed: isControllerInitialized
-                ? () async {
-                    try {
-                      await controller.setVideoSettings(
-                        expectedFrameRate: 30,
-                        bitRateMode: 'average',
-                      );
-                      showInSnackBar(
-                        '已设置 expectedFrameRate=30、bitRateMode=average（2.2.2 onMetaData / 2.2.1 VBR 基础）',
-                      );
-                    } on CameraException catch (e) {
-                      _showCameraException(e);
-                    }
-                  }
-                : null,
-            child: const Text('HaishinKit 视频编码示例'),
-          ),
-        ],
+        );
+      }).toList(),
+    );
+  }
 
-        _thumbnailWidget(),
+  /// 缩略图
+  Widget _thumbnailWidget() {
+    if (imagePath == null) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          '最近拍照',
+          style: TextStyle(color: Colors.white54, fontSize: 12),
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.file(
+            File(imagePath!),
+            height: 80,
+            width: 120,
+            fit: BoxFit.cover,
+          ),
+        ),
       ],
     );
   }
 
-  // switch cameras
+  // ========== 相机操作方法 ==========
+
   void onSwitchCameras(CameraDescription? cld) async {
-    if (cld == null) {
-      showInSnackBar("camersa not Empty");
-      return;
-    }
+    if (cld == null) return;
     try {
-      setState(() {
-        _cameraDesc = cld;
-      });
+      setState(() => _cameraDesc = cld);
       await controller.switchCamera(cld.name!);
       await WakelockPlus.enable();
     } on CameraException catch (e) {
       _showCameraException(e);
-      return;
     }
   }
 
-  /// Display a row of toggles to select the camera (or a message if no camera is available).
-  Widget _cameraTogglesRowWidget() {
-    if (cameras.isEmpty) {
-      return const Text('No camera found');
-    } else {
-      return RadioGroup<CameraDescription>(
-        groupValue: _cameraDesc,
-        onChanged: (CameraDescription? cld) {
-          if (isControllerInitialized) {
-            onSwitchCameras(cld);
-          }
-        },
-        child: Column(
-          children: cameras.map((cameraDescription) {
-            return SizedBox(
-              width: 90.0,
-              child: RadioListTile<CameraDescription>(
-                title: Icon(getCameraLensIcon(cameraDescription.lensDirection)),
-                value: cameraDescription,
-              ),
-            );
-          }).toList(),
-        ),
-      );
-    }
-  }
-
-  String timestamp() => DateTime.now().millisecondsSinceEpoch.toString();
-
-  void showInSnackBar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  //init camera
   void onNewCameraSelected(CameraDescription? cameraDescription) async {
     if (cameraDescription == null) return;
     if (Platform.isMacOS == false) {
@@ -526,113 +604,99 @@ class CameraExampleHomeState extends State<CameraExampleHome>
     } on CameraException catch (e) {
       _showCameraException(e);
     }
-    // If the controller is updated then update the UI.
     controller.addListener(() {
       if (mounted) setState(() {});
-
       if (controller.value.event != null) {
         final Map<dynamic, dynamic> event =
             controller.value.event as Map<dynamic, dynamic>;
         final String eventType = event['eventType'] as String;
-        //只有发生错误的时候才
         if ((eventType == "error" || eventType == 'rtmp_stopped') &&
             isStreaming) {
-          showInSnackBar('Camera error ${controller.value.errorDescription}');
+          showInSnackBar('相机异常: ${controller.value.errorDescription}');
           stopVideoStreaming();
-        } else {
-          print('Event $event');
-          showInSnackBar('Camera message ${controller.value.errorDescription}');
         }
       }
     });
+    if (mounted) setState(() {});
+  }
 
-    if (mounted) {
-      setState(() {});
-    }
+  String timestamp() => DateTime.now().millisecondsSinceEpoch.toString();
+
+  void showInSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   void onTakePictureButtonPressed() async {
     if (!isControllerInitialized) {
-      showInSnackBar('Error:  not init');
+      showInSnackBar('错误: 相机未初始化');
       return;
     }
     final Directory? extDir = Platform.isAndroid
         ? await getExternalStorageDirectory()
         : await getTemporaryDirectory();
-    if (extDir == null) {
-      return;
-    }
+    if (extDir == null) return;
     final String dirPath = '${extDir.path}/Pictures/flutter_test';
     await Directory(dirPath).create(recursive: true);
     final String filePath = '$dirPath/${timestamp()}.jpg';
-
     if (isTakingPicture) {
-      showInSnackBar('Error:  current is TakingPicture');
-      // A capture is already pending, do nothing.
+      showInSnackBar('正在拍照中，请稍候');
       return;
     }
-
     try {
       await controller.takePicture(filePath);
       if (mounted) {
-        setState(() {
-          imagePath = filePath;
-        });
-        showInSnackBar('Picture saved to $filePath');
+        setState(() => imagePath = filePath);
+        showInSnackBar('图片已保存');
       }
     } on CameraException catch (e) {
       _showCameraException(e);
-      return;
     }
   }
 
   void onVideoRecordButtonPressed() async {
     if (!isControllerInitialized) {
-      showInSnackBar('Error: not init');
+      showInSnackBar('错误: 相机未初始化');
       return;
     }
-
     final Directory? extDir = Platform.isAndroid
         ? await getExternalStorageDirectory()
         : await getTemporaryDirectory();
     if (extDir == null) return;
-
     final String dirPath = '${extDir.path}/Movies/flutter_test';
     await Directory(dirPath).create(recursive: true);
     final String filePath = '$dirPath/${timestamp()}.mp4';
-
     if (isRecordingVideo) {
-      // A recording is already started, do nothing.
-      showInSnackBar('Error: Recording Video');
+      showInSnackBar('正在录制中');
       return;
     }
-
     try {
       videoPath = filePath;
       await controller.startVideoRecording(filePath);
-      showInSnackBar('Saving video to $filePath');
+      showInSnackBar('开始录制');
       await WakelockPlus.enable();
     } on CameraException catch (e) {
       _showCameraException(e);
-      return null;
     }
   }
 
-  void startVideoStreaming() async {
+  Future<void> startVideoStreaming() async {
     if (!isControllerInitialized) {
-      showInSnackBar('Error: select a camera first.');
+      showInSnackBar('请先选择相机');
       return;
     }
-
     if (isStreaming) {
-      showInSnackBar('Error: is Streaming');
+      showInSnackBar('正在推流中');
       return;
     }
-
-    // Open up a dialog for the url
-    String myUrl = await _getUrl();
-    if (myUrl.isEmpty) {
-      showInSnackBar('url is empty');
+    String? myUrl = await _getUrl();
+    if (myUrl!.isEmpty) {
+      showInSnackBar('推流地址不能为空');
       return;
     }
     try {
@@ -641,41 +705,35 @@ class CameraExampleHomeState extends State<CameraExampleHome>
         await controller.setRtmpShouldSendPings(_rtmpShouldSendPings);
       }
       await controller.startVideoStreaming(myUrl);
-      showInSnackBar('Streaming video to $myUrl');
+      showInSnackBar('开始推流: $myUrl');
       await WakelockPlus.enable();
       _startAndroidStreamStatsTimer();
     } on CameraException catch (e) {
       _showCameraException(e);
-      return;
     }
   }
 
   void onRecordingAndVideoStreamingButtonPressed() async {
     if (!isControllerInitialized) {
-      showInSnackBar('Error: not init');
+      showInSnackBar('错误: 相机未初始化');
       return;
     }
-
     if (isStreaming) {
-      showInSnackBar('Error: is Streaming');
+      showInSnackBar('正在推流中');
       return;
     }
-
-    String myUrl = await _getUrl();
-    if (myUrl.isEmpty) {
-      showInSnackBar('url is empty');
+    String? myUrl = await _getUrl();
+    if (myUrl!.isEmpty) {
+      showInSnackBar('推流地址不能为空');
       return;
     }
     final Directory? extDir = Platform.isAndroid
         ? await getExternalStorageDirectory()
         : await getTemporaryDirectory();
-    if (extDir == null) {
-      return;
-    }
+    if (extDir == null) return;
     final String dirPath = '${extDir.path}/Movies/flutter_test';
     await Directory(dirPath).create(recursive: true);
     final String filePath = '$dirPath/${timestamp()}.mp4';
-
     try {
       if (Platform.isAndroid) {
         await controller.setForceBt709Color(_forceBt709);
@@ -683,16 +741,14 @@ class CameraExampleHomeState extends State<CameraExampleHome>
       }
       videoPath = filePath;
       await controller.startVideoRecordingAndStreaming(videoPath!, myUrl);
-      showInSnackBar('Recording streaming video to $myUrl');
+      showInSnackBar('开始录推');
       await WakelockPlus.enable();
       _startAndroidStreamStatsTimer();
     } on CameraException catch (e) {
       _showCameraException(e);
-      return;
     }
   }
 
-  // stop video
   void _startAndroidStreamStatsTimer() {
     if (!Platform.isAndroid) return;
     _streamStatsTimer?.cancel();
@@ -703,7 +759,7 @@ class CameraExampleHomeState extends State<CameraExampleHome>
         if (!mounted) return;
         setState(() {
           _androidStreamStatsLine =
-              'fps=${s.fps}  RTT=${s.rttMicros}µs  已发送字节=${s.bytesSend}';
+              'fps=${s.fps}  RTT=${s.rttMicros}µs  已发送=${s.bytesSend}';
         });
       } catch (_) {}
     });
@@ -712,14 +768,12 @@ class CameraExampleHomeState extends State<CameraExampleHome>
   void _stopAndroidStreamStatsTimer() {
     _streamStatsTimer?.cancel();
     _streamStatsTimer = null;
-    if (mounted) {
-      setState(() => _androidStreamStatsLine = '');
-    }
+    if (mounted) setState(() => _androidStreamStatsLine = '');
   }
 
   void stopRecordingOrStreaming() async {
     if (!isStreaming && !isRecordingVideo) {
-      showInSnackBar('Video stop streamed or recording');
+      showInSnackBar('当前无录推操作');
       return;
     }
     try {
@@ -728,34 +782,29 @@ class CameraExampleHomeState extends State<CameraExampleHome>
       await WakelockPlus.disable();
     } on CameraException catch (e) {
       _showCameraException(e);
-      return;
     }
   }
 
-  // stop Video Recording
   void stopVideoRecording() async {
     if (!isRecordingVideo) {
-      showInSnackBar('not Start Recording Video');
+      showInSnackBar('未在录制');
       return;
     }
     try {
       await controller.stopVideoRecording();
     } on CameraException catch (e) {
       _showCameraException(e);
-      return;
     }
   }
 
-  /// pause Video Recording
-  /// Only Android has implemented it
   Future<void> pauseVideoRecording() async {
     try {
       if (!isRecordingVideo) {
-        showInSnackBar('not Start Video recording');
+        showInSnackBar('未在录制');
         return;
       }
       await controller.pauseVideoRecording();
-      showInSnackBar('Video recording paused');
+      showInSnackBar('已暂停录制');
     } on CameraException catch (e) {
       _showCameraException(e);
       rethrow;
@@ -764,16 +813,14 @@ class CameraExampleHomeState extends State<CameraExampleHome>
     }
   }
 
-  /// resume Video Recording
-  /// Only Android has implemented it
   Future<void> resumeVideoRecording() async {
     try {
       if (!isRecordingVideo) {
-        showInSnackBar('not Start Video recording');
+        showInSnackBar('未在录制');
         return;
       }
       await controller.resumeVideoRecording();
-      showInSnackBar('Video recording resume');
+      showInSnackBar('已继续录制');
     } on CameraException catch (e) {
       _showCameraException(e);
       rethrow;
@@ -782,32 +829,29 @@ class CameraExampleHomeState extends State<CameraExampleHome>
     }
   }
 
-  Future<String> _getUrl() async {
-    // Open up a dialog for the url
+  Future<String?> _getUrl() async {
     String result = _textFieldController.text;
-
-    return await showDialog(
+    return await showDialog<String>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Url to Stream to'),
+          title: const Text('推流地址'),
           content: TextField(
             controller: _textFieldController,
-            decoration: const InputDecoration(hintText: "Url to Stream to"),
+            decoration: const InputDecoration(
+              hintText: 'rtmp://192.168.1.38:1935/live/stream',
+              border: OutlineInputBorder(),
+            ),
             onChanged: (String str) => result = str,
           ),
           actions: <Widget>[
             TextButton(
-              child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              child: const Text('取消'),
+              onPressed: () => Navigator.of(context).pop(''),
             ),
-            TextButton(
-              child: Text(MaterialLocalizations.of(context).okButtonLabel),
-              onPressed: () {
-                Navigator.pop(context, result);
-              },
+            ElevatedButton(
+              child: const Text('确认'),
+              onPressed: () => Navigator.pop(context, result),
             ),
           ],
         );
@@ -817,29 +861,24 @@ class CameraExampleHomeState extends State<CameraExampleHome>
 
   void stopVideoStreaming() async {
     if (!isControllerInitialized) {
-      showInSnackBar('Error: not init');
+      showInSnackBar('错误: 相机未初始化');
       return;
     }
     if (!isStreaming) {
-      showInSnackBar('Error: not is Streaming');
+      showInSnackBar('未在推流');
       return;
     }
-
     try {
       await controller.stopVideoStreaming();
       _stopAndroidStreamStatsTimer();
     } on CameraException catch (e) {
       _showCameraException(e);
-      return;
     }
   }
 
-  //
   void _showCameraException(CameraException e) {
     logError(e.code, e.description ?? "No description found");
-    showInSnackBar(
-      'Error: ${e.code}\n${e.description ?? "No description found"}',
-    );
+    showInSnackBar('错误: ${e.code} ${e.description ?? ""}');
   }
 }
 
@@ -854,11 +893,9 @@ class CameraApp extends StatelessWidget {
 List<CameraDescription> cameras = [];
 
 Future<void> main() async {
-  // Fetch the available cameras before initializing the app.
   try {
     WidgetsFlutterBinding.ensureInitialized();
     cameras = await availableCameras();
-    print("$cameras");
   } on CameraException catch (e) {
     logError(e.code, e.description ?? "No description found");
   }

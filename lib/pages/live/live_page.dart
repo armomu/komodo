@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-// import 'package:flutter_vlc_player/flutter_vlc_player.dart';
+import 'package:video_player/video_player.dart';
 import 'gift_lottie_overlay.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -24,7 +24,7 @@ class LivePage extends StatefulWidget {
 
 class _LivePageState extends State<LivePage>
     with SingleTickerProviderStateMixin {
-  // late VlcPlayerController _vlcController;
+  late VideoPlayerController _controller;
   // ── 状态 ──────────────────────────────────────────────────────────────────
   final TextEditingController _chatController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -49,19 +49,15 @@ class _LivePageState extends State<LivePage>
   final String _errorMessage = '';
 
   void _initVlcPlayer() {
-    // _vlcController = VlcPlayerController.network(
-    //   'rtmp://ns8.indexforce.com/home/mystream',
-    //   autoPlay: true,
-    //   hwAcc: HwAcc.full,
-    //   options: VlcPlayerOptions(
-    //     rtp: VlcRtpOptions([
-    //       '--rtsp-tcp',
-    //       '--live-caching=0',
-    //       '--network-caching=300',
-    //     ]),
-    //   ),
-    // );
-    // _vlcController.addListener(_onVlcStateChanged);
+    _controller =
+        VideoPlayerController.networkUrl(
+            Uri.parse('http://192.168.1.38:8000/live/stream.m3u8'),
+          )
+          ..initialize().then((_) {
+            // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
+            setState(() {});
+            _controller.play();
+          });
   }
 
   void _onVlcStateChanged() {
@@ -91,8 +87,7 @@ class _LivePageState extends State<LivePage>
 
   @override
   void dispose() {
-    // _vlcController.removeListener(_onVlcStateChanged);
-    // _vlcController.dispose();
+    _controller.dispose();
     _chatController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -136,17 +131,15 @@ class _LivePageState extends State<LivePage>
 
   Widget _buildVideoArea() {
     return GestureDetector(
-      onTap: () async {
-        // final p = await _vlcController.isPlaying();
-        // if (p == true) {
-        //   _isPlaying = false;
-        //   _vlcController.pause();
-        // } else {
-        //   _isPlaying = true;
-        //   _vlcController.play();
-        // }
-      },
-      child: const Text('aaa'),
+      onTap: () async {},
+      child: Center(
+        child: _controller.value.isInitialized
+            ? AspectRatio(
+                aspectRatio: _controller.value.aspectRatio,
+                child: VideoPlayer(_controller),
+              )
+            : Container(),
+      ),
     );
   }
 
