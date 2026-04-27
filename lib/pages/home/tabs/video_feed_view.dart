@@ -70,31 +70,13 @@ class VideoData {
 // 视频数据列表
 final List<VideoData> videoList = [
   const VideoData(
-    url: 'https://www.w3schools.com/html/mov_bbb.mp4',
-    username: '@蝴蝶记录者',
-    desc: '诗和远方，一起去旅行吧~ 🌊',
-    likes: 12800,
-    comments: 5200,
-    favorites: 3300,
-    shares: 2100,
-  ),
-  const VideoData(
-    url: 'https://www.pexels.com/zh-cn/download/video/37235780/',
+    url: 'http://192.168.1.38:8085/uploads/18126938-uhd_1440_2560_60fps.mp4',
     username: '@小猫咪',
     desc: '小猫咪，请给我来点cats~ 🐱',
     likes: 35640,
     comments: 13280,
     favorites: 8520,
     shares: 6720,
-  ),
-  const VideoData(
-    url: 'https://www.pexels.com/download/video/33538187/',
-    username: '@自然探索',
-    desc: '慢下来，感受生活的美好 ✨',
-    likes: 28900,
-    comments: 9100,
-    favorites: 6200,
-    shares: 4300,
   ),
   const VideoData(
     url: 'https://www.w3schools.com/html/movie.mp4',
@@ -104,6 +86,24 @@ final List<VideoData> videoList = [
     comments: 7600,
     favorites: 4500,
     shares: 3200,
+  ),
+  const VideoData(
+    url: 'http://192.168.1.38:8085/uploads/13924703-hd_1920_1080_25fps.mp4',
+    username: '@自然探索',
+    desc: '慢下来，感受生活的美好 ✨',
+    likes: 28900,
+    comments: 9100,
+    favorites: 6200,
+    shares: 4300,
+  ),
+  const VideoData(
+    url: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    username: '@蝴蝶记录者',
+    desc: '诗和远方，一起去旅行吧~ 🌊',
+    likes: 12800,
+    comments: 5200,
+    favorites: 3300,
+    shares: 2100,
   ),
 ];
 
@@ -154,8 +154,9 @@ class _VideoFeedViewState extends State<VideoFeedView>
   @override
   void initState() {
     super.initState();
-    _pageController =
-        PageController(initialPage: widget.controller.currentPage);
+    _pageController = PageController(
+      initialPage: widget.controller.currentPage,
+    );
   }
 
   @override
@@ -178,8 +179,6 @@ class _VideoFeedViewState extends State<VideoFeedView>
     super.didUpdateWidget(oldWidget);
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -197,7 +196,8 @@ class _VideoFeedViewState extends State<VideoFeedView>
         itemBuilder: (context, index) {
           // 用 Obx 监听 isFeedActive 变化，确保 isFeedActive 变化时触发 VideoPage rebuild
           return Obx(() {
-            final active = widget.controller.isFeedActive.value &&
+            final active =
+                widget.controller.isFeedActive.value &&
                 (index == widget.controller.currentPage);
             return VideoPage(
               key: ValueKey('video_$index'),
@@ -256,8 +256,10 @@ class _VideoPageState extends State<VideoPage> {
       // 尚未初始化时，满足以下任一条件就触发初始化：
       // 1. isActive 从 false → true，且不需要懒加载
       // 2. lazyLoad 从 true → false（视图变可见），且当前是活跃页
-      final becameActiveNoLazy = widget.isActive && !oldWidget.isActive && !widget.lazyLoad;
-      final lazyLiftedAndActive = widget.isActive && oldWidget.lazyLoad && !widget.lazyLoad;
+      final becameActiveNoLazy =
+          widget.isActive && !oldWidget.isActive && !widget.lazyLoad;
+      final lazyLiftedAndActive =
+          widget.isActive && oldWidget.lazyLoad && !widget.lazyLoad;
       if (becameActiveNoLazy || lazyLiftedAndActive) {
         _initVideo();
       }
@@ -312,9 +314,7 @@ class _VideoPageState extends State<VideoPage> {
     await Navigator.of(context).push(
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (context) => FullScreenVideoPage(
-          controller: _controller!,
-        ),
+        builder: (context) => FullScreenVideoPage(controller: _controller!),
       ),
     );
     _exitFullScreen();
@@ -384,23 +384,33 @@ class _VideoPageState extends State<VideoPage> {
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.05),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                                color: Colors.white.withOpacity(0.25),
-                                width: 0.5),
+                              color: Colors.white.withOpacity(0.25),
+                              width: 0.5,
+                            ),
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.screen_rotation,
-                                  color: Colors.white70, size: 16),
+                              Icon(
+                                Icons.screen_rotation,
+                                color: Colors.white70,
+                                size: 16,
+                              ),
                               SizedBox(width: 4),
-                              Text('横屏观看',
-                                  style: TextStyle(
-                                      color: Colors.white70, fontSize: 12)),
+                              Text(
+                                '横屏观看',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -414,8 +424,11 @@ class _VideoPageState extends State<VideoPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.error_outline,
-                      color: Colors.white70, size: 48),
+                  const Icon(
+                    Icons.error_outline,
+                    color: Colors.white70,
+                    size: 48,
+                  ),
                   const SizedBox(height: 12),
                   Text(
                     _errorMessage!,
@@ -431,16 +444,16 @@ class _VideoPageState extends State<VideoPage> {
                       });
                       _initVideo();
                     },
-                    child:
-                        const Text('重试', style: TextStyle(color: Colors.white)),
+                    child: const Text(
+                      '重试',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ],
               ),
             )
           else
-            const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            ),
+            const Center(child: CircularProgressIndicator(color: Colors.white)),
           if (_showPlayIcon)
             Center(
               child: AnimatedOpacity(
@@ -462,11 +475,7 @@ class _VideoPageState extends State<VideoPage> {
               ),
             ),
           if (_initialized && _controller != null)
-            Positioned(
-              right: 10,
-              bottom: 120,
-              child: _buildRightActions(),
-            ),
+            Positioned(right: 10, bottom: 120, child: _buildRightActions()),
           if (_initialized && _controller != null)
             Positioned(
               left: 0,
@@ -514,15 +523,21 @@ class _VideoPageState extends State<VideoPage> {
         ),
         const SizedBox(height: 28),
         _buildActionButton(
-            icon: Icons.favorite, color: Colors.red, count: widget.data.likes),
+          icon: Icons.favorite,
+          color: Colors.red,
+          count: widget.data.likes,
+        ),
         const SizedBox(height: 20),
         // 评论按钮
         GestureDetector(
           onTap: _showCommentBottomSheet,
           child: Column(
             children: [
-              const Icon(Icons.chat_bubble_rounded,
-                  color: Colors.white, size: 34),
+              const Icon(
+                Icons.chat_bubble_rounded,
+                color: Colors.white,
+                size: 34,
+              ),
               const SizedBox(height: 4),
               Text(
                 _formatCount(widget.data.comments),
@@ -538,9 +553,10 @@ class _VideoPageState extends State<VideoPage> {
         ),
         const SizedBox(height: 20),
         _buildActionButton(
-            icon: Icons.star_rounded,
-            color: Colors.amber,
-            count: widget.data.favorites),
+          icon: Icons.star_rounded,
+          color: Colors.amber,
+          count: widget.data.favorites,
+        ),
         const SizedBox(height: 20),
         // 分享按钮
         GestureDetector(
@@ -648,9 +664,7 @@ class _VideoPageState extends State<VideoPage> {
             inactiveTrackColor: Colors.white30,
             thumbColor: Colors.white,
             overlayColor: Colors.white24,
-            thumbShape: const RoundSliderThumbShape(
-              enabledThumbRadius: 6,
-            ),
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
             trackHeight: 2,
             overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
           ),
@@ -742,8 +756,10 @@ class _VideoPageState extends State<VideoPage> {
 
               // 标题栏
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 0,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -756,8 +772,11 @@ class _VideoPageState extends State<VideoPage> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close,
-                          color: Colors.white70, size: 20),
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.white70,
+                        size: 20,
+                      ),
                       onPressed: () => Get.back(),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -847,8 +866,11 @@ class _VideoPageState extends State<VideoPage> {
           const SizedBox(width: 8),
           Column(
             children: [
-              const Icon(Icons.favorite_border,
-                  color: Colors.white70, size: 16),
+              const Icon(
+                Icons.favorite_border,
+                color: Colors.white70,
+                size: 16,
+              ),
               const SizedBox(height: 2),
               Text(
                 '${comment.likes}',
@@ -875,48 +897,49 @@ class _VideoPageState extends State<VideoPage> {
         border: Border(top: BorderSide(color: Colors.white10)),
       ),
       child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          decoration: BoxDecoration(
-            color: Colors.grey[900],
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: const InputDecoration(
-                    hintText: '说点什么...',
-                    hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                    border: InputBorder.none,
-                    fillColor: Colors.transparent,
-                    contentPadding: EdgeInsets.symmetric(vertical: 10),
-                  ),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.grey[900],
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: controller,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+                decoration: const InputDecoration(
+                  hintText: '说点什么...',
+                  hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                  border: InputBorder.none,
+                  fillColor: Colors.transparent,
+                  contentPadding: EdgeInsets.symmetric(vertical: 10),
                 ),
               ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.image, color: Colors.white70),
-                onPressed: () {},
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-              IconButton(
-                icon: const Icon(Icons.alternate_email, color: Colors.white70),
-                onPressed: () {},
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-              // 微笑图标按钮
-              IconButton(
-                icon: const Icon(Icons.mood, color: Colors.white70),
-                onPressed: () {},
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-            ],
-          )),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.image, color: Colors.white70),
+              onPressed: () {},
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+            IconButton(
+              icon: const Icon(Icons.alternate_email, color: Colors.white70),
+              onPressed: () {},
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+            // 微笑图标按钮
+            IconButton(
+              icon: const Icon(Icons.mood, color: Colors.white70),
+              onPressed: () {},
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -931,82 +954,89 @@ class _VideoPageState extends State<VideoPage> {
       const _ShareItem(icon: Icons.wechat, label: '朋友圈', color: Colors.green),
       const _ShareItem(icon: Icons.qr_code, label: '二维码', color: Colors.purple),
       const _ShareItem(
-          icon: Icons.shape_line, label: '系统分享', color: Colors.grey),
+        icon: Icons.shape_line,
+        label: '系统分享',
+        color: Colors.grey,
+      ),
       const _ShareItem(
-          icon: Icons.bookmark_border, label: '收藏', color: Colors.amber),
+        icon: Icons.bookmark_border,
+        label: '收藏',
+        color: Colors.amber,
+      ),
       const _ShareItem(icon: Icons.report, label: '举报', color: Colors.red),
     ];
 
     Get.bottomSheet(
       SafeArea(
-          child: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF1A1A1A),
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFF1A1A1A),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 顶部把手
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[600],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // 分享图标网格
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  childAspectRatio: 0.9,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 顶部把手
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[600],
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                itemCount: shareItems.length,
-                itemBuilder: (context, index) {
-                  final item = shareItems[index];
-                  return _buildShareItem(item);
-                },
               ),
-            ),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-            // 取消按钮
-            GestureDetector(
-              onTap: () => Get.back(),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: const BoxDecoration(
-                  border: Border(top: BorderSide(color: Colors.white10)),
+              // 分享图标网格
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    childAspectRatio: 0.9,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                  ),
+                  itemCount: shareItems.length,
+                  itemBuilder: (context, index) {
+                    final item = shareItems[index];
+                    return _buildShareItem(item);
+                  },
                 ),
-                child: const Center(
-                  child: Text(
-                    '取消',
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
+              ),
+
+              const SizedBox(height: 24),
+
+              // 取消按钮
+              GestureDetector(
+                onTap: () => Get.back(),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: const BoxDecoration(
+                    border: Border(top: BorderSide(color: Colors.white10)),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      '取消',
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                    ),
                   ),
                 ),
               ),
-            ),
 
-            SizedBox(height: MediaQuery.of(context).padding.bottom),
-          ],
+              SizedBox(height: MediaQuery.of(context).padding.bottom),
+            ],
+          ),
         ),
-      )),
+      ),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       enterBottomSheetDuration: const Duration(milliseconds: 300),
@@ -1090,10 +1120,7 @@ class _ShareItem {
 class FullScreenVideoPage extends StatefulWidget {
   final VideoPlayerController controller;
 
-  const FullScreenVideoPage({
-    required this.controller,
-    super.key,
-  });
+  const FullScreenVideoPage({required this.controller, super.key});
 
   @override
   State<FullScreenVideoPage> createState() => _FullScreenVideoPageState();
@@ -1119,7 +1146,8 @@ class _FullScreenVideoPageState extends State<FullScreenVideoPage> {
               child: FittedBox(
                 fit: BoxFit.contain,
                 child: SizedBox(
-                  width: MediaQuery.of(context).size.height *
+                  width:
+                      MediaQuery.of(context).size.height *
                       controller.value.aspectRatio,
                   height: MediaQuery.of(context).size.height,
                   child: VideoPlayer(controller),
@@ -1131,8 +1159,11 @@ class _FullScreenVideoPageState extends State<FullScreenVideoPage> {
                 top: 40,
                 left: 16,
                 child: IconButton(
-                  icon: const Icon(Icons.arrow_back,
-                      color: Colors.white, size: 28),
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                    size: 28,
+                  ),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ),
@@ -1208,9 +1239,7 @@ class _FullScreenVideoPageState extends State<FullScreenVideoPage> {
                 inactiveTrackColor: Colors.white30,
                 thumbColor: Colors.white,
                 overlayColor: Colors.white24,
-                thumbShape: const RoundSliderThumbShape(
-                  enabledThumbRadius: 6,
-                ),
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
                 trackHeight: 2,
               ),
               child: Slider(
@@ -1226,12 +1255,14 @@ class _FullScreenVideoPageState extends State<FullScreenVideoPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(fmt(position),
-                      style:
-                          const TextStyle(color: Colors.white70, fontSize: 12)),
-                  Text(fmt(duration),
-                      style:
-                          const TextStyle(color: Colors.white70, fontSize: 12)),
+                  Text(
+                    fmt(position),
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                  Text(
+                    fmt(duration),
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
                 ],
               ),
             ),

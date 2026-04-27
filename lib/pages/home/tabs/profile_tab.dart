@@ -338,18 +338,18 @@ class ProfileTab extends StatelessWidget {
                     context,
                     icon: Icons.shield_outlined,
                     label: '权限管理',
-                    onTap: () => ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(const SnackBar(content: Text('权限管理'))),
+                    onTap: () {
+                      Get.toNamed(Routes.lifecycleDemo);
+                    },
                   ),
                   const SizedBox(width: 24),
                   _buildPersonalizationItem(
                     context,
                     icon: Icons.mic_outlined,
                     label: '语音助手',
-                    onTap: () => ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(const SnackBar(content: Text('语音助手'))),
+                    onTap: () {
+                      Get.toNamed(Routes.bleDemo);
+                    },
                   ),
                 ],
               ),

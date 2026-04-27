@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_vlc_player/flutter_vlc_player.dart';
+import 'package:get/get.dart';
+// import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'gift_lottie_overlay.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -23,7 +24,7 @@ class LivePage extends StatefulWidget {
 
 class _LivePageState extends State<LivePage>
     with SingleTickerProviderStateMixin {
-  late VlcPlayerController _vlcController;
+  // late VlcPlayerController _vlcController;
   // ── 状态 ──────────────────────────────────────────────────────────────────
   final TextEditingController _chatController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -31,9 +32,10 @@ class _LivePageState extends State<LivePage>
   // 模拟弹幕数据
   final List<_DanmakuItem> _danmakuList = [
     const _DanmakuItem(
-        '公告',
-        '直播间严禁黄赌毒，巴拉巴拉爱神的箭拉克斯基的卢卡斯角度来看直播间严禁黄赌毒，巴拉巴拉爱神的箭拉克斯基的卢卡斯角度来看',
-        Colors.white),
+      '公告',
+      '直播间严禁黄赌毒，巴拉巴拉爱神的箭拉克斯基的卢卡斯角度来看直播间严禁黄赌毒，巴拉巴拉爱神的箭拉克斯基的卢卡斯角度来看',
+      Colors.white,
+    ),
     const _DanmakuItem('西二旗华仔', '画质清晰，点赞！', Color(0xFF9C27B0)),
     const _DanmakuItem('小米女神', '第一次来，支持一下', Color(0xFF2196F3)),
     const _DanmakuItem('北漂小王', '求关注求关注', Color(0xFF00BCD4)),
@@ -42,35 +44,35 @@ class _LivePageState extends State<LivePage>
   // 是否显示输入模式
   bool _showInput = false;
   // 播放状态
-  bool _isPlaying = false;
-  bool _isBuffering = true;
-  String _errorMessage = '';
+  final bool _isPlaying = false;
+  final bool _isBuffering = true;
+  final String _errorMessage = '';
 
   void _initVlcPlayer() {
-    _vlcController = VlcPlayerController.network(
-      'rtmp://ns8.indexforce.com/home/mystream',
-      autoPlay: true,
-      hwAcc: HwAcc.full,
-      options: VlcPlayerOptions(
-        rtp: VlcRtpOptions([
-          '--rtsp-tcp',
-          '--live-caching=0',
-          '--network-caching=300',
-        ]),
-      ),
-    );
-    _vlcController.addListener(_onVlcStateChanged);
+    // _vlcController = VlcPlayerController.network(
+    //   'rtmp://ns8.indexforce.com/home/mystream',
+    //   autoPlay: true,
+    //   hwAcc: HwAcc.full,
+    //   options: VlcPlayerOptions(
+    //     rtp: VlcRtpOptions([
+    //       '--rtsp-tcp',
+    //       '--live-caching=0',
+    //       '--network-caching=300',
+    //     ]),
+    //   ),
+    // );
+    // _vlcController.addListener(_onVlcStateChanged);
   }
 
   void _onVlcStateChanged() {
-    if (!mounted) return;
-    setState(() {
-      _isPlaying = _vlcController.value.isPlaying;
-      _isBuffering = _vlcController.value.isBuffering;
-      if (_vlcController.value.hasError) {
-        _errorMessage = _vlcController.value.errorDescription;
-      }
-    });
+    // if (!mounted) return;
+    // setState(() {
+    //   _isPlaying = _vlcController.value.isPlaying;
+    //   _isBuffering = _vlcController.value.isBuffering;
+    //   if (_vlcController.value.hasError) {
+    //     _errorMessage = _vlcController.value.errorDescription;
+    //   }
+    // });
   }
 
   // ════════════════════════════════════════════════════════════════════════
@@ -89,8 +91,8 @@ class _LivePageState extends State<LivePage>
 
   @override
   void dispose() {
-    _vlcController.removeListener(_onVlcStateChanged);
-    _vlcController.dispose();
+    // _vlcController.removeListener(_onVlcStateChanged);
+    // _vlcController.dispose();
     _chatController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -103,7 +105,7 @@ class _LivePageState extends State<LivePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.black,
       resizeToAvoidBottomInset: false,
       body: Stack(
         fit: StackFit.expand,
@@ -119,12 +121,7 @@ class _LivePageState extends State<LivePage>
           _buildTopBar(),
 
           // ── 4. 底部操作栏 ───────────────────────────────────────────
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: _buildBottomBar(),
-          ),
+          Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomBar()),
 
           // ── 5. 左下：聊天弹幕区 ─────────────────────────────────────
           if (!_showInput) _buildDanmakuArea(),
@@ -140,20 +137,16 @@ class _LivePageState extends State<LivePage>
   Widget _buildVideoArea() {
     return GestureDetector(
       onTap: () async {
-        final p = await _vlcController.isPlaying();
-        if (p == true) {
-          _isPlaying = false;
-          _vlcController.pause();
-        } else {
-          _isPlaying = true;
-          _vlcController.play();
-        }
+        // final p = await _vlcController.isPlaying();
+        // if (p == true) {
+        //   _isPlaying = false;
+        //   _vlcController.pause();
+        // } else {
+        //   _isPlaying = true;
+        //   _vlcController.play();
+        // }
       },
-      child: VlcPlayer(
-        controller: _vlcController,
-        aspectRatio: 16 / 9,
-        placeholder: _buildLoadingPlaceholder(),
-      ),
+      child: const Text('aaa'),
     );
   }
 
@@ -188,7 +181,7 @@ class _LivePageState extends State<LivePage>
   Widget _buildVideoBackground() {
     return GestureDetector(
       onTap: () {
-        _vlcController.play();
+        // _vlcController.play();
       },
       child: Container(
         color: Colors.black,
@@ -481,36 +474,37 @@ class _LivePageState extends State<LivePage>
         children: [
           // ── 输入框（60%宽）+ 表情 ─────────────────────────────────
           Expanded(
-              child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white24, width: 1),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _showInput = true),
-                    child: const Text(
-                      '说点什么…',
-                      style: TextStyle(color: Colors.white70, fontSize: 13),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white24, width: 1),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _showInput = true),
+                      child: const Text(
+                        '说点什么…',
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => _showToast('表情面板（待实现）'),
-                  child: const Icon(
-                    Icons.emoji_emotions_outlined,
-                    color: Colors.white70,
-                    size: 22,
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => _showToast('表情面板（待实现）'),
+                    child: const Icon(
+                      Icons.emoji_emotions_outlined,
+                      color: Colors.white70,
+                      size: 22,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          )),
+          ),
 
           const SizedBox(width: 8),
 
@@ -534,7 +528,42 @@ class _LivePageState extends State<LivePage>
           // 分享
           _buildBottomBtn(
             icon: Icons.share_outlined,
-            onTap: () => _showToast('分享'),
+            onTap: () {
+              Get.bottomSheet(
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: context.theme.scaffoldBackgroundColor,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.share),
+                        title: const Text('分享'),
+                        onTap: () => Get.back(),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.copy),
+                        title: const Text('观看直播'),
+                        onTap: () => Get.back(),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.delete, color: Colors.red),
+                        title: const Text(
+                          '开启直播',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                        onTap: () => Get.back(),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -606,8 +635,11 @@ class _LivePageState extends State<LivePage>
                 color: Color(0xFF3A3A3A),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.keyboard_arrow_down,
-                  color: Colors.white70, size: 22),
+              child: const Icon(
+                Icons.keyboard_arrow_down,
+                color: Colors.white70,
+                size: 22,
+              ),
             ),
           ),
         ],
@@ -630,9 +662,7 @@ class _LivePageState extends State<LivePage>
           color: Colors.white.withOpacity(0.12),
           shape: BoxShape.circle,
         ),
-        child: Center(
-          child: Icon(icon, color: color, size: 22),
-        ),
+        child: Center(child: Icon(icon, color: color, size: 22)),
       ),
     );
   }

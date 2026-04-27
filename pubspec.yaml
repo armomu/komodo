@@ -41,7 +41,7 @@ dependencies:
   video_player: ^2.9.2
 
   # VLC 播放器，支持 rtmp 直播流
-  flutter_vlc_player: ^7.4.4
+  # flutter_vlc_player: ^7.4.4
 
   # 瀑布流布局
   flutter_staggered_grid_view: ^0.7.0
@@ -61,6 +61,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
+  rtmp_streaming: ^1.0.5
 
 dev_dependencies:
   flutter_test:

@@ -284,6 +284,7 @@ class _MainCardContent extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         // border: Border.all(color: Colors.blue, width: 1),
+        color: data.accentColor,
         borderRadius: BorderRadius.circular(20),
       ),
       clipBehavior: Clip.antiAlias,
