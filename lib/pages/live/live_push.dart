@@ -15,7 +15,7 @@ class LivePushPage extends StatefulWidget {
 
 class _LivePushPageState extends State<LivePushPage> {
   final CameraController _controller = CameraController(
-    ResolutionPreset.veryHigh,
+    ResolutionPreset.medium,
     enableAudio: true,
     androidUseOpenGL: true,
   );
