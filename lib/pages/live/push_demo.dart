@@ -255,7 +255,13 @@ class CameraExampleHomeState extends State<CameraExampleHome>
                     isStreaming ? '停止推流' : '开始推流',
                     isStreaming ? Icons.stop : Icons.live_tv,
                     isStreaming ? Colors.red : Colors.orange,
-                    () => startVideoStreaming(),
+                    () {
+                      if (isStreaming) {
+                        stopVideoStreaming();
+                      } else {
+                        startVideoStreaming();
+                      }
+                    },
                   ),
                 ),
               ],
