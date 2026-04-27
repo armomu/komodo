@@ -51,7 +51,7 @@ class CameraExampleHomeState extends State<CameraExampleHome>
   bool isFlashLight = false; // false表示关闭闪光灯，true表示打开闪光灯
   CameraDescription? _cameraDesc;
   final TextEditingController _textFieldController = TextEditingController(
-    text: "rtmp://localhost:1935/live/stream",
+    text: "rtmp://192.168.1.38:1935/live/stream",
   );
 
   /// RootEncoder 2.7.0+：BT.709 与 RTMP ping/RTT 示例
@@ -73,9 +73,32 @@ class CameraExampleHomeState extends State<CameraExampleHome>
 
   @override
   void initState() {
-    onInit();
-    WidgetsBinding.instance.addObserver(this);
     super.initState();
+    _initCameras();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  Future<void> _initCameras() async {
+    try {
+      cameras = await availableCameras();
+    } on CameraException catch (e) {
+      logError(e.code, e.description ?? "No description found");
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showInSnackBar("Camera error: ${e.code}");
+      });
+      return;
+    }
+    if (cameras.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showInSnackBar("No available cameras");
+      });
+      return;
+    }
+    var cameraItem = cameras[0];
+    setState(() {
+      _cameraDesc = cameraItem;
+    });
+    onNewCameraSelected(cameraItem);
   }
 
   @override
@@ -482,20 +505,6 @@ class CameraExampleHomeState extends State<CameraExampleHome>
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  //init
-  void onInit() {
-    if (cameras.isEmpty) {
-      showInSnackBar("No available cameras");
-      return;
-    }
-    var cameraItem = cameras[0];
-    setState(() {
-      _cameraDesc = cameraItem;
-    });
-    // init cameras index 0
-    onNewCameraSelected(cameraItem);
   }
 
   //init camera
