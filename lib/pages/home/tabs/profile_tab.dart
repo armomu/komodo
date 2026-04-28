@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:komodo/routes/app_routes.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -22,35 +23,35 @@ class _ProfileTabState extends State<ProfileTab> {
 
   final List<Map<String, dynamic>> _feedItems = [
     {
-      'avatar': 'https://picsum.photos/seed/rank3/80/80',
+      'avatar': 'https://i.pravatar.cc/100?img=1',
       'name': 'Sarah Miller',
       'date': 'Sep 1',
       'activity': 'Hiking',
       'time': '2h ago',
     },
     {
-      'avatar': 'https://picsum.photos/seed/rank3/80/80',
+      'avatar': 'https://i.pravatar.cc/100?img=2',
       'name': 'John Doe',
       'date': 'Aug 28',
       'activity': 'Cycling',
       'time': '1d ago',
     },
     {
-      'avatar': 'https://picsum.photos/seed/rank3/80/80',
+      'avatar': 'https://i.pravatar.cc/100?img=3',
       'name': 'Emma Wilson',
       'date': 'Aug 25',
       'activity': 'Swimming',
       'time': '3d ago',
     },
     {
-      'avatar': 'https://picsum.photos/seed/rank3/80/80',
+      'avatar': 'https://i.pravatar.cc/100?img=4',
       'name': 'Mike Chen',
       'date': 'Aug 20',
       'activity': 'Running',
       'time': '1w ago',
     },
     {
-      'avatar': 'https://picsum.photos/seed/rank3/80/80',
+      'avatar': 'https://i.pravatar.cc/100?img=5',
       'name': 'Lisa Park',
       'date': 'Aug 15',
       'activity': 'Yoga',
@@ -64,237 +65,173 @@ class _ProfileTabState extends State<ProfileTab> {
     const primaryColor = Color(0xFF2D5016);
 
     return Scaffold(
-      // backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
-      body: CustomScrollView(
-        slivers: [
-          // Header with map background
-          SliverAppBar(
-            expandedHeight: 80,
-            floating: false,
-            pinned: true,
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Get.back(),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.more_vert, color: Colors.white),
-                onPressed: () {
-                  _showOptionsMenu(context);
-                },
-              ),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      appBar: AppBar(
+        title: const Text('我的'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.more_vert),
+            onPressed: () {
+              Get.toNamed(Routes.settings);
+            },
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 50),
+
+            // Avatar with plus badge
+            Container(
+              margin: const EdgeInsets.only(left: 32),
+              child: Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  Text(
-                    'KOMODO',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: Theme.of(context).colorScheme.onSurface,
-                      letterSpacing: -0.5,
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 4),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(51),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                      image: const DecorationImage(
+                        image: NetworkImage('https://i.pravatar.cc/200?img=10'),
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      _showOptionsMenu(context);
-                    },
-                    icon: Icon(
-                      Icons.live_tv,
-                      size: 18,
-                      color: Theme.of(context).colorScheme.onSurface,
+                  // Plus badge
+                  Positioned(
+                    bottom: 0,
+                    right: -4,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: primaryColor,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 3),
+                      ),
+                      child: const Icon(
+                        Icons.add,
+                        color: Colors.white,
+                        size: 18,
+                      ),
                     ),
                   ),
                 ],
               ),
-
-              titlePadding: const EdgeInsets.fromLTRB(16, 16, 3, 0),
             ),
-          ),
 
-          // Main content
-          SliverToBoxAdapter(
-            child: Column(
+            const SizedBox(height: 16),
+            Text(
+              _userName,
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            // Location
+            Row(
               children: [
-                // Avatar with plus badge
-                Transform.translate(
-                  offset: const Offset(0, -45),
-                  child: Center(
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 4),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                            image: const DecorationImage(
-                              image: NetworkImage(
-                                'https://picsum.photos/seed/rank3/200/200',
-                              ),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: primaryColor,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 3),
-                            ),
-                            child: const Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ),
-                        ),
-                      ],
+                Icon(
+                  Icons.location_on,
+                  size: 16,
+                  color: isDark ? Colors.white54 : Colors.grey[600],
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  _location,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white54 : Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // User info
+            Row(
+              children: [
+                _buildStatText('$_followers Followers', isDark),
+                _buildDivider(isDark),
+                _buildStatText('$_following Following', isDark),
+                Expanded(child: Container()),
+                SizedBox(
+                  width: 140,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Followed!')),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Follow',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
-
-                // User info
-                Transform.translate(
-                  offset: const Offset(0, -30),
-                  child: Column(
-                    children: [
-                      // Name
-                      Text(
-                        _userName,
-                        style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? Colors.white
-                              : const Color(0xFF1A1A1A),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      // Location
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.location_on,
-                            size: 16,
-                            color: isDark ? Colors.white54 : Colors.grey[600],
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            _location,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isDark ? Colors.white54 : Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      // Followers & Following
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildStatText('$_followers Followers', isDark),
-                          _buildDivider(isDark),
-                          _buildStatText('$_following Following', isDark),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      // Follow button
-                      SizedBox(
-                        width: 140,
-                        height: 44,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Followed!')),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(22),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: const Text(
-                            'Follow',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Stats cards row
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _buildStatsCard(
-                          context,
-                          icon: Icons.analytics_outlined,
-                          title: '$_activities Activities',
-                          isDark: isDark,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildStatsCard(
-                          context,
-                          icon: Icons.bookmark_border,
-                          title: '$_saved Saved',
-                          isDark: isDark,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Tab navigation
-                _buildTabNavigation(context, isDark),
-
-                const SizedBox(height: 8),
               ],
             ),
-          ),
 
-          // Feed list
-          SliverList(
-            delegate: SliverChildBuilderDelegate((context, index) {
-              final item = _feedItems[index];
-              return _buildFeedItem(context, item, isDark);
-            }, childCount: _feedItems.length),
-          ),
+            const SizedBox(height: 24),
 
-          // Bottom padding
-          const SliverToBoxAdapter(child: SizedBox(height: 100)),
-        ],
+            // Stats cards row
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildStatsCard(
+                      context,
+                      icon: Icons.analytics_outlined,
+                      title: '$_activities Activities',
+                      isDark: isDark,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatsCard(
+                      context,
+                      icon: Icons.bookmark_border,
+                      title: '$_saved Saved',
+                      isDark: isDark,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Tab navigation
+            _buildTabNavigation(context, isDark),
+
+            const SizedBox(height: 8),
+
+            // Feed list
+            ..._feedItems.map((item) => _buildFeedItem(context, item, isDark)),
+
+            const SizedBox(height: 100),
+          ],
+        ),
       ),
     );
   }
@@ -361,7 +298,6 @@ class _ProfileTabState extends State<ProfileTab> {
 
   Widget _buildTabNavigation(BuildContext context, bool isDark) {
     const primaryColor = Color(0xFF2D5016);
-
     return Container(
       height: 44,
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -374,11 +310,7 @@ class _ProfileTabState extends State<ProfileTab> {
               itemBuilder: (context, index) {
                 final isSelected = _selectedTabIndex == index;
                 return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedTabIndex = index;
-                    });
-                  },
+                  onTap: () => setState(() => _selectedTabIndex = index),
                   child: Container(
                     margin: const EdgeInsets.only(right: 24),
                     child: Column(
@@ -418,9 +350,7 @@ class _ProfileTabState extends State<ProfileTab> {
               Icons.keyboard_arrow_down,
               color: isDark ? Colors.white54 : Colors.grey[500],
             ),
-            onPressed: () {
-              _showAllTabs(context);
-            },
+            onPressed: () => _showAllTabs(context),
           ),
         ],
       ),
@@ -442,7 +372,7 @@ class _ProfileTabState extends State<ProfileTab> {
             ? null
             : [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withAlpha(13),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -450,7 +380,6 @@ class _ProfileTabState extends State<ProfileTab> {
       ),
       child: Row(
         children: [
-          // Avatar
           Container(
             width: 50,
             height: 50,
@@ -467,7 +396,6 @@ class _ProfileTabState extends State<ProfileTab> {
             ),
           ),
           const SizedBox(width: 14),
-          // Info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -491,7 +419,6 @@ class _ProfileTabState extends State<ProfileTab> {
               ],
             ),
           ),
-          // Time
           Text(
             item['time'],
             style: TextStyle(
@@ -504,55 +431,9 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
-  void _showOptionsMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildMenuItem(Icons.share, 'Share Profile'),
-            _buildMenuItem(Icons.link, 'Copy Link'),
-            _buildMenuItem(Icons.settings, 'Settings'),
-            _buildMenuItem(Icons.block, 'Block User'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMenuItem(IconData icon, String title) {
-    return ListTile(
-      leading: Icon(icon, size: 22),
-      title: Text(title),
-      onTap: () {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(title)));
-      },
-    );
-  }
-
   void _showAllTabs(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
       builder: (context) => Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
@@ -578,9 +459,7 @@ class _ProfileTabState extends State<ProfileTab> {
                     ? const Icon(Icons.check, color: Color(0xFF2D5016))
                     : null,
                 onTap: () {
-                  setState(() {
-                    _selectedTabIndex = _tabs.indexOf(tab);
-                  });
+                  setState(() => _selectedTabIndex = _tabs.indexOf(tab));
                   Navigator.pop(context);
                 },
               ),
@@ -590,28 +469,4 @@ class _ProfileTabState extends State<ProfileTab> {
       ),
     );
   }
-}
-
-/// Custom painter for map pattern background
-class _MapPatternPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.08)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-
-    // Draw horizontal lines
-    for (double y = 0; y < size.height; y += 20) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-
-    // Draw vertical lines
-    for (double x = 0; x < size.width; x += 20) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

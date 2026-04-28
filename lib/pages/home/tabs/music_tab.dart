@@ -106,6 +106,7 @@ class _MusicTabState extends State<MusicTab> {
         return <Widget>[
           SliverAppBar(
             // backgroundColor: Colors.black,
+            surfaceTintColor: Theme.of(context).colorScheme.surface,
             backgroundColor: Theme.of(context).colorScheme.surface,
             expandedHeight: 80,
             pinned: true,
@@ -249,7 +250,6 @@ class _MusicTabState extends State<MusicTab> {
     // viewportFraction < 1.0 让左右两侧露出相邻卡片边缘
     const double viewportFraction = 0.92;
     const double cardHorizontalMargin = 6.0; // 卡片之间视觉间距
-
     return SizedBox(
       height: 120,
       child: PageView.builder(
@@ -301,34 +301,31 @@ class _MusicTabState extends State<MusicTab> {
   ];
 
   Widget _buildMusicRankingCard(BuildContext context) {
-    return Container(
-      // margin: const EdgeInsets.symmetric(horizontal: 12),
-      // color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 标题区域
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            child: const Text(
-              '热歌榜 TOP',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 标题区域
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          child: const Text(
+            '热歌榜 TOP',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
           ),
-          Card(
-            // margin: const EdgeInsets.all(0),
-            child: Column(
-              children: _rankingCards.asMap().entries.map((entry) {
-                final index = entry.key;
-                final data = entry.value;
-                final isLast = index == _rankingCards.length - 1;
-                return _RankingListItem(data: data, isLast: isLast);
-              }).toList(),
-            ),
+        ),
+        Card(
+          // margin: const EdgeInsets.all(0),
+          borderOnForeground: true,
+          child: Column(
+            children: _rankingCards.asMap().entries.map((entry) {
+              final index = entry.key;
+              final data = entry.value;
+              final isLast = index == _rankingCards.length - 1;
+              return _RankingListItem(data: data, isLast: isLast);
+            }).toList(),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

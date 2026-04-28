@@ -6,7 +6,7 @@ class AppTheme {
   AppTheme._();
 
   // ==================== 颜色常量 ====================
-  static const Color primaryColor = Colors.blue;
+  static const Color primaryColor = Colors.black;
   static const Color accentColor = Colors.orange;
   static const Color errorColor = Colors.red;
   static const Color successColor = Colors.green;
@@ -22,15 +22,17 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: Colors.white,
       appBarTheme: const AppBarTheme(
-        elevation: 0,
+        elevation: 1,
         backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
         foregroundColor: Colors.black,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
       cardTheme: CardThemeData(
         margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        elevation: 0,
+        elevation: 1,
         color: Colors.white,
+        shadowColor: Colors.black38,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -75,15 +77,18 @@ class AppTheme {
         seedColor: primaryColor,
         brightness: Brightness.dark,
       ),
-      scaffoldBackgroundColor: const Color(0xFF121212),
+      scaffoldBackgroundColor: Colors.black,
+      // scaffoldBackgroundColor: const Color(0xFF121212),
       appBarTheme: const AppBarTheme(
         elevation: 0,
-        backgroundColor: Color(0xFF1E1E1E),
+        backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         systemOverlayStyle: SystemUiOverlayStyle.light,
+        surfaceTintColor: Color(0xFF1E1E1E),
       ),
       cardTheme: CardThemeData(
         elevation: 0,
+        margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         color: const Color(0xFF1E1E1E),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
