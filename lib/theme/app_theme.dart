@@ -26,6 +26,7 @@ class AppTheme {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         foregroundColor: Colors.black,
+        // titleTextStyle: TextStyle(fontSize: 15),
         systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
       cardTheme: CardThemeData(
@@ -83,6 +84,7 @@ class AppTheme {
         elevation: 0,
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
+        // titleTextStyle: TextStyle(fontSize: 15),
         systemOverlayStyle: SystemUiOverlayStyle.light,
         surfaceTintColor: Color(0xFF1E1E1E),
       ),

@@ -11,7 +11,7 @@ class ProfileTab extends StatefulWidget {
 
 class _ProfileTabState extends State<ProfileTab> {
   int _selectedTabIndex = 0;
-  final List<String> _tabs = ['Feed', 'Photos', 'Reviews', 'Activities'];
+  final List<String> _tabs = ['我喜欢', '本地/云盘', '已购买', '全部'];
 
   // Mock data
   final String _userName = 'Oliver Nicolai';
@@ -80,11 +80,9 @@ class _ProfileTabState extends State<ProfileTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 50),
-
             // Avatar with plus badge
             Container(
-              margin: const EdgeInsets.only(left: 32),
+              margin: const EdgeInsets.only(left: 16),
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -131,78 +129,86 @@ class _ProfileTabState extends State<ProfileTab> {
             ),
 
             const SizedBox(height: 16),
-            Text(
-              _userName,
-              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+            Container(
+              margin: const EdgeInsets.only(left: 16),
+              child: Text(
+                _userName,
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             const SizedBox(height: 4),
             // Location
-            Row(
-              children: [
-                Icon(
-                  Icons.location_on,
-                  size: 16,
-                  color: isDark ? Colors.white54 : Colors.grey[600],
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  _location,
-                  style: TextStyle(
-                    fontSize: 14,
+            Container(
+              margin: const EdgeInsets.only(left: 16),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    size: 16,
                     color: isDark ? Colors.white54 : Colors.grey[600],
                   ),
-                ),
-              ],
+                  const SizedBox(width: 4),
+                  Text(
+                    _location,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.white54 : Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
             // User info
-            Row(
-              children: [
-                _buildStatText('$_followers Followers', isDark),
-                _buildDivider(isDark),
-                _buildStatText('$_following Following', isDark),
-                Expanded(child: Container()),
-                SizedBox(
-                  width: 140,
-                  height: 44,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Followed!')),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(22),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  _buildStatText('$_followers Followers', isDark),
+                  _buildDivider(isDark),
+                  _buildStatText('$_following Following', isDark),
+                  Expanded(child: Container()),
+                  SizedBox(
+                    width: 140,
+                    height: 44,
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(22),
+                        ),
+                        elevation: 0,
                       ),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Follow',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                      child: const Text(
+                        '编辑资料',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
 
             const SizedBox(height: 24),
 
             // Stats cards row
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
                   Expanded(
                     child: _buildStatsCard(
                       context,
                       icon: Icons.analytics_outlined,
-                      title: '$_activities Activities',
+                      title: '$_activities 累计听歌',
                       isDark: isDark,
                     ),
                   ),
