@@ -75,3 +75,16 @@
 
 - **文件位置**：lib/pages/home/tabs/music_tab.dart
 - **修复时间**：2026-04-27
+
+## UI更新记录
+### ProfileTab 新设计 (2026-04-28)
+- **参考设计**：Oliver Nicolai 个人资料页面
+- **实现特点**：
+  - SliverAppBar 顶部区域，蓝色渐变背景配地图纹理图案
+  - 圆形头像 + 蓝色加号徽章
+  - 用户名、位置、粉丝/关注数据展示
+  - 深绿色 Follow 按钮
+  - 两个统计卡片（Activities / Saved）
+  - 横向 Tab 导航（Feed, Photos, Reviews, Activities）
+  - 动态列表展示活动内容
+- **文件位置**：lib/pages/home/tabs/profile_tab.dart

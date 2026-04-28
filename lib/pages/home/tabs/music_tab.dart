@@ -102,7 +102,7 @@ class _MusicTabState extends State<MusicTab> {
   @override
   Widget build(BuildContext context) {
     return NestedScrollView(
-      headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+      headerSliverBuilder: (BuildContext context, bool _) {
         return <Widget>[
           SliverAppBar(
             // backgroundColor: Colors.black,
