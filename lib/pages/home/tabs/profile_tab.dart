@@ -64,15 +64,15 @@ class _ProfileTabState extends State<ProfileTab> {
     const primaryColor = Color(0xFF2D5016);
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
+      // backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       body: CustomScrollView(
         slivers: [
           // Header with map background
           SliverAppBar(
-            expandedHeight: 220,
+            expandedHeight: 80,
             floating: false,
             pinned: true,
-            backgroundColor: const Color(0xFF4A90A4),
+            backgroundColor: Theme.of(context).colorScheme.surface,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () => Get.back(),
@@ -86,38 +86,32 @@ class _ProfileTabState extends State<ProfileTab> {
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFF4A90A4), Color(0xFF6BB5C9)],
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'KOMODO',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Theme.of(context).colorScheme.onSurface,
+                      letterSpacing: -0.5,
+                    ),
                   ),
-                ),
-                child: Stack(
-                  children: [
-                    // Map texture pattern
-                    Positioned.fill(
-                      child: CustomPaint(painter: _MapPatternPainter()),
+                  IconButton(
+                    onPressed: () {
+                      _showOptionsMenu(context);
+                    },
+                    icon: Icon(
+                      Icons.live_tv,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
-                    // Gradient overlay for readability
-                    Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.black.withOpacity(0.1),
-                              Colors.black.withOpacity(0.3),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+
+              titlePadding: const EdgeInsets.fromLTRB(16, 16, 3, 0),
             ),
           ),
 
