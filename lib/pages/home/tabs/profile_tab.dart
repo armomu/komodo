@@ -62,6 +62,7 @@ class _ProfileTabState extends State<ProfileTab> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
     const primaryColor = Color(0xFF2D5016);
 
     return Scaffold(
@@ -148,14 +149,14 @@ class _ProfileTabState extends State<ProfileTab> {
                   Icon(
                     Icons.location_on,
                     size: 16,
-                    color: isDark ? Colors.white54 : Colors.grey[600],
+                    color: colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     _location,
                     style: TextStyle(
                       fontSize: 14,
-                      color: isDark ? Colors.white54 : Colors.grey[600],
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -167,9 +168,28 @@ class _ProfileTabState extends State<ProfileTab> {
               margin: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  _buildStatText('$_followers Followers', isDark),
-                  _buildDivider(isDark),
-                  _buildStatText('$_following Following', isDark),
+                  Text(
+                    '$_followers Followers',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 12),
+                    width: 1,
+                    height: 16,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  Text(
+                    '$_following Following',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   Expanded(child: Container()),
                   SizedBox(
                     width: 140,
@@ -177,7 +197,7 @@ class _ProfileTabState extends State<ProfileTab> {
                     child: ElevatedButton(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColor,
+                        backgroundColor: colorScheme.primary,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(22),
@@ -208,8 +228,8 @@ class _ProfileTabState extends State<ProfileTab> {
                     child: _buildStatsCard(
                       context,
                       icon: Icons.analytics_outlined,
-                      title: '$_activities 累计听歌',
-                      isDark: isDark,
+                      title: '$_activities 累计',
+                      colorScheme: colorScheme,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -218,7 +238,7 @@ class _ProfileTabState extends State<ProfileTab> {
                       context,
                       icon: Icons.bookmark_border,
                       title: '$_saved Saved',
-                      isDark: isDark,
+                      colorScheme: colorScheme,
                     ),
                   ),
                 ],
@@ -242,45 +262,21 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
-  Widget _buildStatText(String text, bool isDark) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: 14,
-        color: isDark ? Colors.white70 : Colors.grey[600],
-        fontWeight: FontWeight.w500,
-      ),
-    );
-  }
-
-  Widget _buildDivider(bool isDark) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12),
-      width: 1,
-      height: 16,
-      color: isDark ? Colors.white24 : Colors.grey[400],
-    );
-  }
-
   Widget _buildStatsCard(
     BuildContext context, {
     required IconData icon,
     required String title,
-    required bool isDark,
+    required ColorScheme colorScheme,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF5F5F5),
+        color: const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 24,
-            color: isDark ? Colors.white70 : Colors.grey[700],
-          ),
+          Icon(icon, size: 24, color: colorScheme.onSurfaceVariant),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -288,14 +284,14 @@ class _ProfileTabState extends State<ProfileTab> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : const Color(0xFF333333),
+                color: colorScheme.onSurface,
               ),
             ),
           ),
           Icon(
             Icons.chevron_right,
             size: 20,
-            color: isDark ? Colors.white38 : Colors.grey[500],
+            color: colorScheme.onSurfaceVariant,
           ),
         ],
       ),
