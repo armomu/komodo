@@ -64,7 +64,7 @@ class CameraExampleHomeState extends State<CameraExampleHome>
   bool isFlashLight = false;
   CameraDescription? _cameraDesc;
   final TextEditingController _textFieldController = TextEditingController(
-    text: "rtmp://192.168.1.38:1935/live/stream",
+    text: "rtmp://47.119.51.18:1935/live/stream",
   );
 
   /// RootEncoder 2.7.0+: BT.709 与 RTMP ping/RTT

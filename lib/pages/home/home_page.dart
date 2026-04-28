@@ -229,7 +229,7 @@ class _HomePageState extends State<HomePage> {
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          Get.toNamed(Routes.livePush);
+          Get.toNamed(Routes.livePushDemo);
         },
         child: Center(
           child: Container(
