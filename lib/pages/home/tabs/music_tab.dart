@@ -148,6 +148,9 @@ class _MusicTabState extends State<MusicTab> {
           const SizedBox(height: 20),
           // ========== ③ 音乐歌词卡片（新UI设计） ==========
           _buildMusicLyricsCard(context),
+          const SizedBox(height: 20),
+          // ========== ④ 音乐排行榜（Top榜单） ==========
+          _buildMusicRankingCard(context),
         ],
       ),
     );
@@ -159,7 +162,7 @@ class _MusicTabState extends State<MusicTab> {
 
   Widget _buildCarouselCards(BuildContext context) {
     final double itemWidth = MediaQuery.of(context).size.width;
-    final double itemHeight = itemWidth * 0.5625;
+    final double itemHeight = itemWidth * 0.60;
     return Swiper(
       itemBuilder: (BuildContext context, int index) {
         return _MainCardContent(data: _carouselCards[index]);
@@ -248,7 +251,7 @@ class _MusicTabState extends State<MusicTab> {
     const double cardHorizontalMargin = 6.0; // 卡片之间视觉间距
 
     return SizedBox(
-      height: 180,
+      height: 120,
       child: PageView.builder(
         itemCount: _slangCards.length,
         padEnds: false, // 关键：让第一页和最后一页也能贴边，两侧露出
@@ -265,6 +268,66 @@ class _MusicTabState extends State<MusicTab> {
             child: _SlangCardItem(data: data),
           );
         },
+      ),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════════
+  // ④ 音乐排行榜 — Top 1/2/3 排名卡片
+  // ════════════════════════════════════════════════════════════════════════
+
+  static const List<_RankingCardData> _rankingCards = [
+    _RankingCardData(
+      rank: 1,
+      songName: 'APT.',
+      artist: 'Bruno Mars / 兔龙',
+      coverUrl: 'https://picsum.photos/seed/rank1/200/200',
+      trendValue: 1,
+    ),
+    _RankingCardData(
+      rank: 2,
+      songName: 'HAPPY',
+      artist: 'DAY6',
+      coverUrl: 'https://picsum.photos/seed/rank2/200/200',
+      trendValue: 3,
+    ),
+    _RankingCardData(
+      rank: 3,
+      songName: 'APT.',
+      artist: 'Rosé',
+      coverUrl: 'https://picsum.photos/seed/rank3/200/200',
+      trendValue: 2,
+    ),
+  ];
+
+  Widget _buildMusicRankingCard(BuildContext context) {
+    return Container(
+      // margin: const EdgeInsets.symmetric(horizontal: 12),
+      // color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 标题区域
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            child: const Text(
+              '热歌榜 TOP',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+            ),
+          ),
+          Card(
+            // margin: const EdgeInsets.all(0),
+            child: Column(
+              children: _rankingCards.asMap().entries.map((entry) {
+                final index = entry.key;
+                final data = entry.value;
+                final isLast = index == _rankingCards.length - 1;
+                return _RankingListItem(data: data, isLast: isLast);
+              }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -695,4 +758,156 @@ class _CarouselCardData {
     required this.accentColor,
     required this.stackColors,
   });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 排行榜数据模型 & 单项组件
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _RankingCardData {
+  final int rank;
+  final String songName;
+  final String artist;
+  final String coverUrl;
+  final int trendValue;
+
+  const _RankingCardData({
+    required this.rank,
+    required this.songName,
+    required this.artist,
+    required this.coverUrl,
+    required this.trendValue,
+  });
+}
+
+class _RankingListItem extends StatelessWidget {
+  final _RankingCardData data;
+  final bool isLast;
+
+  const _RankingListItem({required this.data, required this.isLast});
+
+  /// 获取排名对应的颜色
+  Color get _rankColor {
+    switch (data.rank) {
+      case 1:
+        return const Color(0xFF32CD32); // 绿色
+      case 2:
+        return const Color(0xFFFF9500); // 橙色
+      case 3:
+        return const Color(0xFF9B59B6); // 紫色
+      default:
+        return Colors.grey;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          // 排名标签
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: _rankColor.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '${data.rank}',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: _rankColor,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // 圆形封面
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: _rankColor.withValues(alpha: 0.3),
+                width: 2,
+              ),
+            ),
+            padding: const EdgeInsets.all(2),
+            child: ClipOval(
+              child: Image.network(
+                data.coverUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: const Color(0xFF2A2A2A),
+                  child: Icon(Icons.music_note, color: _rankColor, size: 20),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // 歌曲信息
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  data.songName,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    // color: Colors.white,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  data.artist,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white.withValues(alpha: 0.5),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          // 排名趋势
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFF32CD32).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.trending_up,
+                  size: 14,
+                  color: Color(0xFF32CD32),
+                ),
+                const SizedBox(width: 2),
+                Text(
+                  '${data.trendValue}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF32CD32),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

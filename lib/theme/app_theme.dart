@@ -28,7 +28,9 @@ class AppTheme {
         systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
       cardTheme: CardThemeData(
-        elevation: 4,
+        margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        elevation: 0,
+        color: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -81,7 +83,7 @@ class AppTheme {
         systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
       cardTheme: CardThemeData(
-        elevation: 4,
+        elevation: 0,
         color: const Color(0xFF1E1E1E),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
