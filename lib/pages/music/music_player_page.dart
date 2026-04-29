@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -38,161 +36,38 @@ class MusicPlayerPage extends StatefulWidget {
   State<MusicPlayerPage> createState() => _MusicPlayerPageState();
 }
 
-class _MusicPlayerPageState extends State<MusicPlayerPage>
-    with TickerProviderStateMixin {
+class _MusicPlayerPageState extends State<MusicPlayerPage> {
   // ── 播放状态 ──
   bool _isPlaying = false;
   double _progress = 0.14 / 4.35; // 00:14 / 04:21
   bool _isLiked = false;
 
-  // ── Tab 索引（推荐 / 歌曲 / 歌词） ──
-  int _tabIndex = 1;
+  // ── Tab 索引（歌曲 / 歌词） ──
+  int _tabIndex = 0;
 
-  // ── 当前曲目索引 ──
-  int _currentTrackIndex = 0;
-
-  // ── 黑胶旋转动画 ──
-  late AnimationController _vinylController;
-
-  // ── 榜单数据 ──
-  static const List<MusicTrack> _tracks = [
-    MusicTrack(
-      rank: 1,
-      title: 'Letting Go (伤痛版)',
-      artist: '徐且慢',
-      coverUrl: 'https://picsum.photos/seed/qqmusic1/400/400',
-      duration: '4:21',
-      trendValue: 1,
-      accentColor: Color(0xFF1A6BAF),
-    ),
-    MusicTrack(
-      rank: 2,
-      title: 'APT.',
-      artist: 'Bruno Mars / 兔龙',
-      coverUrl: 'https://picsum.photos/seed/qqmusic2/400/400',
-      duration: '3:10',
-      trendValue: 3,
-      accentColor: Color(0xFF9B59B6),
-    ),
-    MusicTrack(
-      rank: 3,
-      title: 'HAPPY',
-      artist: 'DAY6',
-      coverUrl: 'https://picsum.photos/seed/qqmusic3/400/400',
-      duration: '3:45',
-      trendValue: 2,
-      accentColor: Color(0xFFE67E22),
-    ),
-    MusicTrack(
-      rank: 4,
-      title: 'Die With A Smile',
-      artist: 'Lady Gaga / Bruno Mars',
-      coverUrl: 'https://picsum.photos/seed/qqmusic4/400/400',
-      duration: '4:15',
-      trendValue: 5,
-      accentColor: Color(0xFFE74C3C),
-    ),
-    MusicTrack(
-      rank: 5,
-      title: 'Pink Venom',
-      artist: 'BLACKPINK',
-      coverUrl: 'https://picsum.photos/seed/qqmusic5/400/400',
-      duration: '3:02',
-      trendValue: 0,
-      accentColor: Color(0xFFE91E8C),
-    ),
-    MusicTrack(
-      rank: 6,
-      title: 'Fortnight',
-      artist: 'Taylor Swift',
-      coverUrl: 'https://picsum.photos/seed/qqmusic6/400/400',
-      duration: '3:49',
-      trendValue: 4,
-      accentColor: Color(0xFF3498DB),
-    ),
-    MusicTrack(
-      rank: 7,
-      title: 'Yes, And?',
-      artist: 'Ariana Grande',
-      coverUrl: 'https://picsum.photos/seed/qqmusic7/400/400',
-      duration: '3:22',
-      trendValue: 2,
-      accentColor: Color(0xFFF39C12),
-    ),
-    MusicTrack(
-      rank: 8,
-      title: 'Espresso',
-      artist: 'Sabrina Carpenter',
-      coverUrl: 'https://picsum.photos/seed/qqmusic8/400/400',
-      duration: '2:55',
-      trendValue: 6,
-      accentColor: Color(0xFF1ABC9C),
-    ),
-    MusicTrack(
-      rank: 9,
-      title: 'Beautiful Things',
-      artist: 'Benson Boone',
-      coverUrl: 'https://picsum.photos/seed/qqmusic9/400/400',
-      duration: '3:32',
-      trendValue: 1,
-      accentColor: Color(0xFF2ECC71),
-    ),
-    MusicTrack(
-      rank: 10,
-      title: 'Narcissism',
-      artist: 'SUNMI',
-      coverUrl: 'https://picsum.photos/seed/qqmusic10/400/400',
-      duration: '3:18',
-      trendValue: 3,
-      accentColor: Color(0xFFCCFF00),
-    ),
-  ];
-
-  MusicTrack get _currentTrack => _tracks[_currentTrackIndex];
-
-  @override
-  void initState() {
-    super.initState();
-    _vinylController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 8),
-    );
-  }
-
-  @override
-  void dispose() {
-    _vinylController.dispose();
-    super.dispose();
-  }
+  // ── 当前曲目 ──
+  final MusicTrack _currentTrack = const MusicTrack(
+    rank: 1,
+    title: 'Letting Go (伤痛版)',
+    artist: '徐且慢',
+    coverUrl: 'https://picsum.photos/seed/qqmusic1/400/400',
+    duration: '4:21',
+    trendValue: 1,
+    accentColor: Color(0xFF1A6BAF),
+  );
 
   void _togglePlay() {
     setState(() {
       _isPlaying = !_isPlaying;
     });
-    if (_isPlaying) {
-      _vinylController.repeat();
-    } else {
-      _vinylController.stop();
-    }
-  }
-
-  void _selectTrack(int index) {
-    setState(() {
-      _currentTrackIndex = index;
-      _progress = 0;
-      _isPlaying = true;
-    });
-    _vinylController.repeat();
   }
 
   void _prevTrack() {
-    _selectTrack(
-      (_currentTrackIndex - 1 + _tracks.length) % _tracks.length,
-    );
+    // 上一首逻辑
   }
 
   void _nextTrack() {
-    _selectTrack((_currentTrackIndex + 1) % _tracks.length);
+    // 下一首逻辑
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -221,11 +96,9 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
 
                 // 内容区域（随 tab 切换）
                 Expanded(
-                  child: _tabIndex == 1
+                  child: _tabIndex == 0
                       ? _buildSongTabContent()
-                      : _tabIndex == 2
-                      ? _buildLyricsTabContent()
-                      : _buildRecommendTabContent(),
+                      : _buildLyricsTabContent(),
                 ),
 
                 // ⑤ 进度条
@@ -255,7 +128,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              _currentTrack.accentColor.withOpacity(0.35),
+              _currentTrack.accentColor.withValues(alpha: 0.35),
               top,
               bottom,
             ],
@@ -271,7 +144,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   // ══════════════════════════════════════════════════════════════════════════
 
   Widget _buildTopBar(BuildContext context) {
-    final tabs = ['推荐', '歌曲', '歌词'];
+    final tabs = ['歌曲', '歌词'];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
@@ -344,237 +217,24 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // 歌曲 Tab — 主视觉 + 歌曲信息 + 功能按钮 + 榜单列表
+  // 歌曲 Tab — 歌曲信息 + 功能按钮
   // ══════════════════════════════════════════════════════════════════════════
 
   Widget _buildSongTabContent() {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // ③ 主视觉区（3D黑胶唱机 + 封面）
-          _buildMainVisual(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 40),
 
-          // ④ 歌曲信息
+          // 歌曲信息
           _buildSongInfo(),
-          const SizedBox(height: 12),
+          const SizedBox(height: 24),
 
-          // ⑤ 功能按钮行
+          // 功能按钮行
           _buildFunctionBar(),
           const SizedBox(height: 16),
-
-          // ── 榜单列表 ──
-          _buildTrackList(),
-          const SizedBox(height: 4),
         ],
       ),
-    );
-  }
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // ③ 主视觉区 — 3D黑胶唱机 + 层叠封面卡 + 频谱
-  // ══════════════════════════════════════════════════════════════════════════
-
-  Widget _buildMainVisual() {
-    return SizedBox(
-      height: 220,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // 频谱背景
-          Positioned(
-            left: 16,
-            top: 20,
-            bottom: 20,
-            width: 88,
-            child: _SpectrumWidget(color: _currentTrack.accentColor),
-          ),
-
-          // 后层专辑封面（专辑背景卡）
-          Positioned(
-            right: 24,
-            top: 8,
-            child: _buildAlbumCard(small: true),
-          ),
-
-          // 3D黑胶唱机（前景主角）
-          Positioned(
-            bottom: 0,
-            child: _buildVinylDeck(),
-          ),
-
-          // 前景封面（叠在唱机上方）
-          Positioned(
-            right: 30,
-            top: 16,
-            child: _buildAlbumCard(small: false),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAlbumCard({required bool small}) {
-    final size = small ? 100.0 : 130.0;
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: _currentTrack.accentColor.withOpacity(0.4),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.network(
-            _currentTrack.coverUrl,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(
-              color: _currentTrack.accentColor.withOpacity(0.3),
-              child: const Icon(Icons.music_note, color: Colors.white54),
-            ),
-          ),
-          if (!small)
-            Positioned(
-              top: 6,
-              left: 6,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.black45,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'QQ音乐 · 银河计划',
-                  style: TextStyle(
-                    fontSize: 9,
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildVinylDeck() {
-    return AnimatedBuilder(
-      animation: _vinylController,
-      builder: (context, child) {
-        return SizedBox(
-          width: 200,
-          height: 110,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // 唱机底座
-              Positioned(
-                bottom: 0,
-                child: Container(
-                  width: 190,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0A3060),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: const Color(0xFF1A5090),
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-              ),
-              // 旋转黑胶
-              Positioned(
-                bottom: 8,
-                child: Transform.rotate(
-                  angle: _vinylController.value * 2 * math.pi,
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: const Color(0xFF041230),
-                      border: Border.all(
-                        color: _currentTrack.accentColor.withOpacity(0.6),
-                        width: 2,
-                      ),
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // 黑胶纹路
-                        ...List.generate(4, (i) {
-                          final r = 12.0 + i * 8.0;
-                          return Container(
-                            width: r * 2,
-                            height: r * 2,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.06),
-                                width: 1,
-                              ),
-                            ),
-                          );
-                        }),
-                        // 中心圆孔
-                        Container(
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: _currentTrack.accentColor.withOpacity(0.8),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              // 唱针臂
-              Positioned(
-                right: 20,
-                top: 4,
-                child: Transform.rotate(
-                  angle: _isPlaying ? -0.3 : -0.5,
-                  alignment: Alignment.topRight,
-                  child: Container(
-                    width: 50,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF90C8F0),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
-                ),
-              ),
-              // 唱针小圆球
-              Positioned(
-                right: 22,
-                top: 2,
-                child: Container(
-                  width: 10,
-                  height: 10,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Color(0xFFB0D8F8),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 
@@ -731,15 +391,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
         Stack(
           clipBehavior: Clip.none,
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: Colors.white70, size: 20),
-            ),
+            Icon(icon, color: Colors.white70, size: 22),
             if (badge)
               Positioned(
                 top: -2,
@@ -772,73 +424,6 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
             style: const TextStyle(fontSize: 10, color: Colors.white38),
           ),
       ],
-    );
-  }
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // 榜单列表（热歌榜全部 10 首）
-  // ══════════════════════════════════════════════════════════════════════════
-
-  Widget _buildTrackList() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(20, 4, 20, 8),
-          child: Text(
-            '热歌榜 TOP 10',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: Colors.white54,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ),
-        ..._tracks.asMap().entries.map((entry) {
-          final index = entry.key;
-          final track = entry.value;
-          final isActive = index == _currentTrackIndex;
-          return _TrackListItem(
-            track: track,
-            isActive: isActive,
-            onTap: () => _selectTrack(index),
-          );
-        }),
-      ],
-    );
-  }
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // 推荐 Tab
-  // ══════════════════════════════════════════════════════════════════════════
-
-  Widget _buildRecommendTabContent() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.music_note_rounded,
-            size: 64,
-            color: _currentTrack.accentColor.withOpacity(0.6),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            '为你推荐',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.white70,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            '根据你的听歌口味智能推荐',
-            style: TextStyle(fontSize: 13, color: Colors.white38),
-          ),
-        ],
-      ),
     );
   }
 
@@ -898,10 +483,10 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
       child: Column(
         children: [
           SliderTheme(
-            data: SliderThemeData(
+            data: const SliderThemeData(
               trackHeight: 3,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-              overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+              thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6),
+              overlayShape: RoundSliderOverlayShape(overlayRadius: 12),
               activeTrackColor: Colors.white,
               inactiveTrackColor: Colors.white24,
               thumbColor: Colors.white,
@@ -998,254 +583,4 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
       ),
     );
   }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// 榜单列表单项
-// ══════════════════════════════════════════════════════════════════════════════
-
-class _TrackListItem extends StatelessWidget {
-  final MusicTrack track;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _TrackListItem({
-    required this.track,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  Color get _rankColor {
-    switch (track.rank) {
-      case 1:
-        return const Color(0xFF32CD32);
-      case 2:
-        return const Color(0xFFFF9500);
-      case 3:
-        return const Color(0xFF9B59B6);
-      default:
-        return Colors.white38;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: isActive
-              ? track.accentColor.withOpacity(0.18)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border: isActive
-              ? Border.all(
-                  color: track.accentColor.withOpacity(0.35),
-                  width: 0.8,
-                )
-              : null,
-        ),
-        child: Row(
-          children: [
-            // 排名
-            SizedBox(
-              width: 28,
-              child: isActive
-                  ? Icon(
-                      Icons.equalizer_rounded,
-                      size: 18,
-                      color: track.accentColor,
-                    )
-                  : Text(
-                      '${track.rank}',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: _rankColor,
-                      ),
-                    ),
-            ),
-            const SizedBox(width: 10),
-            // 封面
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: Image.network(
-                track.coverUrl,
-                width: 42,
-                height: 42,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  width: 42,
-                  height: 42,
-                  color: track.accentColor.withOpacity(0.3),
-                  child: Icon(Icons.music_note, color: track.accentColor, size: 18),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            // 信息
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    track.title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.87),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    track.artist,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Colors.white38,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            // 趋势
-            if (track.trendValue > 0)
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF32CD32).withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.trending_up,
-                      size: 12,
-                      color: Color(0xFF32CD32),
-                    ),
-                    const SizedBox(width: 2),
-                    Text(
-                      '${track.trendValue}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF32CD32),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else
-              const SizedBox(width: 40),
-
-            // 时长
-            Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: Text(
-                track.duration,
-                style: const TextStyle(fontSize: 11, color: Colors.white30),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// 频谱动效组件
-// ══════════════════════════════════════════════════════════════════════════════
-
-class _SpectrumWidget extends StatefulWidget {
-  final Color color;
-
-  const _SpectrumWidget({required this.color});
-
-  @override
-  State<_SpectrumWidget> createState() => _SpectrumWidgetState();
-}
-
-class _SpectrumWidgetState extends State<_SpectrumWidget>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  final List<double> _baseHeights = [0.4, 0.7, 0.5, 0.9, 0.6, 0.8, 0.45, 0.75];
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        return CustomPaint(
-          painter: _SpectrumPainter(
-            progress: _controller.value,
-            baseHeights: _baseHeights,
-            color: widget.color,
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _SpectrumPainter extends CustomPainter {
-  final double progress;
-  final List<double> baseHeights;
-  final Color color;
-
-  _SpectrumPainter({
-    required this.progress,
-    required this.baseHeights,
-    required this.color,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color.withOpacity(0.6)
-      ..style = PaintingStyle.fill;
-
-    final barCount = baseHeights.length;
-    final barWidth = size.width / (barCount * 2 - 1);
-
-    for (int i = 0; i < barCount; i++) {
-      final multiplier =
-          baseHeights[i] + (math.sin(progress * math.pi * 2 + i * 0.8) * 0.2);
-      final barHeight = size.height * multiplier.clamp(0.2, 1.0);
-      final x = i * barWidth * 2;
-      final rect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(x, size.height - barHeight, barWidth, barHeight),
-        const Radius.circular(2),
-      );
-      canvas.drawRRect(rect, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_SpectrumPainter old) =>
-      old.progress != progress || old.color != color;
 }
