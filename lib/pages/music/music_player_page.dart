@@ -118,14 +118,16 @@ class MusicPlayerController extends GetxController {
         final text = match.group(4)!.trim();
 
         if (text.isNotEmpty) {
-          result.add(LyricLine(
-            timestamp: Duration(
-              minutes: minutes,
-              seconds: seconds,
-              milliseconds: millis,
+          result.add(
+            LyricLine(
+              timestamp: Duration(
+                minutes: minutes,
+                seconds: seconds,
+                milliseconds: millis,
+              ),
+              text: text,
             ),
-            text: text,
-          ));
+          );
         }
       }
     }
@@ -266,7 +268,8 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   }
 
   void _scrollToCurrentLyric(int index) {
-    final targetOffset = index * _lyricLineHeight -
+    final targetOffset =
+        index * _lyricLineHeight -
         MediaQuery.of(context).size.height / 3 +
         _lyricLineHeight;
 
@@ -319,20 +322,17 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
                     child: PageView(
                       controller: _pageController,
                       onPageChanged: _onPageChanged,
-                      children: [
-                        _buildSongTab(),
-                        _buildLyricsTab(),
-                      ],
+                      children: [_buildSongTab(), _buildLyricsTab()],
                     ),
                   ),
-
+                  // 功能按钮行
+                  _buildFunctionBar(),
+                  const SizedBox(height: 16),
                   // ③ 进度条
                   _buildProgressBar(),
 
                   // ④ 播放控制区
                   _buildPlaybackControls(),
-
-                  const SizedBox(height: 8),
                 ],
               ),
             ),
@@ -362,11 +362,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              accent.withValues(alpha: 0.35),
-              top,
-              bottom,
-            ],
+            colors: [accent.withValues(alpha: 0.35), top, bottom],
             stops: const [0.0, 0.3, 1.0],
           ),
         ),
@@ -467,10 +463,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
         ),
         labelColor: Colors.white,
         unselectedLabelColor: Colors.white54,
-        labelStyle: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-        ),
+        labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
         unselectedLabelStyle: const TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w400,
@@ -490,20 +483,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   Widget _buildSongTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 20),
-
-          // 歌曲信息
-          _buildSongInfo(),
-          const SizedBox(height: 32),
-
-          // 功能按钮行
-          _buildFunctionBar(),
-          const SizedBox(height: 24),
-        ],
-      ),
+      child: _buildSongInfo(),
     );
   }
 
@@ -512,7 +492,10 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
       final track = _controller.currentTrack;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          // const Expanded(child: Text('Expanded')),
+          const Text('这里是播放动画'),
           // 标题行
           Row(
             children: [
@@ -550,11 +533,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
           // 标签
           Wrap(
             spacing: 8,
-            children: [
-              _buildTag('SQ'),
-              _buildTag('MV'),
-              _buildTag('视频'),
-            ],
+            children: [_buildTag('SQ'), _buildTag('MV'), _buildTag('视频')],
           ),
         ],
       );
@@ -587,34 +566,16 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _buildFuncBtn(
-          icon: Icons.graphic_eq,
-          label: '音效',
-        ),
-        _buildFuncBtn(
-          icon: Icons.tune,
-          label: '定时',
-        ),
-        _buildFuncBtn(
-          icon: Icons.download_for_offline_outlined,
-          label: '下载',
-        ),
-        _buildFuncBtn(
-          icon: Icons.chat_bubble_outline_rounded,
-          label: '评论',
-        ),
-        _buildFuncBtn(
-          icon: Icons.more_horiz,
-          label: '更多',
-        ),
+        _buildFuncBtn(icon: Icons.graphic_eq, label: '音效'),
+        _buildFuncBtn(icon: Icons.tune, label: '定时'),
+        _buildFuncBtn(icon: Icons.download_for_offline_outlined, label: '下载'),
+        _buildFuncBtn(icon: Icons.chat_bubble_outline_rounded, label: '评论'),
+        _buildFuncBtn(icon: Icons.more_horiz, label: '更多'),
       ],
     );
   }
 
-  Widget _buildFuncBtn({
-    required IconData icon,
-    required String label,
-  }) {
+  Widget _buildFuncBtn({required IconData icon, required String label}) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -622,7 +583,10 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
         const SizedBox(height: 4),
         Text(
           label,
-          style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.5)),
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.white.withValues(alpha: 0.5),
+          ),
         ),
       ],
     );
@@ -771,25 +735,27 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
           ),
 
           // 播放/暂停
-          Obx(() => GestureDetector(
-                onTap: _controller.togglePlay,
-                child: Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                    color: Colors.transparent,
-                  ),
-                  child: Icon(
-                    _controller.isPlaying.value
-                        ? Icons.pause_rounded
-                        : Icons.play_arrow_rounded,
-                    color: Colors.white,
-                    size: 36,
-                  ),
+          Obx(
+            () => GestureDetector(
+              onTap: _controller.togglePlay,
+              child: Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                  color: Colors.transparent,
                 ),
-              )),
+                child: Icon(
+                  _controller.isPlaying.value
+                      ? Icons.pause_rounded
+                      : Icons.play_arrow_rounded,
+                  color: Colors.white,
+                  size: 36,
+                ),
+              ),
+            ),
+          ),
 
           // 下一首
           IconButton(
@@ -846,11 +812,7 @@ class _PlaylistBottomSheet extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Row(
               children: [
-                const Icon(
-                  Icons.queue_music,
-                  color: Colors.white70,
-                  size: 24,
-                ),
+                const Icon(Icons.queue_music, color: Colors.white70, size: 24),
                 const SizedBox(width: 12),
                 const Text(
                   '播放列表',
@@ -861,97 +823,100 @@ class _PlaylistBottomSheet extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                Obx(() => Text(
-                      '${controller.currentIndex.value + 1}/${MusicPlayerController.playlist.length}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
-                    )),
+                Obx(
+                  () => Text(
+                    '${controller.currentIndex.value + 1}/${MusicPlayerController.playlist.length}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
 
           // 分割线
-          Container(
-            height: 0.5,
-            color: Colors.white.withValues(alpha: 0.1),
-          ),
+          Container(height: 0.5, color: Colors.white.withValues(alpha: 0.1)),
 
           // 播放列表
           Flexible(
-            child: Obx(() => ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: MusicPlayerController.playlist.length,
-                  itemBuilder: (context, index) {
-                    final track = MusicPlayerController.playlist[index];
-                    final isCurrent = index == controller.currentIndex.value;
+            child: Obx(
+              () => ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: MusicPlayerController.playlist.length,
+                itemBuilder: (context, index) {
+                  final track = MusicPlayerController.playlist[index];
+                  final isCurrent = index == controller.currentIndex.value;
 
-                    return ListTile(
-                      onTap: () {
-                        controller.selectTrack(index);
-                        Get.back();
-                      },
-                      leading: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: track.accentColor.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: isCurrent
-                              ? const Icon(
-                                  Icons.volume_up,
-                                  color: Colors.white,
-                                  size: 20,
-                                )
-                              : Icon(
-                                  Icons.music_note,
-                                  color: track.accentColor,
-                                  size: 20,
-                                ),
-                        ),
+                  return ListTile(
+                    onTap: () {
+                      controller.selectTrack(index);
+                      Get.back();
+                    },
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: track.accentColor.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      title: Text(
-                        track.title,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w500,
-                          color: isCurrent ? Colors.white : Colors.white70,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(
-                        track.artist,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isCurrent
-                              ? Colors.white70
-                              : Colors.white.withValues(alpha: 0.4),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: isCurrent
-                          ? Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: track.accentColor,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.equalizer,
+                      child: Center(
+                        child: isCurrent
+                            ? const Icon(
+                                Icons.volume_up,
                                 color: Colors.white,
-                                size: 14,
+                                size: 20,
+                              )
+                            : Icon(
+                                Icons.music_note,
+                                color: track.accentColor,
+                                size: 20,
                               ),
-                            )
-                          : null,
-                    );
-                  },
-                )),
+                      ),
+                    ),
+                    title: Text(
+                      track.title,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: isCurrent
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color: isCurrent ? Colors.white : Colors.white70,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      track.artist,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isCurrent
+                            ? Colors.white70
+                            : Colors.white.withValues(alpha: 0.4),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: isCurrent
+                        ? Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: track.accentColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.equalizer,
+                              color: Colors.white,
+                              size: 14,
+                            ),
+                          )
+                        : null,
+                  );
+                },
+              ),
+            ),
           ),
 
           // 底部安全区域
