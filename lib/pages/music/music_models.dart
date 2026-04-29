@@ -7,6 +7,7 @@ class PlaylistItem {
   final String artist;
   final String audioPath;
   final String lrcPath;
+  final String avatarUrl;
   final Color accentColor;
 
   const PlaylistItem({
@@ -15,6 +16,7 @@ class PlaylistItem {
     required this.artist,
     required this.audioPath,
     required this.lrcPath,
+    required this.avatarUrl,
     required this.accentColor,
   });
 }
@@ -24,10 +26,7 @@ class LyricLine {
   final Duration timestamp;
   final String text;
 
-  const LyricLine({
-    required this.timestamp,
-    required this.text,
-  });
+  const LyricLine({required this.timestamp, required this.text});
 }
 
 /// 本地播放列表（热歌榜）
@@ -38,6 +37,7 @@ const List<PlaylistItem> localPlaylist = [
     artist: '刘柏辛Lexie',
     audioPath: 'sounds/Manta-刘柏辛.aac',
     lrcPath: 'sounds/Manta-刘柏辛.lrc',
+    avatarUrl: 'https://picsum.photos/id/238/200/200',
     accentColor: Color(0xFF1A6BAF),
   ),
   PlaylistItem(
@@ -46,6 +46,7 @@ const List<PlaylistItem> localPlaylist = [
     artist: '卫兰',
     audioPath: 'sounds/离家出走-卫兰.mp3',
     lrcPath: 'sounds/离家出走-卫兰.lrc',
+    avatarUrl: 'https://picsum.photos/id/239/200/200',
     accentColor: Color(0xFF9B59B6),
   ),
 ];

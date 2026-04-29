@@ -785,22 +785,31 @@ class _LocalRankingItem extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 // 圆形封面（使用accentColor）
+                // 圆形封面
                 Container(
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: data.accentColor.withValues(alpha: 0.2),
+                    color: _rankColor.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: data.accentColor.withValues(alpha: 0.4),
+                      color: _rankColor.withValues(alpha: 0.3),
                       width: 2,
                     ),
                   ),
-                  child: Center(
-                    child: Icon(
-                      Icons.music_note,
-                      color: data.accentColor,
-                      size: 20,
+                  padding: const EdgeInsets.all(2),
+                  child: ClipOval(
+                    child: Image.network(
+                      data.avatarUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: const Color(0xFF2A2A2A),
+                        child: Icon(
+                          Icons.music_note,
+                          color: _rankColor,
+                          size: 20,
+                        ),
+                      ),
                     ),
                   ),
                 ),
