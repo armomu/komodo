@@ -5,63 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:komodo/pages/music/music_models.dart';
 
-// ══════════════════════════════════════════════════════════════════════════════
-// 数据模型
-// ══════════════════════════════════════════════════════════════════════════════
-
-class PlaylistItem {
-  final String id;
-  final String title;
-  final String artist;
-  final String audioPath;
-  final String lrcPath;
-  final Color accentColor;
-
-  const PlaylistItem({
-    required this.id,
-    required this.title,
-    required this.artist,
-    required this.audioPath,
-    required this.lrcPath,
-    required this.accentColor,
-  });
-}
-
-class LyricLine {
-  final Duration timestamp;
-  final String text;
-
-  const LyricLine({
-    required this.timestamp,
-    required this.text,
-  });
-}
+// 导出数据模型以便其他文件使用
+export 'package:komodo/pages/music/music_models.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // 播放器控制器
 // ══════════════════════════════════════════════════════════════════════════════
 
 class MusicPlayerController extends GetxController {
-  // 播放列表
-  static const List<PlaylistItem> playlist = [
-    PlaylistItem(
-      id: '1',
-      title: 'Manta',
-      artist: '刘柏辛Lexie',
-      audioPath: 'sounds/Manta-刘柏辛.aac',
-      lrcPath: 'sounds/Manta-刘柏辛.lrc',
-      accentColor: Color(0xFF1A6BAF),
-    ),
-    PlaylistItem(
-      id: '2',
-      title: '离家出走',
-      artist: '卫兰',
-      audioPath: 'sounds/离家出走-卫兰.mp3',
-      lrcPath: 'sounds/离家出走-卫兰.lrc',
-      accentColor: Color(0xFF9B59B6),
-    ),
-  ];
+  // 播放列表（使用全局定义的本地播放列表）
+  static const List<PlaylistItem> playlist = localPlaylist;
 
   // 播放器
   final AudioPlayer _audioPlayer = AudioPlayer();
@@ -71,7 +26,6 @@ class MusicPlayerController extends GetxController {
   final RxBool isPlaying = false.obs;
   final Rx<Duration> position = Duration.zero.obs;
   final Rx<Duration> duration = Duration.zero.obs;
-  final Rx<Duration> bufferedPosition = Duration.zero.obs;
   final RxList<LyricLine> lyrics = <LyricLine>[].obs;
   final RxInt currentLyricIndex = (-1).obs;
   final RxBool isLoading = false.obs;
@@ -109,11 +63,6 @@ class MusicPlayerController extends GetxController {
       if (dur != null) {
         duration.value = dur;
       }
-    });
-
-    // 监听缓冲位置
-    _audioPlayer.bufferedPositionStream.listen((buf) {
-      bufferedPosition.value = buf;
     });
 
     // 监听播放完成
@@ -332,6 +281,18 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
     _tabController.animateTo(index);
   }
 
+  /// 显示播放列表底部弹窗
+  void _showPlaylistSheet() {
+    Get.bottomSheet(
+      _PlaylistBottomSheet(controller: _controller),
+      backgroundColor: const Color(0xFF0D2338),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Obx(() {
@@ -350,13 +311,10 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
             SafeArea(
               child: Column(
                 children: [
-                  // ① 顶部导航栏
-                  _buildTopBar(context),
+                  // ① 顶部导航栏（含Tab）
+                  _buildTopBarWithTabs(context),
 
-                  // ② Tab 指示器
-                  _buildTabIndicator(),
-
-                  // ③ 可滑动内容区
+                  // ② 可滑动内容区（歌曲/歌词）
                   Expanded(
                     child: PageView(
                       controller: _pageController,
@@ -368,13 +326,10 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
                     ),
                   ),
 
-                  // ④ 播放列表
-                  _buildPlaylistBar(),
-
-                  // ⑤ 进度条
+                  // ③ 进度条
                   _buildProgressBar(),
 
-                  // ⑥ 播放控制区
+                  // ④ 播放控制区
                   _buildPlaybackControls(),
 
                   const SizedBox(height: 8),
@@ -420,63 +375,74 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // 顶部导航栏
+  // 顶部导航栏（含Tab切换）
   // ══════════════════════════════════════════════════════════════════════════
 
-  Widget _buildTopBar(BuildContext context) {
-    return Padding(
+  Widget _buildTopBarWithTabs(BuildContext context) {
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // 返回
-          IconButton(
-            onPressed: () => Get.back(),
-            icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 28),
-            color: Colors.white70,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          // 第一行：返回 + 歌曲信息 + 分享
+          Row(
+            children: [
+              // 返回
+              IconButton(
+                onPressed: () => Get.back(),
+                icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 28),
+                color: Colors.white70,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              ),
+
+              // 歌曲信息（居中）
+              Expanded(
+                child: Obx(() {
+                  final track = _controller.currentTrack;
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        track.title,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        track.artist,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.white60,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  );
+                }),
+              ),
+
+              // 分享
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.ios_share_rounded, size: 22),
+                color: Colors.white70,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              ),
+            ],
           ),
 
-          // 歌曲信息（居中）
-          Expanded(
-            child: Obx(() {
-              final track = _controller.currentTrack;
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    track.title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    track.artist,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.white60,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              );
-            }),
-          ),
+          const SizedBox(height: 8),
 
-          // 分享
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.ios_share_rounded, size: 22),
-            color: Colors.white70,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-          ),
+          // 第二行：Tab 指示器（歌曲/歌词）
+          _buildTabIndicator(),
         ],
       ),
     );
@@ -487,18 +453,22 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   // ══════════════════════════════════════════════════════════════════════════
 
   Widget _buildTabIndicator() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+    return Container(
+      width: 120,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
       child: TabBar(
         controller: _tabController,
-        indicator: const UnderlineTabIndicator(
-          borderSide: BorderSide(color: Colors.white, width: 2),
-          insets: EdgeInsets.symmetric(horizontal: 40),
+        indicator: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(20),
         ),
         labelColor: Colors.white,
         unselectedLabelColor: Colors.white54,
         labelStyle: const TextStyle(
-          fontSize: 14,
+          fontSize: 13,
           fontWeight: FontWeight.w600,
         ),
         unselectedLabelStyle: const TextStyle(
@@ -712,77 +682,6 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // 播放列表栏
-  // ══════════════════════════════════════════════════════════════════════════
-
-  Widget _buildPlaylistBar() {
-    return Container(
-      height: 60,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: MusicPlayerController.playlist.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (context, index) {
-          final track = MusicPlayerController.playlist[index];
-          final isCurrent = index == _controller.currentIndex.value;
-
-          return GestureDetector(
-            onTap: () => _controller.selectTrack(index),
-            child: Container(
-              width: 140,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: isCurrent
-                    ? track.accentColor.withValues(alpha: 0.3)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-                border: isCurrent
-                    ? Border.all(
-                        color: track.accentColor.withValues(alpha: 0.5),
-                        width: 1,
-                      )
-                    : null,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    track.title,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w500,
-                      color: isCurrent ? Colors.white : Colors.white70,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    track.artist,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isCurrent ? Colors.white70 : Colors.white38,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  // ══════════════════════════════════════════════════════════════════════════
   // 进度条
   // ══════════════════════════════════════════════════════════════════════════
 
@@ -900,13 +799,163 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
             iconSize: 32,
           ),
 
-          // 播放列表
+          // 播放列表 - 点击弹出底部弹窗
           IconButton(
-            onPressed: () {},
+            onPressed: _showPlaylistSheet,
             icon: const Icon(Icons.queue_music_rounded),
             color: Colors.white54,
             iconSize: 24,
           ),
+        ],
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 播放列表底部弹窗
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _PlaylistBottomSheet extends StatelessWidget {
+  final MusicPlayerController controller;
+
+  const _PlaylistBottomSheet({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.6,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 顶部拖动条
+          Container(
+            margin: const EdgeInsets.only(top: 8, bottom: 8),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+
+          // 标题栏
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.queue_music,
+                  color: Colors.white70,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  '播放列表',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+                const Spacer(),
+                Obx(() => Text(
+                      '${controller.currentIndex.value + 1}/${MusicPlayerController.playlist.length}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.5),
+                      ),
+                    )),
+              ],
+            ),
+          ),
+
+          // 分割线
+          Container(
+            height: 0.5,
+            color: Colors.white.withValues(alpha: 0.1),
+          ),
+
+          // 播放列表
+          Flexible(
+            child: Obx(() => ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: MusicPlayerController.playlist.length,
+                  itemBuilder: (context, index) {
+                    final track = MusicPlayerController.playlist[index];
+                    final isCurrent = index == controller.currentIndex.value;
+
+                    return ListTile(
+                      onTap: () {
+                        controller.selectTrack(index);
+                        Get.back();
+                      },
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: track.accentColor.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: isCurrent
+                              ? const Icon(
+                                  Icons.volume_up,
+                                  color: Colors.white,
+                                  size: 20,
+                                )
+                              : Icon(
+                                  Icons.music_note,
+                                  color: track.accentColor,
+                                  size: 20,
+                                ),
+                        ),
+                      ),
+                      title: Text(
+                        track.title,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w500,
+                          color: isCurrent ? Colors.white : Colors.white70,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        track.artist,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isCurrent
+                              ? Colors.white70
+                              : Colors.white.withValues(alpha: 0.4),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: isCurrent
+                          ? Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: track.accentColor,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.equalizer,
+                                color: Colors.white,
+                                size: 14,
+                              ),
+                            )
+                          : null,
+                    );
+                  },
+                )),
+          ),
+
+          // 底部安全区域
+          SizedBox(height: MediaQuery.of(context).padding.bottom),
         ],
       ),
     );
