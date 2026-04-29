@@ -54,12 +54,22 @@ class _ShortVideoTabState extends State<ShortVideoTab>
     }
   }
 
+  // 1. 定义一个 GlobalKey，类型为 ScaffoldState
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  // 手动打开抽屉的方法
+  void _openDrawerManually() {
+    // 3. 通过 key 获取当前的 ScaffoldState 并调用 openDrawer
+    _scaffoldKey.currentState?.openDrawer();
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
+        key: _scaffoldKey,
         backgroundColor: Colors.black,
         extendBodyBehindAppBar: true,
         appBar: _buildTopBar(),
@@ -97,6 +107,16 @@ class _ShortVideoTabState extends State<ShortVideoTab>
       centerTitle: true,
       automaticallyImplyLeading: false,
       systemOverlayStyle: SystemUiOverlayStyle.light,
+      leading: IconButton(
+        onPressed: () => _openDrawerManually(),
+        icon: const Icon(Icons.sort, color: Colors.white),
+      ),
+      actions: [
+        IconButton(
+          onPressed: () {},
+          icon: const Icon(Icons.search, color: Colors.white),
+        ),
+      ],
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: titles.asMap().entries.map((e) {

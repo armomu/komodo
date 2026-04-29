@@ -11,7 +11,7 @@ class ProfileTab extends StatefulWidget {
 
 class _ProfileTabState extends State<ProfileTab> {
   int _selectedTabIndex = 0;
-  final List<String> _tabs = ['我喜欢', '本地/云盘', '已购买', '全部'];
+  final List<String> _tabs = ['我喜欢', '本地/云盘', '收藏', '已购买', '歌单'];
 
   // Mock data
   final String _userName = 'Oliver Nicolai';
@@ -23,35 +23,35 @@ class _ProfileTabState extends State<ProfileTab> {
 
   final List<Map<String, dynamic>> _feedItems = [
     {
-      'avatar': 'https://i.pravatar.cc/100?img=1',
+      'avatar': 'https://picsum.photos/seed/mv2/100/100',
       'name': 'Sarah Miller',
       'date': 'Sep 1',
       'activity': 'Hiking',
       'time': '2h ago',
     },
     {
-      'avatar': 'https://i.pravatar.cc/100?img=2',
+      'avatar': 'https://picsum.photos/seed/mv2/100/100',
       'name': 'John Doe',
       'date': 'Aug 28',
       'activity': 'Cycling',
       'time': '1d ago',
     },
     {
-      'avatar': 'https://i.pravatar.cc/100?img=3',
+      'avatar': 'https://picsum.photos/seed/mv2/100/100',
       'name': 'Emma Wilson',
       'date': 'Aug 25',
       'activity': 'Swimming',
       'time': '3d ago',
     },
     {
-      'avatar': 'https://i.pravatar.cc/100?img=4',
+      'avatar': 'https://picsum.photos/seed/mv2/100/100',
       'name': 'Mike Chen',
       'date': 'Aug 20',
       'activity': 'Running',
       'time': '1w ago',
     },
     {
-      'avatar': 'https://i.pravatar.cc/100?img=5',
+      'avatar': 'https://picsum.photos/seed/mv2/100/100',
       'name': 'Lisa Park',
       'date': 'Aug 15',
       'activity': 'Yoga',
@@ -63,14 +63,17 @@ class _ProfileTabState extends State<ProfileTab> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
-    const primaryColor = Color(0xFF2D5016);
+    // const primaryColor = Color(0xFF2D5016);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('我的'),
+        leading: IconButton(
+          icon: const Icon(Icons.more_horiz),
+          onPressed: () {},
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_vert),
+            icon: const Icon(Icons.settings),
             onPressed: () {
               Get.toNamed(Routes.settings);
             },
@@ -82,87 +85,100 @@ class _ProfileTabState extends State<ProfileTab> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Avatar with plus badge
-            Container(
-              margin: const EdgeInsets.only(left: 16),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withAlpha(51),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+            Row(
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(left: 16),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 4),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(20),
+                              blurRadius: 5,
+                              offset: const Offset(0, 0),
+                            ),
+                          ],
+                          image: const DecorationImage(
+                            image: NetworkImage(
+                              'https://picsum.photos/seed/mv2/100/100',
+                            ),
+                            fit: BoxFit.cover,
+                          ),
                         ),
-                      ],
-                      image: const DecorationImage(
-                        image: NetworkImage('https://i.pravatar.cc/200?img=10'),
-                        fit: BoxFit.cover,
+                      ),
+                      // Plus badge
+                      Positioned(
+                        bottom: 0,
+                        right: -4,
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: colorScheme.onSurface,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 3),
+                          ),
+                          child: Icon(
+                            Icons.add,
+                            size: 18,
+                            color: colorScheme.surface,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(left: 16),
+                      child: Text(
+                        _userName,
+                        style: const TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                  // Plus badge
-                  Positioned(
-                    bottom: 0,
-                    right: -4,
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: primaryColor,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
-                      ),
-                      child: const Icon(
-                        Icons.add,
-                        color: Colors.white,
-                        size: 18,
+
+                    const SizedBox(height: 4),
+                    // Location
+                    Container(
+                      margin: const EdgeInsets.only(left: 16),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            size: 16,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _location,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ),
 
             const SizedBox(height: 16),
-            Container(
-              margin: const EdgeInsets.only(left: 16),
-              child: Text(
-                _userName,
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            // Location
-            Container(
-              margin: const EdgeInsets.only(left: 16),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.location_on,
-                    size: 16,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    _location,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
+
             // User info
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -192,12 +208,10 @@ class _ProfileTabState extends State<ProfileTab> {
                   ),
                   Expanded(child: Container()),
                   SizedBox(
-                    width: 140,
-                    height: 44,
                     child: ElevatedButton(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
+                        backgroundColor: colorScheme.onSurface,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(22),
@@ -205,9 +219,9 @@ class _ProfileTabState extends State<ProfileTab> {
                         elevation: 0,
                       ),
                       child: const Text(
-                        '编辑资料',
+                        'Follow',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -217,7 +231,7 @@ class _ProfileTabState extends State<ProfileTab> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
             // Stats cards row
             Padding(
@@ -269,9 +283,9 @@ class _ProfileTabState extends State<ProfileTab> {
     required ColorScheme colorScheme,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: colorScheme.onSurfaceVariant.withAlpha(20),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -284,7 +298,7 @@ class _ProfileTabState extends State<ProfileTab> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: colorScheme.onSurface,
+                color: colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -299,10 +313,12 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 
   Widget _buildTabNavigation(BuildContext context, bool isDark) {
-    const primaryColor = Color(0xFF2D5016);
+    final colorScheme = Theme.of(context).colorScheme;
+    final primaryColor = colorScheme.onSurface;
     return Container(
       height: 44,
-      margin: const EdgeInsets.symmetric(horizontal: 20),
+      // color: primaryColor,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
           Expanded(
@@ -323,11 +339,18 @@ class _ProfileTabState extends State<ProfileTab> {
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.normal,
+                                ? FontWeight.w800
+                                : FontWeight.w500,
                             color: isSelected
                                 ? primaryColor
-                                : (isDark ? Colors.white54 : Colors.grey[500]),
+                                : (isDark
+                                      ? Colors.white54
+                                      : const Color.fromARGB(
+                                          255,
+                                          101,
+                                          100,
+                                          100,
+                                        )),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -364,71 +387,60 @@ class _ProfileTabState extends State<ProfileTab> {
     Map<String, dynamic> item,
     bool isDark,
   ) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: isDark
-            ? null
-            : [
-                BoxShadow(
-                  color: Colors.black.withAlpha(13),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? Colors.white24 : Colors.grey[200]!,
+                  width: 1,
                 ),
-              ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isDark ? Colors.white24 : Colors.grey[200]!,
-                width: 1,
-              ),
-              image: DecorationImage(
-                image: NetworkImage(item['avatar']),
-                fit: BoxFit.cover,
+                image: DecorationImage(
+                  image: NetworkImage(item['avatar']),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item['name'],
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : const Color(0xFF1A1A1A),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item['name'],
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : const Color(0xFF1A1A1A),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${item['date']} · ${item['activity']}',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? Colors.white54 : Colors.grey[600],
+                  const SizedBox(height: 4),
+                  Text(
+                    '${item['date']} · ${item['activity']}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark ? Colors.white54 : Colors.grey[600],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Text(
-            item['time'],
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark ? Colors.white38 : Colors.grey[400],
+            Text(
+              item['time'],
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? Colors.white38 : Colors.grey[400],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

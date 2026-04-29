@@ -108,32 +108,21 @@ class _MusicTabState extends State<MusicTab> {
             // backgroundColor: Colors.black,
             surfaceTintColor: Theme.of(context).colorScheme.surface,
             backgroundColor: Theme.of(context).colorScheme.surface,
-            expandedHeight: 80,
+            expandedHeight: 68,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'KOMODO',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: Theme.of(context).colorScheme.onSurface,
-                      letterSpacing: -0.5,
-                    ),
+              title: Container(
+                height: 44,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'KOMODO',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Theme.of(context).colorScheme.onSurface,
+                    letterSpacing: -0.5,
                   ),
-                  IconButton(
-                    onPressed: () {
-                      Get.toNamed(Routes.live);
-                    },
-                    icon: Icon(
-                      Icons.live_tv,
-                      size: 18,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                ],
+                ),
               ),
 
               titlePadding: const EdgeInsets.fromLTRB(16, 16, 3, 0),
@@ -799,6 +788,7 @@ class _RankingListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -827,6 +817,7 @@ class _RankingListItem extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
+              color: _rankColor.withValues(alpha: 0.15),
               shape: BoxShape.circle,
               border: Border.all(
                 color: _rankColor.withValues(alpha: 0.3),
@@ -867,7 +858,7 @@ class _RankingListItem extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
-                    color: Colors.white.withValues(alpha: 0.5),
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

@@ -61,10 +61,10 @@ class AppTheme {
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: Colors.white,
-        selectedItemColor: primaryColor,
+        selectedItemColor: Colors.transparent,
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
-        elevation: 8,
+        elevation: 0,
       ),
     );
   }

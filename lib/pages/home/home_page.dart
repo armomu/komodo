@@ -107,50 +107,62 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildBottomNavBar(BuildContext context) {
     // 短视频Tab选中时，底部导航栏使用深色背景
-    // final isVideoTab = _currentIndex == 1;
-    // final bgColor = isVideoTab
-    //     ? Colors.black
-    //     : Theme.of(context).bottomAppBarTheme.color;
+    final isVideoTab = _currentIndex == 1;
+    final bgColor = isVideoTab
+        ? Colors.black
+        : Theme.of(context).bottomAppBarTheme.color;
     // final shadowColor = isVideoTab
     //     ? Colors.transparent
     //     : Colors.black.withOpacity(0.08);
 
-    return SafeArea(
-      child: SizedBox(
-        height: 60,
-        child: Row(
-          children: [
-            _buildNavItem(
-              context,
-              icon: Icons.home_outlined,
-              activeIcon: Icons.home,
-              label: '音乐',
-              navIndex: 0,
-            ),
-            _buildNavItem(
-              context,
-              icon: Icons.play_circle_outline,
-              activeIcon: Icons.play_circle,
-              label: '短视频',
-              navIndex: 1,
-            ),
-            // 中间 + 号按钮
-            _buildPlusItem(context),
-            _buildNavItem(
-              context,
-              icon: Icons.chat_bubble_outline,
-              activeIcon: Icons.chat_bubble,
-              label: '消息',
-              navIndex: 3,
-            ),
-            _buildNavItem(
-              context,
-              icon: Icons.person_outline,
-              activeIcon: Icons.person,
-              label: '我的',
-              navIndex: 4,
-            ),
-          ],
+    return Container(
+      decoration: BoxDecoration(
+        color: bgColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            offset: const Offset(0, -1),
+            blurRadius: 12,
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          height: 60,
+          child: Row(
+            children: [
+              _buildNavItem(
+                context,
+                icon: Icons.home_outlined,
+                activeIcon: Icons.home,
+                label: '音乐',
+                navIndex: 0,
+              ),
+              _buildNavItem(
+                context,
+                icon: Icons.play_circle_outline,
+                activeIcon: Icons.play_circle,
+                label: '短视频',
+                navIndex: 1,
+              ),
+              // 中间 + 号按钮
+              _buildPlusItem(context),
+              _buildNavItem(
+                context,
+                icon: Icons.chat_bubble_outline,
+                activeIcon: Icons.chat_bubble,
+                label: '消息',
+                navIndex: 3,
+              ),
+              _buildNavItem(
+                context,
+                icon: Icons.person_outline,
+                activeIcon: Icons.person,
+                label: '我的',
+                navIndex: 4,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -170,7 +182,7 @@ class _HomePageState extends State<HomePage> {
     final color = isDarkBg
         ? (isActive ? Colors.white : Colors.white70)
         : (isActive
-              ? Theme.of(context).textTheme.bodyLarge?.color
+              ? Theme.of(context).colorScheme.onSurface
               : Colors.grey[600]!);
 
     return Expanded(
@@ -223,7 +235,7 @@ class _HomePageState extends State<HomePage> {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: Theme.of(context).textTheme.bodyLarge?.color,
+              color: Theme.of(context).colorScheme.onSurface,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(
