@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:komodo/pages/live/live_push.dart';
 import 'package:komodo/pages/live/push_demo.dart';
+import 'package:komodo/pages/music/music_player_page.dart';
 import '../pages/home/home_page.dart';
 import '../pages/settings/settings_page.dart';
 import '../pages/lifecycle/lifecycle_detail_page.dart';
@@ -19,6 +20,7 @@ abstract class Routes {
   static const String bleDemo = '/ble-demo';
   static const String livePushDemo = '/live-push-demo';
   static const String livePush = '/live-push';
+  static const String musicPlayer = '/music-player';
 }
 
 /// 路由配置
@@ -78,6 +80,12 @@ class AppPages {
       page: () => const LivePushPage(),
       transition: Transition.downToUp,
       transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: Routes.musicPlayer,
+      page: () => const MusicPlayerPage(),
+      transition: Transition.downToUp,
+      transitionDuration: const Duration(milliseconds: 350),
     ),
   ];
 }

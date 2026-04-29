@@ -789,112 +789,117 @@ class _RankingListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          // 排名标签
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: _rankColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              '${data.rank}',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: _rankColor,
+    return GestureDetector(
+      onTap: () => Get.toNamed(Routes.musicPlayer),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            // 排名标签
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: _rankColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
               ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          // 圆形封面
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: _rankColor.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: _rankColor.withValues(alpha: 0.3),
-                width: 2,
-              ),
-            ),
-            padding: const EdgeInsets.all(2),
-            child: ClipOval(
-              child: Image.network(
-                data.coverUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: const Color(0xFF2A2A2A),
-                  child: Icon(Icons.music_note, color: _rankColor, size: 20),
+              alignment: Alignment.center,
+              child: Text(
+                '${data.rank}',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: _rankColor,
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          // 歌曲信息
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  data.songName,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    // color: Colors.white,
+            const SizedBox(width: 12),
+            // 圆形封面
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: _rankColor.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: _rankColor.withValues(alpha: 0.3),
+                  width: 2,
+                ),
+              ),
+              padding: const EdgeInsets.all(2),
+              child: ClipOval(
+                child: Image.network(
+                  data.coverUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: const Color(0xFF2A2A2A),
+                    child: Icon(Icons.music_note, color: _rankColor, size: 20),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  data.artist,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // 歌曲信息
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    data.songName,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      // color: Colors.white,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    data.artist,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.5,
+                      ),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          // 排名趋势
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFF32CD32).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.trending_up,
-                  size: 14,
-                  color: Color(0xFF32CD32),
-                ),
-                const SizedBox(width: 2),
-                Text(
-                  '${data.trendValue}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+            const SizedBox(width: 8),
+            // 排名趋势
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF32CD32).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.trending_up,
+                    size: 14,
                     color: Color(0xFF32CD32),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 2),
+                  Text(
+                    '${data.trendValue}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF32CD32),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
