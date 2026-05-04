@@ -23,7 +23,7 @@ class _ProfileTabState extends State<ProfileTab> {
 
   final List<Map<String, dynamic>> _feedItems = [
     {
-      'avatar': 'https://picsum.photos/seed/mv2/100/100',
+      'avatar': 'https://picsum.photos/seed/mv1/100/100',
       'name': 'Sarah Miller',
       'date': 'Sep 1',
       'activity': 'Hiking',
@@ -37,21 +37,21 @@ class _ProfileTabState extends State<ProfileTab> {
       'time': '1d ago',
     },
     {
-      'avatar': 'https://picsum.photos/seed/mv2/100/100',
+      'avatar': 'https://picsum.photos/seed/mv3/100/100',
       'name': 'Emma Wilson',
       'date': 'Aug 25',
       'activity': 'Swimming',
       'time': '3d ago',
     },
     {
-      'avatar': 'https://picsum.photos/seed/mv2/100/100',
+      'avatar': 'https://picsum.photos/seed/mv4/100/100',
       'name': 'Mike Chen',
       'date': 'Aug 20',
       'activity': 'Running',
       'time': '1w ago',
     },
     {
-      'avatar': 'https://picsum.photos/seed/mv2/100/100',
+      'avatar': 'https://picsum.photos/seed/mv5/100/100',
       'name': 'Lisa Park',
       'date': 'Aug 15',
       'activity': 'Yoga',
@@ -218,10 +218,11 @@ class _ProfileTabState extends State<ProfileTab> {
                         ),
                         elevation: 0,
                       ),
-                      child: const Text(
-                        'Follow',
+                      child: Text(
+                        '直播',
                         style: TextStyle(
                           fontSize: 12,
+                          color: colorScheme.surface,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
