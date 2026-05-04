@@ -21,6 +21,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   late final MusicPlayerController _controller;
   late final PageController _pageController;
   late final TabController _tabController;
+  int _topTabIndex = 1; // 默认「精选」
 
   // 歌词滚动控制器
   final ScrollController _lyricsScrollController = ScrollController();
@@ -76,6 +77,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
 
   void _onPageChanged(int index) {
     _tabController.animateTo(index);
+    setState(() => _topTabIndex = index);
   }
 
   /// 显示播放列表底部弹窗
@@ -94,6 +96,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   Widget build(BuildContext context) {
     return Obx(() {
       return Scaffold(
+        backgroundColor: Colors.black,
         body: Stack(
           children: [
             // ── 主内容 ──
@@ -108,12 +111,14 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
                     child: PageView(
                       controller: _pageController,
                       onPageChanged: _onPageChanged,
+
                       children: [_buildSongTab(), _buildLyricsTab()],
                     ),
                   ),
+                  const SizedBox(height: 8),
                   // 功能按钮行
                   _buildFunctionBar(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   // ③ 进度条
                   _buildProgressBar(),
 
@@ -143,7 +148,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
 
   Widget _buildTopBarWithTabs(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -159,37 +164,8 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
                 constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               ),
 
-              // 歌曲信息（居中）
-              Expanded(
-                child: Obx(() {
-                  final track = _controller.currentTrack;
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        track.title,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        track.artist,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.white60,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  );
-                }),
-              ),
+              // 第二行：Tab 指示器（歌曲/歌词）
+              _buildTabIndicator(),
 
               // 分享
               IconButton(
@@ -201,11 +177,6 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
               ),
             ],
           ),
-
-          const SizedBox(height: 8),
-
-          // 第二行：Tab 指示器（歌曲/歌词）
-          _buildTabIndicator(),
         ],
       ),
     );
@@ -216,29 +187,50 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   // ══════════════════════════════════════════════════════════════════════════
 
   Widget _buildTabIndicator() {
-    return Container(
-      width: 120,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: TabBar(
-        controller: _tabController,
-        indicator: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        labelColor: Colors.white,
-        unselectedLabelColor: Colors.white54,
-        labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w400,
-        ),
-        tabs: const [
-          Tab(text: '歌曲'),
-          Tab(text: '歌词'),
-        ],
+    const titles = ['歌曲', '歌词'];
+    return Expanded(
+      // decoration: BoxDecoration(
+      //   color: Colors.white.withValues(alpha: 0.1),
+      //   borderRadius: BorderRadius.circular(20),
+      // ),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: titles.asMap().entries.map((e) {
+          final active = e.key == _topTabIndex;
+          return GestureDetector(
+            onTap: () {
+              _tabController.animateTo(
+                e.key,
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+              );
+            },
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    e.value,
+                    style: TextStyle(
+                      color: active ? Colors.white : Colors.white60,
+                      fontSize: active ? 16 : 15,
+                      fontWeight: active ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Container(
+                    width: 20,
+                    height: 2,
+                    color: active ? Colors.white : Colors.transparent,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -248,9 +240,18 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   // ══════════════════════════════════════════════════════════════════════════
 
   Widget _buildSongTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: _buildSongInfo(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight, // 使用父容器高度
+            ),
+            child: _buildSongInfo(),
+          ),
+        );
+      },
     );
   }
 
@@ -261,7 +262,6 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          // const Expanded(child: Text('Expanded')),
           const Text('这里是播放动画'),
           // 标题行
           Row(
@@ -285,7 +285,6 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
             ],
           ),
           const SizedBox(height: 8),
-
           // 歌手
           Text(
             track.artist,
@@ -331,9 +330,9 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
 
   Widget _buildFunctionBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildFuncBtn(icon: Icons.graphic_eq, label: '音效'),
           _buildFuncBtn(icon: Icons.tune, label: '定时'),
@@ -349,12 +348,12 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: Colors.white70, size: 24),
+        Icon(icon, color: Colors.white70, size: 22),
         const SizedBox(height: 4),
         Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: 10,
             color: Colors.white.withValues(alpha: 0.5),
           ),
         ),
@@ -430,7 +429,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
       }
 
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         child: Column(
           children: [
             // 进度滑块
@@ -487,8 +486,8 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
 
     return Padding(
       padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
+        left: 20,
+        right: 20,
         bottom: buttonSize > 0 ? buttonSize + 8 : 28,
       ),
       child: Row(
