@@ -67,10 +67,10 @@ class _ProfileTabState extends State<ProfileTab> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.more_horiz),
-          onPressed: () {},
-        ),
+        // leading: IconButton(
+        //   icon: const Icon(Icons.more_horiz),
+        //   onPressed: () {},
+        // ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -195,7 +195,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 12),
                     width: 1,
-                    height: 16,
+                    height: 12,
                     color: colorScheme.onSurfaceVariant,
                   ),
                   Text(
@@ -219,7 +219,7 @@ class _ProfileTabState extends State<ProfileTab> {
                         elevation: 0,
                       ),
                       child: Text(
-                        '直播',
+                        'Follow',
                         style: TextStyle(
                           fontSize: 12,
                           color: colorScheme.surface,

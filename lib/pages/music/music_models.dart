@@ -49,4 +49,13 @@ const List<PlaylistItem> localPlaylist = [
     avatarUrl: 'https://picsum.photos/id/239/200/200',
     accentColor: Color(0xFF9B59B6),
   ),
+  PlaylistItem(
+    id: '3',
+    title: '马叫声',
+    artist: '无名',
+    audioPath: 'https://www.w3schools.com/html/horse.mp3',
+    lrcPath: '',
+    avatarUrl: 'https://picsum.photos/id/1/200/200',
+    accentColor: Color.fromARGB(255, 77, 255, 109),
+  ),
 ];
