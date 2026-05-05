@@ -8,7 +8,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:komodo/pages/music/music_models.dart';
 
-// ══════════════════════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════════════════════════
 // 全局音乐播放器控制器
 //
 // 生命周期：在 main() 中 Get.put，全局单例，跨页面保持状态。
@@ -18,7 +18,7 @@ import 'package:komodo/pages/music/music_models.dart';
 // 关键设计：用 setAudioSources(完整列表) 一次性加载所有曲目。
 //   just_audio_background 才能感知 hasNext/hasPrevious，
 //   通知栏 compact view 才会显示上一首/下一首按钮。
-// ══════════════════════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════════════════════════
 
 class MusicPlayerController extends GetxController {
   // 播放列表
@@ -27,9 +27,11 @@ class MusicPlayerController extends GetxController {
   // 播放器（just_audio_background 包装 just_audio，额外处理系统媒体通知）
   late final AudioPlayer _audioPlayer;
 
-  // ── 可观察状态 ──────────────────────────────────────────────────────────────
+  // ── 可观察状态 ──────────────────────────────────────────────────────
   final RxInt currentIndex = 0.obs;
   final RxBool isPlaying = false.obs;
+  // 是否已播过歌：避免初始状态（currentIndex=0 且 isPlaying=false）被误认为「已暂停」
+  final RxBool hasStartedPlaying = false.obs;
   final Rx<Duration> position = Duration.zero.obs;
   final Rx<Duration> duration = Duration.zero.obs;
   final RxList<LyricLine> lyrics = <LyricLine>[].obs;
@@ -39,7 +41,7 @@ class MusicPlayerController extends GetxController {
   // 当前歌曲
   PlaylistItem get currentTrack => playlist[currentIndex.value];
 
-  // ── 生命周期 ────────────────────────────────────────────────────────────────
+  // ── 生命周期 ────────────────────────────────────────────────────────
 
   @override
   void onInit() {
@@ -55,7 +57,7 @@ class MusicPlayerController extends GetxController {
     super.onClose();
   }
 
-  // ── 内部初始化 ───────────────────────────────────────────────────────────────
+  // ── 内部初始化 ─────────────────────────────────────────────────────────
 
   void _initAudioPlayer() {
     // 播放状态
@@ -209,9 +211,10 @@ class MusicPlayerController extends GetxController {
     }
   }
 
-  // ── 公开控制接口 ────────────────────────────────────────────────────────────
+  // ── 公开控制接口 ────────────────────────────────────────────────────
 
   Future<void> play() async {
+    hasStartedPlaying.value = true; // 标记已播过歌，UI 才能显示状态
     await _audioPlayer.play();
   }
 
