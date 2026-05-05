@@ -268,8 +268,9 @@ class _ProfileTabState extends State<ProfileTab> {
             const SizedBox(height: 8),
 
             // Feed list
-            ..._feedItems.map((item) => _buildFeedItem(context, item, isDark)),
-
+            // ..._feedItems.map((item) => _buildFeedItem(context, item, isDark)),
+            const SizedBox(height: 100),
+            const Center(child: Text('Coming soon')),
             const SizedBox(height: 100),
           ],
         ),

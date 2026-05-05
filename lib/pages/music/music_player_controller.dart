@@ -14,6 +14,10 @@ import 'package:komodo/pages/music/music_models.dart';
 // 生命周期：在 main() 中 Get.put，全局单例，跨页面保持状态。
 // 系统集成：使用 just_audio_background，自动显示系统通知栏/锁屏/控制中心
 //           的媒体播放组件，并响应耳机按键/蓝牙设备控制。
+//
+// 关键设计：用 setAudioSources(完整列表) 一次性加载所有曲目。
+//   just_audio_background 才能感知 hasNext/hasPrevious，
+//   通知栏 compact view 才会显示上一首/下一首按钮。
 // ══════════════════════════════════════════════════════════════════════════════
 
 class MusicPlayerController extends GetxController {
@@ -33,7 +37,7 @@ class MusicPlayerController extends GetxController {
   final RxBool isLoading = false.obs;
 
   // 当前歌曲
-  PlaylistItem? get currentTrack => playlist[currentIndex.value];
+  PlaylistItem get currentTrack => playlist[currentIndex.value];
 
   // ── 生命周期 ────────────────────────────────────────────────────────────────
 
@@ -42,7 +46,7 @@ class MusicPlayerController extends GetxController {
     super.onInit();
     _audioPlayer = AudioPlayer();
     _initAudioPlayer();
-    _loadCurrentTrack();
+    _loadPlaylist();
   }
 
   @override
@@ -70,10 +74,18 @@ class MusicPlayerController extends GetxController {
       if (dur != null) duration.value = dur;
     });
 
-    // 播放完成 → 自动下一首
+    // 当前曲目索引变化（用户点通知栏上下首、或自动播完）
+    _audioPlayer.currentIndexStream.listen((idx) {
+      if (idx != null && idx != currentIndex.value) {
+        currentIndex.value = idx;
+        _loadLyricsForCurrentTrack();
+      }
+    });
+
+    // 播放完成 → 循环到第一首
     _audioPlayer.playerStateStream.listen((state) {
       if (state.processingState == ProcessingState.completed) {
-        nextTrack();
+        _audioPlayer.seek(Duration.zero, index: 0);
       }
     });
   }
@@ -83,7 +95,7 @@ class MusicPlayerController extends GetxController {
   /// just_audio_background 通过 [MediaItem] 传递给系统：
   ///   - 标题、艺术家显示在通知栏 / 锁屏 / 控制中心
   ///   - artUri 显示专辑封面（支持 http/https）
-  AudioSource _buildAudioSource(PlaylistItem track) {
+  IndexedAudioSource _buildAudioSource(PlaylistItem track) {
     final mediaItem = MediaItem(
       id: track.id,
       title: track.title,
@@ -101,23 +113,33 @@ class MusicPlayerController extends GetxController {
     }
   }
 
-  Future<void> _loadCurrentTrack() async {
+  /// 一次性加载完整播放列表（只调用一次）
+  ///
+  /// 使用 setAudioSources 而非 setAudioSource，让 just_audio_background
+  /// 能感知完整队列，从而在通知栏显示上/下一首按钮。
+  Future<void> _loadPlaylist() async {
     isLoading.value = true;
     try {
-      final source = _buildAudioSource(currentTrack);
-      await _audioPlayer.setAudioSource(source);
-
-      // 加载歌词
-      if (currentTrack.lrcPath.isNotEmpty) {
-        await _loadLyrics(currentTrack.lrcPath);
-      } else {
-        lyrics.value = [];
-        currentLyricIndex.value = -1;
-      }
+      await _audioPlayer.setAudioSources(
+        playlist.map(_buildAudioSource).toList(),
+        initialIndex: currentIndex.value,
+        initialPosition: Duration.zero,
+      );
+      await _loadLyricsForCurrentTrack();
     } catch (e) {
-      debugPrint('[MusicPlayer] 加载音频失败: $e');
+      debugPrint('[MusicPlayer] 加载播放列表失败: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> _loadLyricsForCurrentTrack() async {
+    final lrcPath = currentTrack.lrcPath;
+    if (lrcPath.isNotEmpty) {
+      await _loadLyrics(lrcPath);
+    } else {
+      lyrics.value = [];
+      currentLyricIndex.value = -1;
     }
   }
 
@@ -206,26 +228,22 @@ class MusicPlayerController extends GetxController {
   }
 
   Future<void> nextTrack() async {
-    currentIndex.value = (currentIndex.value + 1) % playlist.length;
-    await _loadCurrentTrack();
-    await play();
+    await _audioPlayer.seekToNext();
   }
 
   Future<void> previousTrack() async {
-    currentIndex.value =
-        (currentIndex.value - 1 + playlist.length) % playlist.length;
-    await _loadCurrentTrack();
-    await play();
+    await _audioPlayer.seekToPrevious();
   }
 
+  /// 点击播放列表中某首曲目
   Future<void> selectTrack(int index) async {
     if (index == currentIndex.value) {
       // 已是当前曲，切换播放/暂停
       await togglePlay();
       return;
     }
-    currentIndex.value = index;
-    await _loadCurrentTrack();
+    // seek 到指定索引，just_audio 会自动触发 currentIndexStream 更新歌词
+    await _audioPlayer.seek(Duration.zero, index: index);
     await play();
   }
 

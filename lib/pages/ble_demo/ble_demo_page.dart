@@ -27,14 +27,22 @@ class _BleDemoPageState extends State<BleDemoPage> {
         title: const Text('蓝牙示例'),
         actions: [
           // 断开按钮
-          Obx(() => ctrl.isConnected.value
-              ? TextButton.icon(
-                  onPressed: ctrl.disconnectDevice,
-                  icon: Icon(Icons.bluetooth_disabled,
-                      size: 18, color: colorScheme.error),
-                  label: Text('断开', style: TextStyle(color: colorScheme.error)),
-                )
-              : const SizedBox.shrink()),
+          Obx(
+            () => ctrl.isConnected.value
+                ? TextButton.icon(
+                    onPressed: ctrl.disconnectDevice,
+                    icon: Icon(
+                      Icons.bluetooth_disabled,
+                      size: 18,
+                      color: colorScheme.error,
+                    ),
+                    label: Text(
+                      '断开',
+                      style: TextStyle(color: colorScheme.error),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
         ],
       ),
       body: Column(
@@ -44,27 +52,31 @@ class _BleDemoPageState extends State<BleDemoPage> {
           const SizedBox(height: 8),
 
           // ── 扫描结果列表标题 ──────────────────────────────────
-          Obx(() => Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  children: [
-                    Text('附近设备',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        )),
-                    const Spacer(),
-                    if (ctrl.isScanning.value)
-                      SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: colorScheme.primary,
-                          )),
-                  ],
-                ),
-              )),
+          Obx(
+            () => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Text(
+                    '附近设备',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (ctrl.isScanning.value)
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
 
           // ── 设备列表 ──────────────────────────────────────────
           Expanded(child: _ScanResultsList(ctrl: ctrl)),
@@ -72,12 +84,15 @@ class _BleDemoPageState extends State<BleDemoPage> {
       ),
 
       // ── 扫描按钮 ──────────────────────────────────────────────
-      floatingActionButton: Obx(() => FloatingActionButton.extended(
-            onPressed: ctrl.isScanning.value ? ctrl.stopScan : ctrl.startScan,
-            icon: Icon(
-                ctrl.isScanning.value ? Icons.stop : Icons.bluetooth_searching),
-            label: Text(ctrl.isScanning.value ? '停止扫描' : '开始扫描'),
-          )),
+      floatingActionButton: Obx(
+        () => FloatingActionButton.extended(
+          onPressed: ctrl.isScanning.value ? ctrl.stopScan : ctrl.startScan,
+          icon: Icon(
+            ctrl.isScanning.value ? Icons.stop : Icons.bluetooth_searching,
+          ),
+          label: Text(ctrl.isScanning.value ? '停止扫描' : '开始扫描'),
+        ),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
@@ -138,16 +153,20 @@ class _StatusCard extends StatelessWidget {
                 children: [
                   Text(
                     connected
-                        ? (ctrl.connectedDevice.value?.platformName
-                                    .isNotEmpty ==
-                                true
-                            ? ctrl.connectedDevice.value!.platformName
-                            : '蓝牙设备')
+                        ? (ctrl
+                                      .connectedDevice
+                                      .value
+                                      ?.platformName
+                                      .isNotEmpty ==
+                                  true
+                              ? ctrl.connectedDevice.value!.platformName
+                              : '蓝牙设备')
                         : '未连接任何设备',
                     style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold),
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -155,7 +174,9 @@ class _StatusCard extends StatelessWidget {
                         ? (ctrl.connectedDevice.value?.remoteId.str ?? '—')
                         : '请扫描并选择附近蓝牙设备',
                     style: TextStyle(
-                        color: Colors.white.withOpacity(0.85), fontSize: 12),
+                      color: Colors.white.withOpacity(0.85),
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -166,13 +187,18 @@ class _StatusCard extends StatelessWidget {
                   backgroundColor: Colors.white,
                   foregroundColor: colorScheme.primary,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20)),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                 ),
                 onPressed: () => Get.to(() => const BleDemoDashboardPage()),
-                child: const Text('进入',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text(
+                  '进入',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
           ],
         ),
@@ -195,9 +221,9 @@ class _ScanResultsList extends StatelessWidget {
         return _buildEmptyHint(colorScheme);
       }
       return ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        // padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: ctrl.scanResults.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        separatorBuilder: (_, __) => const SizedBox(height: 0),
         itemBuilder: (context, i) {
           return _DeviceCard(result: ctrl.scanResults[i]);
         },
@@ -210,15 +236,21 @@ class _ScanResultsList extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.bluetooth_searching,
-              size: 80, color: colorScheme.outlineVariant),
+          Icon(
+            Icons.bluetooth_searching,
+            size: 80,
+            color: colorScheme.outlineVariant,
+          ),
           const SizedBox(height: 16),
-          Text('点击下方按钮开始扫描',
-              style:
-                  TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 15)),
+          Text(
+            '点击下方按钮开始扫描',
+            style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 15),
+          ),
           const SizedBox(height: 8),
-          Text('确保目标蓝牙设备处于广播状态',
-              style: TextStyle(color: colorScheme.outline, fontSize: 13)),
+          Text(
+            '确保目标蓝牙设备处于广播状态',
+            style: TextStyle(color: colorScheme.outline, fontSize: 13),
+          ),
           const SizedBox(height: 80),
         ],
       ),
@@ -241,25 +273,28 @@ class _DeviceCard extends StatelessWidget {
     final rssi = result.rssi;
 
     return Obx(() {
-      final isThisDeviceConnecting = ctrl.isConnecting.value &&
+      final isThisDeviceConnecting =
+          ctrl.isConnecting.value &&
           ctrl.connectingDeviceId.value == result.device.remoteId.str;
-      final isConnected = ctrl.isConnected.value &&
+      final isConnected =
+          ctrl.isConnected.value &&
           ctrl.connectedDevice.value?.remoteId == result.device.remoteId;
 
       return Card(
         elevation: 1,
-        color: colorScheme.surfaceVariant,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
+          ),
           leading: Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
               color: isConnected
                   ? colorScheme.primaryContainer
-                  : colorScheme.surfaceVariant,
+                  : colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -267,23 +302,31 @@ class _DeviceCard extends StatelessWidget {
               color: isConnected ? colorScheme.primary : colorScheme.outline,
             ),
           ),
-          title: Text(name,
-              style: TextStyle(
-                  fontWeight: FontWeight.w600, color: colorScheme.onSurface)),
+          title: Text(
+            name,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
+          ),
           subtitle: Text(
             '${result.device.remoteId.str}  RSSI: $rssi dBm',
             style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
           ),
           trailing: isConnected
               ? Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.primary,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text('已连接',
-                      style: TextStyle(fontSize: 11, color: Colors.white)),
+                  child: const Text(
+                    '已连接',
+                    style: TextStyle(fontSize: 11, color: Colors.white),
+                  ),
                 )
               : SizedBox(
                   width: 72,
@@ -294,7 +337,8 @@ class _DeviceCard extends StatelessWidget {
                       backgroundColor: colorScheme.primaryContainer,
                       foregroundColor: colorScheme.onPrimaryContainer,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ),
                     onPressed: isThisDeviceConnecting
                         ? null
@@ -304,7 +348,10 @@ class _DeviceCard extends StatelessWidget {
                             width: 16,
                             height: 16,
                             child: CircularProgressIndicator(
-                                strokeWidth: 2, color: colorScheme.primary))
+                              strokeWidth: 2,
+                              color: colorScheme.primary,
+                            ),
+                          )
                         : const Text('连接', style: TextStyle(fontSize: 12)),
                   ),
                 ),

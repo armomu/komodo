@@ -267,7 +267,7 @@ class _MusicTabState extends State<MusicTab> {
   // ④ 音乐排行榜 — 本地热歌榜
   // ════════════════════════════════════════════════════════════════════════
 
-          Widget _buildMusicRankingCard(BuildContext context) {
+  Widget _buildMusicRankingCard(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -920,8 +920,9 @@ class _LocalRankingItem extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color:
-                                const Color(0xFF32CD32).withValues(alpha: 0.15),
+                            color: const Color(
+                              0xFF32CD32,
+                            ).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Row(

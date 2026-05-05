@@ -23,46 +23,48 @@ class SettingsPage extends StatelessWidget {
         children: [
           // 主题设置
           _buildSectionHeader('外观设置'),
-          Obx(() => Column(
-            children: [
-              RadioListTile<AppThemeMode>(
-                title: const Row(
-                  children: [
-                    Icon(Icons.brightness_auto),
-                    SizedBox(width: 12),
-                    Text('跟随系统'),
-                  ],
+          Obx(
+            () => Column(
+              children: [
+                RadioListTile<AppThemeMode>(
+                  title: const Row(
+                    children: [
+                      Icon(Icons.brightness_auto),
+                      SizedBox(width: 12),
+                      Text('跟随系统'),
+                    ],
+                  ),
+                  value: AppThemeMode.system,
+                  groupValue: themeController.appThemeMode,
+                  onChanged: (_) => themeController.setSystemMode(),
                 ),
-                value: AppThemeMode.system,
-                groupValue: themeController.appThemeMode,
-                onChanged: (_) => themeController.setSystemMode(),
-              ),
-              RadioListTile<AppThemeMode>(
-                title: const Row(
-                  children: [
-                    Icon(Icons.light_mode),
-                    SizedBox(width: 12),
-                    Text('浅色模式'),
-                  ],
+                RadioListTile<AppThemeMode>(
+                  title: const Row(
+                    children: [
+                      Icon(Icons.light_mode),
+                      SizedBox(width: 12),
+                      Text('浅色模式'),
+                    ],
+                  ),
+                  value: AppThemeMode.light,
+                  groupValue: themeController.appThemeMode,
+                  onChanged: (_) => themeController.setLightMode(),
                 ),
-                value: AppThemeMode.light,
-                groupValue: themeController.appThemeMode,
-                onChanged: (_) => themeController.setLightMode(),
-              ),
-              RadioListTile<AppThemeMode>(
-                title: const Row(
-                  children: [
-                    Icon(Icons.dark_mode),
-                    SizedBox(width: 12),
-                    Text('深色模式'),
-                  ],
+                RadioListTile<AppThemeMode>(
+                  title: const Row(
+                    children: [
+                      Icon(Icons.dark_mode),
+                      SizedBox(width: 12),
+                      Text('深色模式'),
+                    ],
+                  ),
+                  value: AppThemeMode.dark,
+                  groupValue: themeController.appThemeMode,
+                  onChanged: (_) => themeController.setDarkMode(),
                 ),
-                value: AppThemeMode.dark,
-                groupValue: themeController.appThemeMode,
-                onChanged: (_) => themeController.setDarkMode(),
-              ),
-            ],
-          )),
+              ],
+            ),
+          ),
 
           const Divider(),
 
@@ -82,7 +84,7 @@ class SettingsPage extends StatelessWidget {
                     children: [
                       Icon(Icons.flutter_dash, size: 64, color: Colors.blue),
                       SizedBox(height: 16),
-                      Text('HybridArt'),
+                      Text('KOMODO APP'),
                       Text('使用 GetX 构建的 Flutter 应用'),
                       SizedBox(height: 8),
                       Text('版本 1.0.0+1', style: TextStyle(color: Colors.grey)),
@@ -105,26 +107,16 @@ class SettingsPage extends StatelessWidget {
             title: const Text('路由演示'),
             subtitle: const Text('跳转到生命周期详情页'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Get.toNamed(Routes.lifecycleDetail),
+            onTap: () => Get.toNamed(Routes.lifecycleDemo),
           ),
 
           // Snackbar 演示
           ListTile(
-            leading: const Icon(Icons.notifications_outlined),
-            title: const Text('Snackbar 演示'),
-            subtitle: const Text('显示 GetX Snackbar'),
+            leading: const Icon(Icons.bluetooth),
+            title: const Text('蓝牙通信'),
+            subtitle: const Text('跳转到蓝牙通信详情页'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Get.snackbar(
-                '提示',
-                '这是 GetX 的 Snackbar!',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: context.theme.colorScheme.primary,
-                colorText: Colors.white,
-                icon: const Icon(Icons.check_circle, color: Colors.white),
-                duration: const Duration(seconds: 2),
-              );
-            },
+            onTap: () => Get.toNamed(Routes.bleDemo),
           ),
 
           // Dialog 演示
@@ -187,7 +179,10 @@ class SettingsPage extends StatelessWidget {
                       ),
                       ListTile(
                         leading: const Icon(Icons.delete, color: Colors.red),
-                        title: const Text('删除', style: TextStyle(color: Colors.red)),
+                        title: const Text(
+                          '删除',
+                          style: TextStyle(color: Colors.red),
+                        ),
                         onTap: () => Get.back(),
                       ),
                     ],
