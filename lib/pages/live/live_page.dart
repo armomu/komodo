@@ -53,6 +53,7 @@ class _LivePageState extends State<LivePage>
   String? _playUrl;
 
   void _initVlcPlayer(String url) {
+    _controller.dispose();
     _playUrl = url;
     _controller = VideoPlayerController.networkUrl(Uri.parse(url))
       ..initialize().then((_) {
