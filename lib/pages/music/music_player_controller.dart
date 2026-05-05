@@ -200,12 +200,12 @@ class MusicPlayerController extends GetxController {
     int index = -1;
     for (int i = 0; i < lyrics.length; i++) {
       if (lyrics[i].timestamp <= pos) {
+        // debugPrint('Lyric: ${lyrics[i].text}$pos 索引=======$i');
         index = i;
       } else {
         break;
       }
     }
-
     if (index != currentLyricIndex.value) {
       currentLyricIndex.value = index;
     }
@@ -232,10 +232,12 @@ class MusicPlayerController extends GetxController {
 
   Future<void> nextTrack() async {
     await _audioPlayer.seekToNext();
+    await _audioPlayer.play();
   }
 
   Future<void> previousTrack() async {
     await _audioPlayer.seekToPrevious();
+    await _audioPlayer.play();
   }
 
   /// 点击播放列表中某首曲目

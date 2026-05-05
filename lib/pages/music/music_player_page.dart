@@ -27,6 +27,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   // 歌词滚动控制器
   final ScrollController _lyricsScrollController = ScrollController();
   final double _lyricLineHeight = 40.0;
+  Worker? _lyricIndexWorker;
 
   @override
   void initState() {
@@ -37,7 +38,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
     _tabController = TabController(length: 2, vsync: this);
 
     // 监听歌词索引变化，自动滚动
-    ever(_controller.currentLyricIndex, (index) {
+    _lyricIndexWorker = ever(_controller.currentLyricIndex, (index) {
       if (index >= 0 && _lyricsScrollController.hasClients) {
         _scrollToCurrentLyric(index);
       }
@@ -60,6 +61,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
     _lyricsScrollController.dispose();
     _pageController.dispose();
     _tabController.dispose();
+    _lyricIndexWorker?.dispose();
     // 全局控制器不在这里 delete，由 Get.put(permanent: true) 管理
     super.dispose();
   }
@@ -370,7 +372,6 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
           ),
         );
       }
-
       return ListView.builder(
         controller: _lyricsScrollController,
         padding: EdgeInsets.symmetric(
