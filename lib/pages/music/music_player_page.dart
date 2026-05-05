@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:komodo/controllers/music_player_controller.dart';
+import 'package:komodo/pages/music/music_player_controller.dart';
 
 // 导出数据模型以便其他文件使用
 export 'package:komodo/pages/music/music_models.dart';
