@@ -21,7 +21,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   late final MusicPlayerController _controller;
   late final PageController _pageController;
   late final TabController _tabController;
-  int _topTabIndex = 1; // 默认「精选」
+  int _topTabIndex = 0; // 默认「精选」
 
   // 歌词滚动控制器
   final ScrollController _lyricsScrollController = ScrollController();
