@@ -294,7 +294,7 @@ class _MusicTabState extends State<MusicTab> {
                 // 点击：切换到对应曲目并跳转播放器页
                 onTap: () {
                   Get.find<MusicPlayerController>().selectTrack(index);
-                  Get.toNamed(Routes.musicPlayer);
+                  // Get.toNamed(Routes.musicPlayer);
                 },
               );
             }).toList(),
@@ -767,8 +767,8 @@ class _LocalRankingItem extends StatelessWidget {
     // 使用 Obx 响应全局播放器状态变化，实时显示「正在播放」标识
     return Obx(() {
       final player = Get.find<MusicPlayerController>();
-      final isCurrent = player.hasStartedPlaying.value &&
-          player.currentTrack.id == data.id;
+      final isCurrent =
+          player.hasStartedPlaying.value && player.currentTrack.id == data.id;
       final isCurrentPlaying = isCurrent && player.isPlaying.value;
 
       return Column(

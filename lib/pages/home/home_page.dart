@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:komodo/pages/ble_demo/ble_demo_controller.dart';
 import 'package:komodo/pages/home/tabs/video_feed_view.dart';
+import 'package:komodo/pages/music/mini_player_bar.dart';
 import 'package:komodo/routes/app_routes.dart';
 import 'tabs/music_tab.dart';
 import 'tabs/short_video_tab.dart';
@@ -99,6 +100,13 @@ class _HomePageState extends State<HomePage> {
                 offstage: _currentIndex != i,
                 child: _getOrCreateTabPage(i),
               ),
+          // 音乐播放浮层（底部导航栏上方）
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0, // 底部导航栏高度
+            child: MiniPlayerBar(),
+          ),
         ],
       ),
       bottomNavigationBar: _buildBottomNavBar(context),
