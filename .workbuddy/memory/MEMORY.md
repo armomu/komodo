@@ -1,4 +1,4 @@
-# HybridArt 项目长期记忆
+# KOMODO项目长期记忆
 
 ## 项目概况
 - Flutter 多模块混合应用：短视频 + RTMP直播 + 蓝牙充电桩管理(IoT)
@@ -16,7 +16,7 @@
 ## 构建配置
 - minSdkVersion 21 (flutter_blue_plus要求)
 - Android Maven: 阿里云镜像加速
-- 应用ID: com.example.hybridart (待替换)
+- 应用ID: com.example.KOMODO(待替换)
 
 ## UI设计特点
 - 音乐tab采用深色主题设计

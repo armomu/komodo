@@ -58,7 +58,7 @@ class MyApp extends StatelessWidget {
 
     return Obx(
       () => GetMaterialApp(
-        title: 'HybridArt - GetX 示例',
+        title: 'KOMODO',
         debugShowCheckedModeBanner: true,
 
         // ==================== 主题配置 ====================
