@@ -66,9 +66,7 @@ class MessageTab extends StatelessWidget {
         child: Container(
           height: 36,
           decoration: BoxDecoration(
-            color: isDark
-                ? const Color(0xFF2C2C2C)
-                : const Color(0xFFF5F5F5),
+            color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5),
             borderRadius: BorderRadius.circular(18),
           ),
           child: Row(
@@ -163,18 +161,15 @@ class MessageTab extends StatelessWidget {
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color: entry.gradient.colors.first
-                                  .withValues(alpha: 0.3),
+                              color: entry.gradient.colors.first.withValues(
+                                alpha: 0.3,
+                              ),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
                           ],
                         ),
-                        child: Icon(
-                          entry.icon,
-                          size: 26,
-                          color: Colors.white,
-                        ),
+                        child: Icon(entry.icon, size: 26, color: Colors.white),
                       ),
                       // 未读红点
                       if (entry.showBadge)
@@ -234,8 +229,8 @@ class MessageTab extends StatelessWidget {
       subtitle: 'SUNMI 发布了新MV《Narcissism》',
       time: '昨天',
       icon: Icons.play_circle_fill,
-      iconColor: const Color(0xFFFF3B30),
-      iconBgColor: const Color(0xFFFFF0EF),
+      iconColor: Color(0xFFFF3B30),
+      iconBgColor: Color(0xFFFFF0EF),
     ),
     _MessageItem(
       type: _MessageType.system,
@@ -243,8 +238,8 @@ class MessageTab extends StatelessWidget {
       subtitle: '有3条来自未关注人的私信',
       time: '4-30',
       icon: Icons.mail_rounded,
-      iconColor: const Color(0xFFFF9500),
-      iconBgColor: const Color(0xFFFFF5EC),
+      iconColor: Color(0xFFFF9500),
+      iconBgColor: Color(0xFFFFF5EC),
       showBadge: true,
     ),
     // 私信消息
@@ -305,12 +300,10 @@ class MessageTab extends StatelessWidget {
       children: [
         GestureDetector(
           onTap: () {
-            if (item.type == _MessageType.private && item.avatarUrl != null) {
-              Get.toNamed(
-                Routes.chat,
-                arguments: {'peerName': item.title, 'peerAvatar': item.avatarUrl},
-              );
-            }
+            Get.toNamed(
+              Routes.chat,
+              arguments: {'peerName': item.title, 'peerAvatar': item.avatarUrl},
+            );
           },
           behavior: HitTestBehavior.opaque,
           child: Container(
@@ -414,11 +407,7 @@ class MessageTab extends StatelessWidget {
           color: item.iconBgColor,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(
-          item.icon,
-          size: 26,
-          color: item.iconColor,
-        ),
+        child: Icon(item.icon, size: 26, color: item.iconColor),
       );
     }
 
