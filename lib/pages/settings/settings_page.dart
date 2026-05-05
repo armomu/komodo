@@ -121,22 +121,12 @@ class SettingsPage extends StatelessWidget {
 
           // Dialog 演示
           ListTile(
-            leading: const Icon(Icons.chat_bubble_outline),
-            title: const Text('Dialog 演示'),
-            subtitle: const Text('显示 GetX Dialog'),
+            leading: const Icon(Icons.live_tv),
+            title: const Text('直播演示'),
+            subtitle: const Text('rtmp stream推流'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              Get.defaultDialog(
-                title: '确认操作',
-                middleText: '你确定要执行此操作吗?',
-                textConfirm: '确认',
-                textCancel: '取消',
-                confirmTextColor: Colors.white,
-                onConfirm: () {
-                  Get.back();
-                  Get.snackbar('成功', '操作已确认');
-                },
-              );
+              Get.toNamed(Routes.live);
             },
           ),
 

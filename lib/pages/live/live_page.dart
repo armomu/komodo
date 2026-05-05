@@ -47,17 +47,17 @@ class _LivePageState extends State<LivePage>
   final bool _isPlaying = false;
   final bool _isBuffering = true;
   final String _errorMessage = '';
+  // 播放地址
+  String? _playUrl;
 
-  void _initVlcPlayer() {
-    _controller =
-        VideoPlayerController.networkUrl(
-            Uri.parse('http://192.168.1.38:8085/live/stream.m3u8'),
-          )
-          ..initialize().then((_) {
-            // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
-            setState(() {});
-            _controller.play();
-          });
+  void _initVlcPlayer(String url) {
+    _playUrl = url;
+    _controller = VideoPlayerController.networkUrl(Uri.parse(url))
+      ..initialize().then((_) {
+        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
+        setState(() {});
+        _controller.play();
+      });
   }
 
   void _onVlcStateChanged() {
@@ -78,7 +78,7 @@ class _LivePageState extends State<LivePage>
   @override
   void initState() {
     super.initState();
-    _initVlcPlayer();
+    // _initVlcPlayer() 不再在initState中调用，改为点击头像后输入URL再播放
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,
       overlays: [SystemUiOverlay.top], // 只显示顶部
@@ -87,7 +87,10 @@ class _LivePageState extends State<LivePage>
 
   @override
   void dispose() {
-    _controller.dispose();
+    // ignore: unnecessary_null_comparison
+    if (_controller != null) {
+      _controller.dispose();
+    }
     _chatController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -130,15 +133,45 @@ class _LivePageState extends State<LivePage>
   // ════════════════════════════════════════════════════════════════════════
 
   Widget _buildVideoArea() {
+    // 如果控制器未初始化，显示占位界面
+    if (_playUrl == null || !_controller.value.isInitialized) {
+      return _buildVideoPlaceholder();
+    }
     return GestureDetector(
       onTap: () async {},
       child: Center(
-        child: _controller.value.isInitialized
-            ? AspectRatio(
-                aspectRatio: _controller.value.aspectRatio,
-                child: VideoPlayer(_controller),
-              )
-            : Container(),
+        child: AspectRatio(
+          aspectRatio: _controller.value.aspectRatio,
+          child: VideoPlayer(_controller),
+        ),
+      ),
+    );
+  }
+
+  /// 视频区域占位界面（未输入播放地址时显示）
+  Widget _buildVideoPlaceholder() {
+    return GestureDetector(
+      onTap: () => _showUrlInputDialog(),
+      child: Container(
+        color: Colors.black,
+        child: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.tap_and_play, size: 64, color: Colors.white24),
+              SizedBox(height: 16),
+              Text(
+                '点击主播头像输入播放地址',
+                style: TextStyle(color: Colors.white70, fontSize: 16),
+              ),
+              SizedBox(height: 8),
+              Text(
+                '或点击此区域输入',
+                style: TextStyle(color: Colors.white38, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -241,16 +274,19 @@ class _LivePageState extends State<LivePage>
   Widget _buildAnchorInfo() {
     return Row(
       children: [
-        // 主播头像（小尺寸）
-        Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 1),
-          ),
-          child: const CircleAvatar(
-            radius: 16,
-            backgroundColor: Color(0xFF3A3A3A),
-            child: Icon(Icons.person, color: Colors.white70, size: 20),
+        // 主播头像（小尺寸）- 点击输入播放地址
+        GestureDetector(
+          onTap: () => _showUrlInputDialog(),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 1),
+            ),
+            child: const CircleAvatar(
+              radius: 16,
+              backgroundColor: Color(0xFF3A3A3A),
+              child: Icon(Icons.person, color: Colors.white70, size: 20),
+            ),
           ),
         ),
         const SizedBox(width: 8),
@@ -385,7 +421,7 @@ class _LivePageState extends State<LivePage>
     final maxWidth = MediaQuery.of(context).size.width * 0.80;
     return Positioned(
       left: 8,
-      bottom: 72,
+      bottom: 82,
       child: SizedBox(
         width: maxWidth,
         height: 200,
@@ -691,6 +727,52 @@ class _LivePageState extends State<LivePage>
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.grey[800],
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  /// 显示输入播放地址的对话框
+  void _showUrlInputDialog() {
+    final TextEditingController urlController = TextEditingController(
+      text: _playUrl ?? 'http://192.168.1.38:8085/live/stream.m3u8',
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF2A2A2A),
+        title: const Text('输入播放地址', style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: urlController,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: '请输入RTMP/HTTPS直播地址',
+            hintStyle: TextStyle(color: Colors.grey[500]),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey[600]!),
+            ),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.blue),
+            ),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('取消', style: TextStyle(color: Colors.grey[400])),
+          ),
+          TextButton(
+            onPressed: () {
+              final url = urlController.text.trim();
+              if (url.isNotEmpty) {
+                Navigator.of(context).pop();
+                _initVlcPlayer(url);
+              }
+            },
+            child: const Text('确认', style: TextStyle(color: Colors.blue)),
+          ),
+        ],
       ),
     );
   }

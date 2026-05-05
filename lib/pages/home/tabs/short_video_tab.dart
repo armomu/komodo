@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:komodo/routes/app_routes.dart';
 import 'video_feed_view.dart';
 import 'nearby_view.dart';
 
@@ -113,7 +114,9 @@ class _ShortVideoTabState extends State<ShortVideoTab>
       ),
       actions: [
         IconButton(
-          onPressed: () {},
+          onPressed: () {
+            // Get.toNamed(Routes.live);
+          },
           icon: const Icon(Icons.search, color: Colors.white),
         ),
       ],
