@@ -59,6 +59,12 @@ class MusicPlayerController extends GetxController {
 
   // ── 内部初始化 ─────────────────────────────────────────────────────────
 
+  void loadCurrentLyricIndex() {
+    if (_audioPlayer.playing == false && position.value != Duration.zero) {
+      _updateCurrentLyricIndex(position.value);
+    }
+  }
+
   void _initAudioPlayer() {
     // 播放状态
     _audioPlayer.playingStream.listen((playing) {

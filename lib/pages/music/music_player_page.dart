@@ -36,14 +36,13 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
     _controller = Get.find<MusicPlayerController>();
     _pageController = PageController(initialPage: 0);
     _tabController = TabController(length: 2, vsync: this);
-
+    _controller.loadCurrentLyricIndex();
     // 监听歌词索引变化，自动滚动
     _lyricIndexWorker = ever(_controller.currentLyricIndex, (index) {
       if (index >= 0 && _lyricsScrollController.hasClients) {
         _scrollToCurrentLyric(index);
       }
     });
-
     // Tab 和 PageView 同步
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
