@@ -150,27 +150,19 @@ class _LivePageState extends State<LivePage>
 
   /// 视频区域占位界面（未输入播放地址时显示）
   Widget _buildVideoPlaceholder() {
-    return GestureDetector(
-      onTap: () => _showUrlInputDialog(),
-      child: Container(
-        color: Colors.black,
-        child: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.tap_and_play, size: 64, color: Colors.white24),
-              SizedBox(height: 16),
-              Text(
-                '点击主播头像输入播放地址',
-                style: TextStyle(color: Colors.white70, fontSize: 16),
-              ),
-              SizedBox(height: 8),
-              Text(
-                '或点击此区域输入',
-                style: TextStyle(color: Colors.white38, fontSize: 12),
-              ),
-            ],
-          ),
+    return Container(
+      color: Colors.black,
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.tap_and_play, size: 64, color: Colors.white24),
+            SizedBox(height: 16),
+            Text(
+              '还没有输入源',
+              style: TextStyle(color: Colors.white70, fontSize: 16),
+            ),
+          ],
         ),
       ),
     );
@@ -740,7 +732,8 @@ class _LivePageState extends State<LivePage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
+        insetPadding: const EdgeInsets.all(16),
+        actionsPadding: const EdgeInsets.all(16),
         title: const Text('输入播放地址', style: TextStyle(color: Colors.white)),
         content: TextField(
           controller: urlController,
