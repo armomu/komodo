@@ -85,7 +85,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   void _showPlaylistSheet() {
     Get.bottomSheet(
       _PlaylistBottomSheet(controller: _controller),
-      backgroundColor: const Color(0xFF0D2338),
+      backgroundColor: const Color(0xFF1E1E1E),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -617,11 +617,11 @@ class _PlaylistBottomSheet extends StatelessWidget {
 
           // 播放列表
           Flexible(
-            child: Obx(
-              () => ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: MusicPlayerController.playlist.length,
-                itemBuilder: (context, index) {
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: MusicPlayerController.playlist.length,
+              itemBuilder: (context, index) {
+                return Obx(() {
                   final track = MusicPlayerController.playlist[index];
                   final isCurrent = index == controller.currentIndex.value;
 
@@ -690,8 +690,8 @@ class _PlaylistBottomSheet extends StatelessWidget {
                           )
                         : null,
                   );
-                },
-              ),
+                });
+              },
             ),
           ),
 
