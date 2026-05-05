@@ -24,7 +24,9 @@ class LivePage extends StatefulWidget {
 
 class _LivePageState extends State<LivePage>
     with SingleTickerProviderStateMixin {
-  late VideoPlayerController _controller;
+  late VideoPlayerController _controller = VideoPlayerController.networkUrl(
+    Uri.parse('https://www.youtube.com/watch?v=_lvYy_YXZxQ'),
+  );
   // ── 状态 ──────────────────────────────────────────────────────────────────
   final TextEditingController _chatController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
