@@ -16,7 +16,7 @@ void main() async {
   await JustAudioBackground.init(
     androidNotificationChannelId: 'com.komodo.music.channel.audio',
     androidNotificationChannelName: 'Komodo 音乐播放',
-    androidNotificationOngoing: true,   // 播放时通知不可手动清除
+    androidNotificationOngoing: true, // 播放时通知不可手动清除
     androidStopForegroundOnPause: true, // 暂停时允许滑掉通知
   );
   // SystemChrome.setEnabledSystemUIMode(
@@ -50,48 +50,50 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeController = Get.find<ThemeController>();
 
-    return Obx(() => GetMaterialApp(
-          title: 'HybridArt - GetX 示例',
-          debugShowCheckedModeBanner: true,
+    return Obx(
+      () => GetMaterialApp(
+        title: 'HybridArt - GetX 示例',
+        debugShowCheckedModeBanner: true,
 
-          // ==================== 主题配置 ====================
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: themeController.themeMode,
+        // ==================== 主题配置 ====================
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: themeController.themeMode,
 
-          // ==================== 路由配置 ====================
-          initialRoute: AppPages.initial,
-          getPages: AppPages.routes,
+        // ==================== 路由配置 ====================
+        initialRoute: AppPages.initial,
+        getPages: AppPages.routes,
 
-          // 默认过渡动画
-          defaultTransition: Transition.native,
+        // 默认过渡动画
+        defaultTransition: Transition.native,
 
-          // 路由中间件
-          routingCallback: (routing) {
-            // 可以在这里添加全局路由监听
-            // debugPrint('📍 路由: ${routing?.current}');
-          },
+        // 路由中间件
+        routingCallback: (routing) {
+          // 可以在这里添加全局路由监听
+          // debugPrint('📍 路由: ${routing?.current}');
+        },
 
-          // 国际化配置（可选）
-          locale: const Locale('zh', 'CN'),
-          fallbackLocale: const Locale('en', 'US'),
+        // 国际化配置（可选）
+        locale: const Locale('zh', 'CN'),
+        fallbackLocale: const Locale('en', 'US'),
 
-          // 导航观察者
-          navigatorObservers: [
-            GetObserver((routing) {
-              // 路由变化监听
-              if (routing?.current == '/settings') {
-                debugPrint('🔧 进入设置页面');
-              }
-            }),
-          ],
+        // 导航观察者
+        navigatorObservers: [
+          GetObserver((routing) {
+            // 路由变化监听
+            if (routing?.current == '/settings') {
+              debugPrint('🔧 进入设置页面');
+            }
+          }),
+        ],
 
-          // 未知路由
-          unknownRoute: GetPage(
-            name: '/not-found',
-            page: () => const NotFoundPage(),
-          ),
-        ));
+        // 未知路由
+        unknownRoute: GetPage(
+          name: '/not-found',
+          page: () => const NotFoundPage(),
+        ),
+      ),
+    );
   }
 }
 
@@ -107,11 +109,7 @@ class NotFoundPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 80,
-              color: Colors.grey[400],
-            ),
+            Icon(Icons.error_outline, size: 80, color: Colors.grey[400]),
             const SizedBox(height: 16),
             const Text(
               '404',
@@ -122,10 +120,7 @@ class NotFoundPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              '页面不存在或已被移除',
-              style: TextStyle(color: Colors.grey),
-            ),
+            const Text('页面不存在或已被移除', style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () => Get.offAllNamed(Routes.home),

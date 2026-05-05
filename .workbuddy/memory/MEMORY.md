@@ -29,6 +29,17 @@
 - 适配深色主题的透明度控制
 
 ## 技术问题与解决
+
+### audio_service FlutterFragmentActivity 问题（2026-05-05）
+- **错误**：`PlatformException: The Activity class declared in your AndroidManifest.xml is wrong or has not provided the correct FlutterEngine`
+- **根因**：`audio_service` 的 `AudioServicePlugin.getFlutterEngine()` 只识别 `FlutterActivity` 或 `AudioServiceFragmentActivity`，继承 `FlutterFragmentActivity` 会触发 `wrongEngineDetected=true`
+- **正确修复**：`android/app/src/main/kotlin/.../MainActivity.kt`
+  ```kotlin
+  import com.ryanheise.audioservice.AudioServiceFragmentActivity
+  class MainActivity : AudioServiceFragmentActivity()
+  ```
+- **注意**：原生层改动必须完全重建（不能只热重启）
+
 ### Swiper高度约束问题
 - **问题1**：Horizontal viewport was given unbounded height错误
   - **原因**：Swiper在Column(mainAxisSize: MainAxisSize.min)中无法获得足够高度约束
