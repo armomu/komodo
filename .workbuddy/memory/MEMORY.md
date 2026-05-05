@@ -11,6 +11,7 @@
 - 充电桩：flutter_blue_plus BLE，Mock/真实双模式设计
 - 主题：Material 3浅色/深色，GetStorage持久化
 - Tab懒加载：Offstage + 懒创建策略
+- **音乐播放器**：just_audio + just_audio_background，全局单例 `Get.put(permanent:true)`，系统通知/锁屏/控制中心通过 `MediaItem(id/title/artist/artUri)` 传递歌曲信息
 
 ## 构建配置
 - minSdkVersion 21 (flutter_blue_plus要求)

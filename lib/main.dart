@@ -2,12 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:just_audio_background/just_audio_background.dart';
+import 'pages/music/music_player_controller.dart';
 import 'routes/app_routes.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // ── 初始化 just_audio_background ──────────────────────────────────────────
+  // 必须在 runApp 之前调用，负责注册系统媒体通知/锁屏/控制中心
+  await JustAudioBackground.init(
+    androidNotificationChannelId: 'com.komodo.music.channel.audio',
+    androidNotificationChannelName: 'Komodo 音乐播放',
+    androidNotificationOngoing: true,   // 播放时通知不可手动清除
+    androidStopForegroundOnPause: true, // 暂停时允许滑掉通知
+  );
   // SystemChrome.setEnabledSystemUIMode(
   //   SystemUiMode.manual,
   //   overlays: [SystemUiOverlay.top], // 只显示顶部
@@ -23,8 +34,11 @@ void main() async {
   // 初始化 GetStorage（用于本地存储）
   await GetStorage.init();
 
-  // 注入主题控制器
+  // ── 注入全局控制器 ────────────────────────────────────────────────────────
+  // 主题控制器
   Get.put(ThemeController());
+  // 全局音乐播放器控制器（permanent = true 防止页面销毁时被自动 delete）
+  Get.put(MusicPlayerController(), permanent: true);
 
   runApp(const MyApp());
 }

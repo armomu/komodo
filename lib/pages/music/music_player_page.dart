@@ -30,7 +30,8 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   @override
   void initState() {
     super.initState();
-    _controller = Get.put(MusicPlayerController());
+    // 使用全局单例控制器，不再局部 put
+    _controller = Get.find<MusicPlayerController>();
     _pageController = PageController(initialPage: 0);
     _tabController = TabController(length: 2, vsync: this);
 
@@ -58,7 +59,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
     _lyricsScrollController.dispose();
     _pageController.dispose();
     _tabController.dispose();
-    Get.delete<MusicPlayerController>();
+    // 全局控制器不在这里 delete，由 Get.put(permanent: true) 管理
     super.dispose();
   }
 

@@ -69,6 +69,10 @@ dependencies:
   # 音频播放
   just_audio: ^0.10.5
 
+  # 系统媒体通知栏/锁屏/控制中心集成
+  audio_service: ^0.18.14
+  just_audio_background: ^0.0.1-beta.14
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

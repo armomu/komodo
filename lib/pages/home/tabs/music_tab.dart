@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:card_swiper/card_swiper.dart';
+import 'package:komodo/pages/music/music_player_controller.dart';
 import 'package:komodo/routes/app_routes.dart';
 import 'package:komodo/pages/music/music_models.dart';
 
@@ -266,7 +267,7 @@ class _MusicTabState extends State<MusicTab> {
   // ④ 音乐排行榜 — 本地热歌榜
   // ════════════════════════════════════════════════════════════════════════
 
-  Widget _buildMusicRankingCard(BuildContext context) {
+          Widget _buildMusicRankingCard(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -290,6 +291,11 @@ class _MusicTabState extends State<MusicTab> {
                 data: data,
                 rank: index + 1,
                 isLast: isLast,
+                // 点击：切换到对应曲目并跳转播放器页
+                onTap: () {
+                  Get.find<MusicPlayerController>().selectTrack(index);
+                  Get.toNamed(Routes.musicPlayer);
+                },
               );
             }).toList(),
           ),
@@ -734,11 +740,13 @@ class _LocalRankingItem extends StatelessWidget {
   final PlaylistItem data;
   final int rank;
   final bool isLast;
+  final VoidCallback? onTap;
 
   const _LocalRankingItem({
     required this.data,
     required this.rank,
     required this.isLast,
+    this.onTap,
   });
 
   /// 获取排名对应的颜色
@@ -756,138 +764,199 @@ class _LocalRankingItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: () => Get.toNamed(Routes.musicPlayer),
-          behavior: HitTestBehavior.opaque,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                // 排名标签
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: _rankColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    '$rank',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: _rankColor,
+    // 使用 Obx 响应全局播放器状态变化，实时显示「正在播放」标识
+    return Obx(() {
+      final player = Get.find<MusicPlayerController>();
+      final isCurrent = player.currentTrack.id == data.id;
+      final isCurrentPlaying = isCurrent && player.isPlaying.value;
+
+      return Column(
+        children: [
+          GestureDetector(
+            onTap: onTap ?? () => Get.toNamed(Routes.musicPlayer),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  // 排名标签
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: _rankColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // 圆形封面（使用accentColor）
-                // 圆形封面
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: _rankColor.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: _rankColor.withValues(alpha: 0.3),
-                      width: 2,
-                    ),
-                  ),
-                  padding: const EdgeInsets.all(2),
-                  child: ClipOval(
-                    child: Image.network(
-                      data.avatarUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: const Color(0xFF2A2A2A),
-                        child: Icon(
-                          Icons.music_note,
-                          color: _rankColor,
-                          size: 20,
-                        ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '$rank',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: _rankColor,
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                // 歌曲信息
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(width: 12),
+                  // 圆形封面
+                  Stack(
+                    alignment: Alignment.center,
                     children: [
-                      Text(
-                        data.title,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        data.artist,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                          color: colorScheme.onSurfaceVariant.withValues(
-                            alpha: 0.5,
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: _rankColor.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isCurrent
+                                ? _rankColor
+                                : _rankColor.withValues(alpha: 0.3),
+                            width: isCurrent ? 2.5 : 2,
                           ),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                // 播放图标
-                const SizedBox(width: 8),
-                // 排名趋势
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF32CD32).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.trending_up,
-                        size: 14,
-                        color: Color(0xFF32CD32),
-                      ),
-                      SizedBox(width: 2),
-                      Text(
-                        '1',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF32CD32),
+                        padding: const EdgeInsets.all(2),
+                        child: ClipOval(
+                          child: Image.network(
+                            data.avatarUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: const Color(0xFF2A2A2A),
+                              child: Icon(
+                                Icons.music_note,
+                                color: _rankColor,
+                                size: 20,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
+                      // 正在播放时显示音量图标遮罩
+                      if (isCurrentPlaying)
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.black.withValues(alpha: 0.45),
+                          ),
+                          child: const Icon(
+                            Icons.volume_up_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  // 歌曲信息
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          data.title,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: isCurrent ? _rankColor : null,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          data.artist,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: colorScheme.onSurfaceVariant.withValues(
+                              alpha: 0.5,
+                            ),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  // 右侧：播放中状态 or 排名趋势
+                  const SizedBox(width: 8),
+                  isCurrent
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _rankColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isCurrentPlaying
+                                    ? Icons.pause_rounded
+                                    : Icons.play_arrow_rounded,
+                                size: 14,
+                                color: _rankColor,
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                isCurrentPlaying ? '播放中' : '已暂停',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: _rankColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                const Color(0xFF32CD32).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.trending_up,
+                                size: 14,
+                                color: Color(0xFF32CD32),
+                              ),
+                              SizedBox(width: 2),
+                              Text(
+                                '1',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF32CD32),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                ],
+              ),
             ),
           ),
-        ),
-        // 分割线（除了最后一个）
-        if (!isLast)
-          Container(
-            margin: const EdgeInsets.only(left: 60),
-            height: 0.5,
-            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-          ),
-      ],
-    );
+          // 分割线（除了最后一个）
+          if (!isLast)
+            Container(
+              margin: const EdgeInsets.only(left: 60),
+              height: 0.5,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+            ),
+        ],
+      );
+    });
   }
 }

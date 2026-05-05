@@ -78,6 +78,12 @@
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>应用需要使用蓝牙连接充电桩设备</string>
 
+	<!-- 音频后台播放 - 支持锁屏/控制中心显示 -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
+
 	<key>NSCameraUsageDescription</key>
 	<string>需要使用摄像头</string>
 	<key>NSMicrophoneUsageDescription</key>
