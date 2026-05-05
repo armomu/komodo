@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'pages/music/music_player_controller.dart';
 import 'routes/app_routes.dart';
 import 'theme/app_theme.dart';
@@ -10,6 +11,11 @@ import 'theme/theme_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // ── Android 13+ 通知权限（POST_NOTIFICATIONS）────────────────────────────
+  // 必须在 JustAudioBackground.init 之前请求，否则前台服务通知无法显示。
+  // Android 12 及以下无此权限，permission_handler 会自动跳过。
+  await Permission.notification.request();
 
   // ── 初始化 just_audio_background ──────────────────────────────────────────
   // 必须在 runApp 之前调用，负责注册系统媒体通知/锁屏/控制中心

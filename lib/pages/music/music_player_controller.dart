@@ -33,7 +33,7 @@ class MusicPlayerController extends GetxController {
   final RxBool isLoading = false.obs;
 
   // 当前歌曲
-  PlaylistItem get currentTrack => playlist[currentIndex.value];
+  PlaylistItem? get currentTrack => playlist[currentIndex.value];
 
   // ── 生命周期 ────────────────────────────────────────────────────────────────
 
