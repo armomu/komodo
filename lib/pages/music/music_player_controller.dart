@@ -206,6 +206,7 @@ class MusicPlayerController extends GetxController {
         break;
       }
     }
+
     if (index != currentLyricIndex.value) {
       currentLyricIndex.value = index;
     }

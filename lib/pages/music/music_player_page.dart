@@ -67,10 +67,18 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   }
 
   void _scrollToCurrentLyric(int index) {
+    if (!_lyricsScrollController.hasClients) return;
+
+    // ListView 的 vertical padding（与 _buildLyricsTab 中保持一致）
+    final paddingTop = MediaQuery.of(context).size.height / 3;
+    final viewportHeight = _lyricsScrollController.position.viewportDimension;
+
+    // 让当前高亮行的中心对准 viewport 的中心
     final targetOffset =
-        index * _lyricLineHeight -
-        MediaQuery.of(context).size.height / 3 +
-        _lyricLineHeight;
+        paddingTop +
+        index * _lyricLineHeight +
+        _lyricLineHeight / 2 -
+        viewportHeight / 2;
 
     _lyricsScrollController.animateTo(
       targetOffset.clamp(0, _lyricsScrollController.position.maxScrollExtent),
@@ -381,29 +389,33 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
         itemCount: _controller.lyrics.length,
         itemBuilder: (context, index) {
           final line = _controller.lyrics[index];
-          final isCurrent = index == _controller.currentLyricIndex.value;
-
+          // debugPrint(
+          //   'line: ${line.timestamp}, $index==${_controller.currentLyricIndex.value}',
+          // );
           return GestureDetector(
             onTap: () => _controller.seek(line.timestamp),
-            child: Container(
-              height: _lyricLineHeight,
-              alignment: Alignment.center,
-              child: AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 300),
-                style: TextStyle(
-                  fontSize: isCurrent ? 17 : 14,
-                  fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w400,
-                  color: isCurrent ? Colors.white : Colors.white38,
-                  height: 1.5,
+            child: Obx(() {
+              final isCurrent = index == _controller.currentLyricIndex.value;
+              return Container(
+                height: _lyricLineHeight,
+                alignment: Alignment.center,
+                child: AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 300),
+                  style: TextStyle(
+                    fontSize: isCurrent ? 17 : 14,
+                    fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w400,
+                    color: isCurrent ? Colors.white : Colors.white38,
+                    height: 1.5,
+                  ),
+                  child: Text(
+                    line.text,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                child: Text(
-                  line.text,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ),
+              );
+            }),
           );
         },
       );
