@@ -101,11 +101,12 @@ class _HomePageState extends State<HomePage> {
                 child: _getOrCreateTabPage(i),
               ),
           // 音乐播放浮层（底部导航栏上方）
-          const Positioned(
+          // 只在音乐 Tab 显示，由 MiniPlayerBar 内部判断 currentTabIndex
+          Positioned(
             left: 0,
             right: 0,
-            bottom: 0, // 底部导航栏高度
-            child: MiniPlayerBar(),
+            bottom: 0,
+            child: MiniPlayerBar(currentTabIndex: _currentIndex),
           ),
         ],
       ),
@@ -128,7 +129,7 @@ class _HomePageState extends State<HomePage> {
         color: bgColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             offset: const Offset(0, -1),
             blurRadius: 12,
           ),

@@ -14,15 +14,23 @@ import 'package:komodo/routes/app_routes.dart';
 /// - 底部：播放进度条
 /// - 点击整体区域跳转播放器页
 class MiniPlayerBar extends StatelessWidget {
-  const MiniPlayerBar({super.key});
+  /// 当前首页 Tab 索引（0=音乐, 1=短视频, 3=消息, 4=我的）
+  /// 只有音乐 Tab 才显示浮层
+  final int currentTabIndex;
+
+  const MiniPlayerBar({
+    super.key,
+    required this.currentTabIndex,
+  });
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<MusicPlayerController>();
 
     return Obx(() {
-      // 只有开始播放过才显示
-      if (!controller.hasStartedPlaying.value) {
+      // 条件1：必须已真实播放过（用户点过播放按钮）
+      // 条件2：只在音乐 Tab（index=0）才显示浮层
+      if (!controller.hasStartedPlaying.value || currentTabIndex != 0) {
         return const SizedBox.shrink();
       }
 
