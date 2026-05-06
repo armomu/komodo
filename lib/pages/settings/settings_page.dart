@@ -103,6 +103,17 @@ class SettingsPage extends StatelessWidget {
             },
           ),
 
+          // 设计规范
+          ListTile(
+            leading: const Icon(Icons.palette_outlined),
+            title: const Text('设计规范'),
+            subtitle: const Text('颜色、字体、间距、组件规范'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Get.toNamed(Routes.designSystem),
+          ),
+
+          const Divider(),
+
           // 路由演示
           ListTile(
             leading: const Icon(Icons.route),

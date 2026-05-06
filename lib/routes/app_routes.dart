@@ -3,6 +3,7 @@ import 'package:komodo/pages/live/live_push.dart';
 import 'package:komodo/pages/live/push_demo.dart';
 import 'package:komodo/pages/music/music_player_page.dart';
 import 'package:komodo/pages/message/chat_page.dart';
+import 'package:komodo/pages/design_system/design_system_page.dart';
 import '../pages/home/home_page.dart';
 import '../pages/settings/settings_page.dart';
 import '../pages/lifecycle/lifecycle_detail_page.dart';
@@ -15,6 +16,7 @@ import 'route_middleware.dart';
 abstract class Routes {
   static const String home = '/';
   static const String settings = '/settings';
+  static const String designSystem = '/design-system';
   static const String lifecycleDetail = '/lifecycle-detail';
   static const String lifecycleDemo = '/lifecycle-demo';
   static const String live = '/live';
@@ -40,6 +42,13 @@ class AppPages {
     GetPage(
       name: Routes.settings,
       page: () => const SettingsPage(),
+      middlewares: [AuthMiddleware()],
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: Routes.designSystem,
+      page: () => const DesignSystemPage(),
       middlewares: [AuthMiddleware()],
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 250),
