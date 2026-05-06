@@ -45,10 +45,6 @@ class _LivePageState extends State<LivePage>
 
   // 是否显示输入模式
   bool _showInput = false;
-  // 播放状态
-  final bool _isPlaying = false;
-  final bool _isBuffering = true;
-  final String _errorMessage = '';
   // 播放地址
   String? _playUrl;
 
@@ -61,17 +57,6 @@ class _LivePageState extends State<LivePage>
         setState(() {});
         _controller.play();
       });
-  }
-
-  void _onVlcStateChanged() {
-    // if (!mounted) return;
-    // setState(() {
-    //   _isPlaying = _vlcController.value.isPlaying;
-    //   _isBuffering = _vlcController.value.isBuffering;
-    //   if (_vlcController.value.hasError) {
-    //     _errorMessage = _vlcController.value.errorDescription;
-    //   }
-    // });
   }
 
   // ════════════════════════════════════════════════════════════════════════
@@ -172,61 +157,6 @@ class _LivePageState extends State<LivePage>
   }
 
   // 视频加载占位
-  Widget _buildLoadingPlaceholder() {
-    return Container(
-      color: Colors.black,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(
-              width: 36,
-              height: 36,
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 2.5,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _isBuffering ? '正在连接直播...' : '等待直播开始',
-              style: const TextStyle(color: Colors.white60, fontSize: 13),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// 视频背景区域
-  Widget _buildVideoBackground() {
-    return GestureDetector(
-      onTap: () {
-        // _vlcController.play();
-      },
-      child: Container(
-        color: Colors.black,
-        child: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.live_tv, size: 64, color: Colors.white24),
-              SizedBox(height: 12),
-              Text(
-                '直播间视频区域',
-                style: TextStyle(color: Colors.white38, fontSize: 14),
-              ),
-              SizedBox(height: 4),
-              Text(
-                '（视频播放器待接入）',
-                style: TextStyle(color: Colors.white24, fontSize: 12),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   /// 顶部渐变遮罩
   Widget _buildTopGradient() {
@@ -443,7 +373,7 @@ class _LivePageState extends State<LivePage>
                           bottom: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.45),
+                          color: Colors.black.withValues(alpha: 0.45),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: RichText(
@@ -501,7 +431,7 @@ class _LivePageState extends State<LivePage>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
+                color: Colors.white.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.white24, width: 1),
               ),
@@ -683,7 +613,7 @@ class _LivePageState extends State<LivePage>
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.12),
+          color: Colors.white.withValues(alpha: 0.12),
           shape: BoxShape.circle,
         ),
         child: Center(child: Icon(icon, color: color, size: 22)),

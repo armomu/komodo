@@ -122,7 +122,7 @@ class _HomePageState extends State<HomePage> {
         : Theme.of(context).bottomAppBarTheme.color;
     // final shadowColor = isVideoTab
     //     ? Colors.transparent
-    //     : Colors.black.withOpacity(0.08);
+    //     : Colors.black.withValues(alpha: 0.08);
 
     return Container(
       decoration: BoxDecoration(

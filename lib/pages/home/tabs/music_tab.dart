@@ -354,8 +354,8 @@ class _MainCardContent extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.08),
-                    Colors.black.withOpacity(0.55),
+                    Colors.black.withValues(alpha: 0.08),
+                    Colors.black.withValues(alpha: 0.55),
                   ],
                   stops: const [0.45, 1.0],
                 ),
@@ -485,7 +485,7 @@ class _MainCardContent extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.65),
+                color: Colors.black.withValues(alpha: 0.65),
                 borderRadius: BorderRadius.circular(3),
               ),
               child: Text(
@@ -612,7 +612,7 @@ class _SlangCardItem extends StatelessWidget {
                     ),
                   ),
                   // 遮罩提升可读性
-                  Container(color: Colors.black.withOpacity(0.3)),
+                  Container(color: Colors.black.withValues(alpha: 0.3)),
                   // 前景歌词内容
                   Center(
                     child: Column(
@@ -626,7 +626,7 @@ class _SlangCardItem extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: Colors.white.withOpacity(0.85),
+                              color: Colors.white.withValues(alpha: 0.85),
                               height: 1.5,
                             ),
                             textAlign: TextAlign.center,
@@ -640,7 +640,7 @@ class _SlangCardItem extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w400,
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withValues(alpha: 0.5),
                           ),
                         ),
                       ],

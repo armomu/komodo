@@ -28,7 +28,6 @@ class _LivePushPageState extends State<LivePushPage> {
 
   Timer? _statsTimer;
   String _statsLine = '';
-  StreamStatistics? _lastStats;
 
   final String _rtmpUrl = "rtmp://192.168.1.38:1935/live/stream";
 
@@ -103,7 +102,6 @@ class _LivePushPageState extends State<LivePushPage> {
       if (!mounted || !isStreaming) return;
       try {
         final s = await _controller.getStreamStatistics();
-        _lastStats = s;
         if (!mounted) return;
         setState(() {
           _statsLine =

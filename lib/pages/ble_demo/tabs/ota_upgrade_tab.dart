@@ -33,7 +33,8 @@ class OtaUpgradeTab extends StatelessWidget {
             Card(
               elevation: 1,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -82,13 +83,15 @@ class OtaUpgradeTab extends StatelessWidget {
                       width: double.infinity,
                       height: 44,
                       child: OutlinedButton.icon(
-                        onPressed:
-                            _isLocked(state) ? null : () => _pickFile(ctrl),
+                        onPressed: _isLocked(state)
+                            ? null
+                            : () => _pickFile(ctrl),
                         icon: const Icon(Icons.folder_open_outlined),
                         label: const Text('选择 .bin 升级包'),
                         style: OutlinedButton.styleFrom(
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(22)),
+                            borderRadius: BorderRadius.circular(22),
+                          ),
                         ),
                       ),
                     ),
@@ -128,10 +131,7 @@ class OtaUpgradeTab extends StatelessWidget {
       allowedExtensions: ['bin', 'hex', 'ota'],
     );
     if (result != null && result.files.single.path != null) {
-      ctrl.setOtaFile(
-        result.files.single.path!,
-        result.files.single.name,
-      );
+      ctrl.setOtaFile(result.files.single.path!, result.files.single.name);
     }
   }
 
@@ -211,7 +211,7 @@ class OtaUpgradeTab extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.12),
+                    color: statusColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(statusIcon, color: statusColor, size: 28),
@@ -220,21 +220,29 @@ class OtaUpgradeTab extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('升级状态',
-                        style: TextStyle(fontSize: 12, color: Colors.grey)),
-                    Text(statusText,
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: statusColor)),
+                    const Text(
+                      '升级状态',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    Text(
+                      statusText,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: statusColor,
+                      ),
+                    ),
                   ],
                 ),
                 const Spacer(),
-                Text('${(ctrl.otaProgress.value * 100).toInt()}%',
-                    style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: statusColor)),
+                Text(
+                  '${(ctrl.otaProgress.value * 100).toInt()}%',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: statusColor,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -263,8 +271,9 @@ class OtaUpgradeTab extends StatelessWidget {
         icon: const Icon(Icons.rocket_launch_outlined),
         label: const Text('开始 OTA 升级', style: TextStyle(fontSize: 16)),
         style: ElevatedButton.styleFrom(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(26),
+          ),
           backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
         ),
@@ -316,11 +325,14 @@ class OtaUpgradeTab extends StatelessWidget {
               Icon(Icons.check_circle, color: Colors.green, size: 28),
               SizedBox(width: 12),
               Expanded(
-                child: Text('OTA 升级完成！设备将自动重启。',
-                    style: TextStyle(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14)),
+                child: Text(
+                  'OTA 升级完成！设备将自动重启。',
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
               ),
             ],
           ),
@@ -335,7 +347,8 @@ class OtaUpgradeTab extends StatelessWidget {
             label: const Text('重置'),
             style: OutlinedButton.styleFrom(
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(22)),
+                borderRadius: BorderRadius.circular(22),
+              ),
             ),
           ),
         ),
@@ -346,11 +359,14 @@ class OtaUpgradeTab extends StatelessWidget {
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Text(title,
-          style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.black54)),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Colors.black54,
+        ),
+      ),
     );
   }
 
@@ -368,16 +384,21 @@ class OtaUpgradeTab extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Text('传输日志',
-                  style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 11,
-                      fontFamily: 'monospace')),
+              const Text(
+                '传输日志',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                ),
+              ),
               const Spacer(),
               GestureDetector(
                 onTap: ctrl.otaLog.clear,
-                child: const Text('清空',
-                    style: TextStyle(color: Colors.blue, fontSize: 11)),
+                child: const Text(
+                  '清空',
+                  style: TextStyle(color: Colors.blue, fontSize: 11),
+                ),
               ),
             ],
           ),
@@ -395,7 +416,10 @@ class OtaUpgradeTab extends StatelessWidget {
                 return Text(
                   log,
                   style: TextStyle(
-                      color: logColor, fontSize: 11, fontFamily: 'monospace'),
+                    color: logColor,
+                    fontSize: 11,
+                    fontFamily: 'monospace',
+                  ),
                 );
               },
             ),

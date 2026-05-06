@@ -86,10 +86,12 @@ class _LifecycleDemoViewState extends State<_LifecycleDemoView> {
       margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.2),
+        color: Theme.of(
+          context,
+        ).colorScheme.primaryContainer.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
         ),
       ),
       child: Column(
@@ -302,7 +304,7 @@ class _ActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: color.withOpacity(0.1),
+      color: color.withValues(alpha: 0.1),
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         onTap: onTap,

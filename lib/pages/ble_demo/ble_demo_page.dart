@@ -123,7 +123,7 @@ class _StatusCard extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: (connected ? colorScheme.primary : colorScheme.outline)
-                  .withOpacity(0.3),
+                  .withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -135,7 +135,7 @@ class _StatusCard extends StatelessWidget {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
@@ -174,7 +174,7 @@ class _StatusCard extends StatelessWidget {
                         ? (ctrl.connectedDevice.value?.remoteId.str ?? '—')
                         : '请扫描并选择附近蓝牙设备',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.85),
+                      color: Colors.white.withValues(alpha: 0.85),
                       fontSize: 12,
                     ),
                   ),

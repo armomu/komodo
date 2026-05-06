@@ -56,11 +56,16 @@ class _SendDataTabState extends State<SendDataTab>
       for (int i = 0; i < hexStr.length; i += 2) {
         bytes.add(int.parse(hexStr.substring(i, i + 2), radix: 16));
       }
-      ctrl.sendCustomData(bytes,
-          _descCtrl.text.trim().isEmpty ? '自定义数据' : _descCtrl.text.trim());
+      ctrl.sendCustomData(
+        bytes,
+        _descCtrl.text.trim().isEmpty ? '自定义数据' : _descCtrl.text.trim(),
+      );
     } catch (e) {
-      Get.snackbar('格式错误', '请输入有效的十六进制数据（如 AA 01 00 BB）',
-          snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        '格式错误',
+        '请输入有效的十六进制数据（如 AA 01 00 BB）',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 
@@ -88,7 +93,8 @@ class _SendDataTabState extends State<SendDataTab>
                 Card(
                   elevation: 1,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -106,13 +112,15 @@ class _SendDataTabState extends State<SendDataTab>
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  BorderSide(color: colorScheme.outline),
+                              borderSide: BorderSide(
+                                color: colorScheme.outline,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  BorderSide(color: colorScheme.primary),
+                              borderSide: BorderSide(
+                                color: colorScheme.primary,
+                              ),
                             ),
                           ),
                         ),
@@ -122,8 +130,10 @@ class _SendDataTabState extends State<SendDataTab>
                           decoration: InputDecoration(
                             labelText: '十六进制数据',
                             hintText: '如: AA 01 00 BB',
-                            prefixIcon:
-                                Icon(Icons.code, color: colorScheme.primary),
+                            prefixIcon: Icon(
+                              Icons.code,
+                              color: colorScheme.primary,
+                            ),
                             filled: true,
                             fillColor: colorScheme.surface,
                             border: OutlineInputBorder(
@@ -131,33 +141,38 @@ class _SendDataTabState extends State<SendDataTab>
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  BorderSide(color: colorScheme.outline),
+                              borderSide: BorderSide(
+                                color: colorScheme.outline,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  BorderSide(color: colorScheme.primary),
+                              borderSide: BorderSide(
+                                color: colorScheme.primary,
+                              ),
                             ),
                           ),
                           style: const TextStyle(fontFamily: 'monospace'),
                         ),
                         const SizedBox(height: 12),
-                        Obx(() => SizedBox(
-                              width: double.infinity,
-                              height: 48,
-                              child: ElevatedButton.icon(
-                                onPressed: ctrl.isConnected.value
-                                    ? _sendCustomData
-                                    : null,
-                                icon: const Icon(Icons.send),
-                                label: const Text('发送'),
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(24)),
+                        Obx(
+                          () => SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: ElevatedButton.icon(
+                              onPressed: ctrl.isConnected.value
+                                  ? _sendCustomData
+                                  : null,
+                              icon: const Icon(Icons.send),
+                              label: const Text('发送'),
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
                                 ),
                               ),
-                            )),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -178,9 +193,9 @@ class _SendDataTabState extends State<SendDataTab>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: colorScheme.primaryContainer.withOpacity(0.3),
+        color: colorScheme.primaryContainer.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: colorScheme.primary.withOpacity(0.3)),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,11 +216,14 @@ class _SendDataTabState extends State<SendDataTab>
   Widget _buildSectionTitle(String title, ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Text(title,
-          style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.onSurfaceVariant)),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
     );
   }
 
@@ -222,19 +240,24 @@ class _SendDataTabState extends State<SendDataTab>
         children: [
           Row(
             children: [
-              const Text('通信日志',
-                  style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 11,
-                      fontFamily: 'monospace')),
+              const Text(
+                '通信日志',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                ),
+              ),
               const Spacer(),
               GestureDetector(
                 onTap: () {
                   ctrl.clearSendLogs();
                   ctrl.clearReceiveLogs();
                 },
-                child: const Text('清空',
-                    style: TextStyle(color: Colors.blue, fontSize: 11)),
+                child: const Text(
+                  '清空',
+                  style: TextStyle(color: Colors.blue, fontSize: 11),
+                ),
               ),
             ],
           ),
@@ -244,18 +267,24 @@ class _SendDataTabState extends State<SendDataTab>
               // 合并发送和接收日志
               final allLogs = <_MergedLogEntry>[];
               for (final log in ctrl.sendLogs) {
-                allLogs.add(_MergedLogEntry(
+                allLogs.add(
+                  _MergedLogEntry(
                     time: log.time,
                     isSend: true,
                     message: log.message,
-                    data: log.data));
+                    data: log.data,
+                  ),
+                );
               }
               for (final log in ctrl.receiveLogs) {
-                allLogs.add(_MergedLogEntry(
+                allLogs.add(
+                  _MergedLogEntry(
                     time: log.time,
                     isSend: false,
                     message: log.message,
-                    data: log.data));
+                    data: log.data,
+                  ),
+                );
               }
               // 按时间倒序
               allLogs.sort((a, b) => b.time.compareTo(a.time));
@@ -277,7 +306,9 @@ class _SendDataTabState extends State<SendDataTab>
                     child: RichText(
                       text: TextSpan(
                         style: const TextStyle(
-                            fontSize: 11, fontFamily: 'monospace'),
+                          fontSize: 11,
+                          fontFamily: 'monospace',
+                        ),
                         children: [
                           TextSpan(
                             text: '[${log.time}] ',
@@ -304,9 +335,10 @@ class _SendDataTabState extends State<SendDataTab>
                             TextSpan(
                               text: _formatHex(log.data!),
                               style: TextStyle(
-                                  color: log.isSend
-                                      ? Colors.amberAccent
-                                      : Colors.cyanAccent),
+                                color: log.isSend
+                                    ? Colors.amberAccent
+                                    : Colors.cyanAccent,
+                              ),
                             ),
                           ],
                         ],

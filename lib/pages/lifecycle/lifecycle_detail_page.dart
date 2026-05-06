@@ -37,26 +37,16 @@ class LifecycleDetailPage extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Icon(
-              Icons.loop,
-              size: 64,
-              color: Get.theme.colorScheme.primary,
-            ),
+            Icon(Icons.loop, size: 64, color: Get.theme.colorScheme.primary),
             const SizedBox(height: 16),
             const Text(
               'Flutter 生命周期',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
               'StatefulWidget 的生命周期方法详解',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
           ],
         ),
@@ -71,11 +61,7 @@ class LifecycleDetailPage extends StatelessWidget {
         'description': '创建 State 对象，每个 StatefulWidget 都会调用',
         'color': Colors.blue,
       },
-      {
-        'name': '构造函数',
-        'description': 'State 对象被创建时调用',
-        'color': Colors.indigo,
-      },
+      {'name': '构造函数', 'description': 'State 对象被创建时调用', 'color': Colors.indigo},
       {
         'name': 'initState()',
         'description': 'State 对象插入到渲染树中，只调用一次',
@@ -86,11 +72,7 @@ class LifecycleDetailPage extends StatelessWidget {
         'description': 'State 对象的依赖发生变化时调用',
         'color': Colors.cyan,
       },
-      {
-        'name': 'build()',
-        'description': '构建 UI，可多次调用',
-        'color': Colors.blue,
-      },
+      {'name': 'build()', 'description': '构建 UI，可多次调用', 'color': Colors.blue},
       {
         'name': 'didUpdateWidget()',
         'description': 'Widget 配置发生变化时调用',
@@ -113,10 +95,7 @@ class LifecycleDetailPage extends StatelessWidget {
       children: [
         const Text(
           '生命周期方法',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         ...lifecycleMethods.map((method) => _buildMethodCard(method)),
@@ -129,12 +108,8 @@ class LifecycleDetailPage extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: (method['color'] as Color).withOpacity(0.2),
-          child: Icon(
-            Icons.code,
-            color: method['color'] as Color,
-            size: 20,
-          ),
+          backgroundColor: (method['color'] as Color).withValues(alpha: 0.2),
+          child: Icon(Icons.code, color: method['color'] as Color, size: 20),
         ),
         title: Text(
           method['name'] as String,
@@ -147,7 +122,7 @@ class LifecycleDetailPage extends StatelessWidget {
 
   Widget _buildGetXFeatures() {
     return Card(
-      color: Get.theme.colorScheme.primaryContainer.withOpacity(0.3),
+      color: Get.theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -155,17 +130,11 @@ class LifecycleDetailPage extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.rocket_launch,
-                  color: Get.theme.colorScheme.primary,
-                ),
+                Icon(Icons.rocket_launch, color: Get.theme.colorScheme.primary),
                 const SizedBox(width: 8),
                 const Text(
                   'GetX 特性',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -227,10 +196,7 @@ class _FeatureItem extends StatelessWidget {
                 ),
                 Text(
                   description,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
             ),

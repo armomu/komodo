@@ -388,10 +388,10 @@ class _VideoPageState extends State<VideoPage> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.25),
+                              color: Colors.white.withValues(alpha: 0.25),
                               width: 0.5,
                             ),
                           ),
@@ -1064,7 +1064,7 @@ class _VideoPageState extends State<VideoPage> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: item.color.withOpacity(0.15),
+              color: item.color.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(item.icon, color: item.color, size: 26),
