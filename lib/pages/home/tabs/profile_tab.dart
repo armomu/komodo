@@ -208,20 +208,20 @@ class _ProfileTabState extends State<ProfileTab> {
                       colorScheme: colorScheme,
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildStatsCard(
-                      icon: Icons.bookmark_border,
-                      count: '79',
-                      title: 'Saved',
-                      colorScheme: colorScheme,
-                    ),
-                  ),
+                  // const SizedBox(width: 16),
+                  // Expanded(
+                  //   child: _buildStatsCard(
+                  //     icon: Icons.bookmark_border,
+                  //     count: '79',
+                  //     title: 'Saved',
+                  //     colorScheme: colorScheme,
+                  //   ),
+                  // ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: _buildStatsCard(
                       icon: Icons.multitrack_audio,
-                      count: '6,810',
+                      count: '6,815',
                       title: 'Multitrack',
                       colorScheme: colorScheme,
                     ),
