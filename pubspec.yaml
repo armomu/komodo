@@ -69,9 +69,15 @@ dependencies:
   # 音频播放
   just_audio: ^0.10.5
 
+  # 图片选择
+  image_picker: ^1.0.4
+
+  # 语音录制
+  record: ^6.2.0
+
   # 系统媒体通知栏/锁屏/控制中心集成
-  audio_service: ^0.18.14
-  just_audio_background: ^0.0.1-beta.14
+  audio_service: ^0.18.18
+  just_audio_background: ^0.0.1-beta.17
 
 dev_dependencies:
   flutter_test:
