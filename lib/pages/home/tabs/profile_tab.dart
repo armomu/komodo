@@ -15,7 +15,7 @@ class _ProfileTabState extends State<ProfileTab> {
 
   // Mock data
   final String _userName = 'Oliver Nicolai';
-  final String _location = 'Singapore, SG';
+  final String _location = '深圳, Guangdong';
   final int _followers = 13;
   final int _following = 7;
   final int _activities = 109;
@@ -146,7 +146,7 @@ class _ProfileTabState extends State<ProfileTab> {
               child: Row(
                 children: [
                   Text(
-                    '$_followers Followers',
+                    '$_followers 关注',
                     style: TextStyle(
                       fontSize: 14,
                       color: colorScheme.onSurfaceVariant,
@@ -160,7 +160,7 @@ class _ProfileTabState extends State<ProfileTab> {
                     color: colorScheme.onSurfaceVariant,
                   ),
                   Text(
-                    '$_following Following',
+                    '$_following 已关注',
                     style: TextStyle(
                       fontSize: 14,
                       color: colorScheme.onSurfaceVariant,
@@ -168,32 +168,32 @@ class _ProfileTabState extends State<ProfileTab> {
                     ),
                   ),
                   Expanded(child: Container()),
-                  // SizedBox(
-                  //   child: ElevatedButton(
-                  //     onPressed: () {},
-                  //     style: ElevatedButton.styleFrom(
-                  //       backgroundColor: colorScheme.onSurface,
-                  //       foregroundColor: Colors.white,
-                  //       shape: RoundedRectangleBorder(
-                  //         borderRadius: BorderRadius.circular(22),
-                  //       ),
-                  //       elevation: 0,
-                  //     ),
-                  //     child: Text(
-                  //       'Follow',
-                  //       style: TextStyle(
-                  //         fontSize: 12,
-                  //         color: colorScheme.surface,
-                  //         fontWeight: FontWeight.w600,
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
+                  SizedBox(
+                    child: ElevatedButton(
+                      onPressed: () => Get.toNamed(Routes.livePush),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.onSurface,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(22),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        '开直播',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.surface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 16),
+            // const SizedBox(height: 16),
 
             // Stats cards row
             Padding(
@@ -208,15 +208,6 @@ class _ProfileTabState extends State<ProfileTab> {
                       colorScheme: colorScheme,
                     ),
                   ),
-                  // const SizedBox(width: 16),
-                  // Expanded(
-                  //   child: _buildStatsCard(
-                  //     icon: Icons.bookmark_border,
-                  //     count: '79',
-                  //     title: 'Saved',
-                  //     colorScheme: colorScheme,
-                  //   ),
-                  // ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: _buildStatsCard(
@@ -254,45 +245,44 @@ class _ProfileTabState extends State<ProfileTab> {
     required String count,
     required ColorScheme colorScheme,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-      decoration: BoxDecoration(
-        color: colorScheme.onSurfaceVariant.withAlpha(20),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 26, color: colorScheme.onSurfaceVariant),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              // Icon(icon, size: 24, color: colorScheme.onSurfaceVariant),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: colorScheme.onSurfaceVariant,
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 26, color: colorScheme.onSurfaceVariant),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                // Icon(icon, size: 24, color: colorScheme.onSurfaceVariant),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
-              ),
-              // Icon(
-              //   Icons.arrow_forward,
-              //   size: 20,
-              //   color: colorScheme.onSurfaceVariant,
-              // ),
-            ],
-          ),
-          Text(
-            count,
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurfaceVariant,
+                // Icon(
+                //   Icons.arrow_forward,
+                //   size: 20,
+                //   color: colorScheme.onSurfaceVariant,
+                // ),
+              ],
             ),
-          ),
-        ],
+            Text(
+              count,
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

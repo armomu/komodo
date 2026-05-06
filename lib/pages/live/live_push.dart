@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rtmp_streaming/camera.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -29,7 +30,9 @@ class _LivePushPageState extends State<LivePushPage> {
   Timer? _statsTimer;
   String _statsLine = '';
 
-  final String _rtmpUrl = "rtmp://192.168.1.38:1935/live/stream";
+  final TextEditingController _rtmpController = TextEditingController(
+    text: "rtmp://192.168.1.38:1935/live/stream",
+  );
 
   @override
   void initState() {
@@ -150,9 +153,14 @@ class _LivePushPageState extends State<LivePushPage> {
 
   Future<void> _startStreaming() async {
     if (!_isInitialized) return;
-    debugPrint('[推流] 开始推流: $_rtmpUrl');
+    final rtmpUrl = _rtmpController.text.trim();
+    if (rtmpUrl.isEmpty) {
+      _showSnackBar('请输入推流地址');
+      return;
+    }
+    debugPrint('[推流] 开始推流: $rtmpUrl');
     try {
-      await _controller.startVideoStreaming(_rtmpUrl);
+      await _controller.startVideoStreaming(rtmpUrl);
       await WakelockPlus.enable();
       setState(() => isStreaming = true);
       _startStatsTimer();
@@ -188,7 +196,7 @@ class _LivePushPageState extends State<LivePushPage> {
   void dispose() {
     _stopStatsTimer();
     _controller.dispose();
-    WakelockPlus.disable();
+    _rtmpController.dispose();
     super.dispose();
   }
 
@@ -279,10 +287,43 @@ class _LivePushPageState extends State<LivePushPage> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  _rtmpUrl,
-                  style: const TextStyle(color: Colors.white38, fontSize: 11),
-                  overflow: TextOverflow.ellipsis,
+                TextField(
+                  controller: _rtmpController,
+                  enabled: !isStreaming,
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                  decoration: InputDecoration(
+                    hintText: '输入 RTMP 推流地址',
+                    hintStyle: const TextStyle(color: Colors.white24),
+                    filled: true,
+                    fillColor: Colors.white10,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    isDense: true,
+                    prefixIcon: const Icon(
+                      Icons.link,
+                      color: Colors.white38,
+                      size: 18,
+                    ),
+                    suffixIcon: isStreaming
+                        ? null
+                        : IconButton(
+                            icon: const Icon(Icons.paste, color: Colors.white38, size: 18),
+                            onPressed: () async {
+                              final data =
+                                  await Clipboard.getData('text/plain');
+                              if (data?.text != null) {
+                                _rtmpController.text = data!.text!;
+                                _showSnackBar('已粘贴');
+                              }
+                            },
+                          ),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 SizedBox(
