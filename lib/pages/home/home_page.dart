@@ -119,7 +119,7 @@ class _HomePageState extends State<HomePage> {
     final isVideoTab = _currentIndex == 1;
     final bgColor = isVideoTab
         ? Colors.black
-        : Theme.of(context).bottomAppBarTheme.color;
+        : Theme.of(context).scaffoldBackgroundColor;
     // final shadowColor = isVideoTab
     //     ? Colors.transparent
     //     : Colors.black.withValues(alpha: 0.08);

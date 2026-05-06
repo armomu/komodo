@@ -35,6 +35,7 @@ void main() async {
       systemNavigationBarColor: Colors.transparent, // 底部透明
       systemNavigationBarIconBrightness: Brightness.dark, // 图标颜色
       statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
     ),
   );
   // 初始化 GetStorage（用于本地存储）

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:komodo/pages/music/music_player_controller.dart';
 import 'package:komodo/pages/music/playlist_bottom_sheet.dart';
@@ -101,15 +102,14 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
     return Obx(() {
       return Scaffold(
         backgroundColor: Colors.black,
+        // ① 顶部导航栏（含Tab）
+        appBar: _buildTopBarWithTabs(),
         body: Stack(
           children: [
             // ── 主内容 ──
             SafeArea(
               child: Column(
                 children: [
-                  // ① 顶部导航栏（含Tab）
-                  _buildTopBarWithTabs(context),
-
                   // ② 可滑动内容区（歌曲/歌词）
                   Expanded(
                     child: PageView(
@@ -150,39 +150,44 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   // 顶部导航栏（含Tab切换）
   // ══════════════════════════════════════════════════════════════════════════
 
-  Widget _buildTopBarWithTabs(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 第一行：返回 + 歌曲信息 + 分享
-          Row(
-            children: [
-              // 返回
-              IconButton(
-                onPressed: () => Get.back(),
-                icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 28),
-                color: Colors.white70,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-
-              // 第二行：Tab 指示器（歌曲/歌词）
-              _buildTabIndicator(),
-
-              // 分享
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.ios_share_rounded, size: 22),
-                color: Colors.white70,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-            ],
-          ),
-        ],
+  AppBar _buildTopBarWithTabs() {
+    return AppBar(
+      backgroundColor: Colors.black,
+      surfaceTintColor: Colors.black,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
+      leading: // 返回
+      IconButton(
+        onPressed: () => Get.back(),
+        icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 32),
+        color: Colors.white70,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
       ),
+      title: _buildTabIndicator(),
+      actions: [
+        // 分享
+        IconButton(
+          onPressed: () {},
+          icon: const Icon(Icons.ios_share_rounded),
+          color: Colors.white70,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+        ),
+      ],
+      // child: Column(
+      //   mainAxisSize: MainAxisSize.min,
+      //   children: [
+      //     // 第一行：返回 + 歌曲信息 + 分享
+      //     Row(
+      //       children: [
+
+      //         // 第二行：Tab 指示器（歌曲/歌词）
+      //         _buildTabIndicator(),
+
+      //       ],
+      //     ),
+      //   ],
+      // ),
     );
   }
 
