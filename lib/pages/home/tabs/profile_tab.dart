@@ -19,7 +19,6 @@ class _ProfileTabState extends State<ProfileTab> {
   final int _followers = 13;
   final int _following = 7;
   final int _activities = 109;
-  final int _saved = 4;
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +142,7 @@ class _ProfileTabState extends State<ProfileTab> {
 
             // User info
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               child: Row(
                 children: [
                   Text(
@@ -169,27 +168,27 @@ class _ProfileTabState extends State<ProfileTab> {
                     ),
                   ),
                   Expanded(child: Container()),
-                  SizedBox(
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.onSurface,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Follow',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: colorScheme.surface,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
+                  // SizedBox(
+                  //   child: ElevatedButton(
+                  //     onPressed: () {},
+                  //     style: ElevatedButton.styleFrom(
+                  //       backgroundColor: colorScheme.onSurface,
+                  //       foregroundColor: Colors.white,
+                  //       shape: RoundedRectangleBorder(
+                  //         borderRadius: BorderRadius.circular(22),
+                  //       ),
+                  //       elevation: 0,
+                  //     ),
+                  //     child: Text(
+                  //       'Follow',
+                  //       style: TextStyle(
+                  //         fontSize: 12,
+                  //         color: colorScheme.surface,
+                  //         fontWeight: FontWeight.w600,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             ),
@@ -203,18 +202,27 @@ class _ProfileTabState extends State<ProfileTab> {
                 children: [
                   Expanded(
                     child: _buildStatsCard(
-                      context,
-                      icon: Icons.analytics_outlined,
-                      title: '$_activities 累计',
+                      icon: Icons.change_history,
+                      count: '$_activities',
+                      title: 'Activities',
                       colorScheme: colorScheme,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: _buildStatsCard(
-                      context,
                       icon: Icons.bookmark_border,
-                      title: '$_saved Saved',
+                      count: '79',
+                      title: 'Saved',
+                      colorScheme: colorScheme,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildStatsCard(
+                      icon: Icons.multitrack_audio,
+                      count: '6,810',
+                      title: 'Multitrack',
                       colorScheme: colorScheme,
                     ),
                   ),
@@ -240,10 +248,10 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
-  Widget _buildStatsCard(
-    BuildContext context, {
+  Widget _buildStatsCard({
     required IconData icon,
     required String title,
+    required String count,
     required ColorScheme colorScheme,
   }) {
     return Container(
@@ -252,24 +260,37 @@ class _ProfileTabState extends State<ProfileTab> {
         color: colorScheme.onSurfaceVariant.withAlpha(20),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 24, color: colorScheme.onSurfaceVariant),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onSurfaceVariant,
+          Icon(icon, size: 26, color: colorScheme.onSurfaceVariant),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              // Icon(icon, size: 24, color: colorScheme.onSurfaceVariant),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ),
-            ),
+              // Icon(
+              //   Icons.arrow_forward,
+              //   size: 20,
+              //   color: colorScheme.onSurfaceVariant,
+              // ),
+            ],
           ),
-          Icon(
-            Icons.chevron_right,
-            size: 20,
-            color: colorScheme.onSurfaceVariant,
+          Text(
+            count,
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
