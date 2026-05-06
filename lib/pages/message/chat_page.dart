@@ -659,36 +659,19 @@ class _ChatContentState extends State<_ChatContent> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
-          // 左侧录音按钮
-          GestureDetector(
-            onTap: _toggleRecording,
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: _isRecording
-                    ? Colors.red.withValues(alpha: 0.15)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: _isRecording
-                      ? Colors.red
-                      : colorScheme.onSurfaceVariant,
-                  width: 1.5,
-                ),
-              ),
-              child: Icon(
-                _isRecording ? Icons.stop : Icons.mic,
-                size: 20,
-                color: _isRecording ? Colors.red : colorScheme.onSurfaceVariant,
-              ),
+          // 中间输入框
+          IconButton(
+            onPressed: _toggleRecording,
+            icon: Icon(
+              _isRecording ? Icons.stop : Icons.mic,
+              size: 20,
+              color: _isRecording ? Colors.red : colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(width: 8),
-          // 中间输入框
           Expanded(
             child: Container(
-              height: 36,
+              height: 40,
               decoration: BoxDecoration(
                 color: isDark
                     ? const Color(0xFF2C2C2C)
@@ -702,14 +685,11 @@ class _ChatContentState extends State<_ChatContent> {
                   fontSize: 14,
                   color: isDark ? Colors.white : Colors.black87,
                 ),
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: '说点什么...',
-                  hintStyle: TextStyle(
-                    fontSize: 14,
-                    color: isDark ? Colors.white38 : Colors.grey[400],
-                  ),
+                  hintStyle: TextStyle(fontSize: 14, color: Colors.transparent),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
+                  contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
                   ),
@@ -720,9 +700,8 @@ class _ChatContentState extends State<_ChatContent> {
             ),
           ),
           const SizedBox(width: 8),
-          // 右侧表情按钮
-          GestureDetector(
-            onTap: () {
+          IconButton(
+            onPressed: () {
               setState(() {
                 _showEmojiPicker = !_showEmojiPicker;
                 if (_showEmojiPicker) {
@@ -730,24 +709,15 @@ class _ChatContentState extends State<_ChatContent> {
                 }
               });
             },
-            child: SizedBox(
-              width: 36,
-              height: 36,
-              child: Icon(
-                _showEmojiPicker
-                    ? Icons.keyboard_alt_outlined
-                    : Icons.emoji_emotions_outlined,
-                size: 22,
-                color: _showEmojiPicker
-                    ? colorScheme.primary
-                    : colorScheme.onSurfaceVariant,
-              ),
+            icon: Icon(
+              _showEmojiPicker
+                  ? Icons.keyboard_alt_outlined
+                  : Icons.emoji_emotions_outlined,
             ),
           ),
-          const SizedBox(width: 8),
           // 圆形加号按钮
-          GestureDetector(
-            onTap: () {
+          IconButton(
+            onPressed: () {
               setState(() {
                 _showIconBar = !_showIconBar;
                 if (_showIconBar) {
@@ -756,29 +726,9 @@ class _ChatContentState extends State<_ChatContent> {
                 }
               });
             },
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: _showIconBar
-                    ? colorScheme.primary.withValues(alpha: 0.15)
-                    : Colors.transparent,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: _showIconBar
-                      ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant,
-                  width: 1.5,
-                ),
-              ),
-              child: Icon(
-                _showIconBar ? Icons.close : Icons.add,
-                size: 20,
-                color: _showIconBar
-                    ? colorScheme.primary
-                    : colorScheme.onSurfaceVariant,
-              ),
-            ),
+            icon: _showIconBar
+                ? const Icon(Icons.arrow_drop_down_circle_outlined)
+                : const Icon(Icons.add_circle_outline),
           ),
         ],
       ),
