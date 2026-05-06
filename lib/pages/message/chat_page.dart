@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:record/record.dart';
 
 /// 聊天详情页 — 社交私信聊天界面
-/// 布局：导航栏 → 用户信息卡 → 动态展示区 → 消息列表 → 输入区 → 图标栏 → 表情面板
+/// 布局：导航栏 → 消息列表 → 底部输入栏（录音/输入/表情/+）→ 可展开图标栏 + 表情面板
 class ChatPage extends StatelessWidget {
   const ChatPage({super.key});
 
@@ -16,24 +16,19 @@ class ChatPage extends StatelessWidget {
     final peerName = args?['peerName'] as String? ?? _defaultPeerName;
     final peerAvatar = args?['peerAvatar'] as String? ?? _defaultPeerAvatar;
 
-    return _ChatContent(
-      peerName: peerName,
-      peerAvatar: peerAvatar,
-    );
+    return _ChatContent(peerName: peerName, peerAvatar: peerAvatar);
   }
 
   static const String _defaultPeerName = '九黎❤️是美女';
-  static const String _defaultPeerAvatar = 'https://picsum.photos/seed/chatpeer/100/100';
+  static const String _defaultPeerAvatar =
+      'https://picsum.photos/seed/chatpeer/100/100';
 }
 
 class _ChatContent extends StatefulWidget {
   final String peerName;
   final String peerAvatar;
 
-  const _ChatContent({
-    required this.peerName,
-    required this.peerAvatar,
-  });
+  const _ChatContent({required this.peerName, required this.peerAvatar});
 
   @override
   State<_ChatContent> createState() => _ChatContentState();
@@ -48,83 +43,113 @@ class _ChatContentState extends State<_ChatContent> {
   final List<_ChatMessage> _messages = List.from(_initialMessages);
 
   // UI 状态
-  bool _showQuickReplies = true;
   bool _showEmojiPicker = false;
+  bool _showIconBar = false;
   bool _isRecording = false;
 
   // 录音
   AudioRecorder? _recorder;
+
   // 图片选择
   final ImagePicker _picker = ImagePicker();
 
   // 常用表情列表
   static const List<String> _emojis = [
-    '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂',
-    '🙂', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘',
-    '😗', '😚', '😋', '😛', '😜', '🤪', '😝', '🤑',
-    '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑',
-    '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔',
-    '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮',
-    '👍', '👎', '👏', '🙌', '🤝', '🙏', '💪', '❤️',
-    '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '💯',
-    '💢', '💨', '💫', '💬', '🗨️', '🗯️', '💭', '🎉',
-    '🎊', '🎈', '🎁', '🏆', '🥇', '🎵', '🎶', '🎤',
+    '😀',
+    '😃',
+    '😄',
+    '😁',
+    '😆',
+    '😅',
+    '🤣',
+    '😂',
+    '🙂',
+    '😉',
+    '😊',
+    '😇',
+    '🥰',
+    '😍',
+    '🤩',
+    '😘',
+    '😗',
+    '😚',
+    '😋',
+    '😛',
+    '😜',
+    '🤪',
+    '😝',
+    '🤑',
+    '🤗',
+    '🤭',
+    '🤫',
+    '🤔',
+    '🤐',
+    '🤨',
+    '😐',
+    '😑',
+    '😶',
+    '😏',
+    '😒',
+    '🙄',
+    '😬',
+    '🤥',
+    '😌',
+    '😔',
+    '😪',
+    '🤤',
+    '😴',
+    '😷',
+    '🤒',
+    '🤕',
+    '🤢',
+    '🤮',
+    '👍',
+    '👎',
+    '👏',
+    '🙌',
+    '🤝',
+    '🙏',
+    '💪',
+    '❤️',
+    '🧡',
+    '💛',
+    '💚',
+    '💙',
+    '💜',
+    '🖤',
+    '🤍',
+    '💯',
+    '💢',
+    '💨',
+    '💫',
+    '💬',
+    '🗨️',
+    '🗯️',
+    '💭',
+    '🎉',
+    '🎊',
+    '🎈',
+    '🎁',
+    '🏆',
+    '🥇',
+    '🎵',
+    '🎶',
+    '🎤',
   ];
 
   static const String _myAvatar = 'https://picsum.photos/seed/myavatar/100/100';
-  static const String _distance = '3.52km';
-  static const String _signature = '你会，为我着迷吗❤️';
 
   static const List<_ChatMessage> _initialMessages = [
     _ChatMessage(type: _MsgType.timestamp, time: '19:01'),
-    _ChatMessage(
-      type: _MsgType.text,
-      isMe: false,
-      content: '嗨，你好呀～很高兴认识你 😊',
-    ),
-    _ChatMessage(
-      type: _MsgType.voice,
-      isMe: false,
-      duration: 11,
-    ),
+    _ChatMessage(type: _MsgType.text, isMe: false, content: '嗨，你好呀～很高兴认识你 😊'),
+    _ChatMessage(type: _MsgType.voice, isMe: false, duration: 11),
     _ChatMessage(
       type: _MsgType.image,
       isMe: false,
       imageUrl: 'https://picsum.photos/seed/chatimg1/400/600',
     ),
-    _ChatMessage(
-      type: _MsgType.gift,
-      isMe: true,
-      giftEmoji: '🌹',
-      giftLabel: '红玫瑰',
-    ),
-    _ChatMessage(
-      type: _MsgType.text,
-      isMe: false,
-      content: '谢谢你的玫瑰，好开心～',
-    ),
-    _ChatMessage(
-      type: _MsgType.text,
-      isMe: true,
-      content: '你也太好看了吧',
-    ),
-  ];
-
-  static const List<_MomentItem> _moments = [
-    _MomentItem(type: _MomentType.gift, label: '一鹿兜萌', subLabel: '520 钻石', emoji: '🦌'),
-    _MomentItem(type: _MomentType.gift, label: '圣光飞轮', subLabel: '888 钻石', emoji: '✨'),
-    _MomentItem(type: _MomentType.photo, imageUrl: 'https://picsum.photos/seed/m1/200/200'),
-    _MomentItem(type: _MomentType.photo, imageUrl: 'https://picsum.photos/seed/m2/200/200'),
-    _MomentItem(type: _MomentType.photo, imageUrl: 'https://picsum.photos/seed/m3/200/200'),
-    _MomentItem(type: _MomentType.photo, imageUrl: 'https://picsum.photos/seed/m4/200/200'),
-  ];
-
-  static const List<String> _quickReplies = [
-    '哈喽',
-    '你好',
-    '美女你好~',
-    '在干嘛呢',
-    '你好漂亮',
+    _ChatMessage(type: _MsgType.text, isMe: false, content: '回复了一条信息'),
+    _ChatMessage(type: _MsgType.text, isMe: true, content: '你好呀～'),
   ];
 
   @override
@@ -132,13 +157,9 @@ class _ChatContentState extends State<_ChatContent> {
     super.initState();
     _recorder = AudioRecorder();
     _focusNode.addListener(() {
-      if (_focusNode.hasFocus && _showQuickReplies) {
-        setState(() {
-          _showQuickReplies = false;
-          _showEmojiPicker = false;
-        });
-      } else if (!_focusNode.hasFocus && !_showQuickReplies && !_showEmojiPicker) {
-        setState(() => _showQuickReplies = true);
+      // 输入框获焦时关闭表情面板和图标栏
+      if (_focusNode.hasFocus && _showEmojiPicker) {
+        setState(() => _showEmojiPicker = false);
       }
     });
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
@@ -167,11 +188,9 @@ class _ChatContentState extends State<_ChatContent> {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return;
     setState(() {
-      _messages.add(_ChatMessage(
-        type: _MsgType.text,
-        isMe: true,
-        content: trimmed,
-      ));
+      _messages.add(
+        _ChatMessage(type: _MsgType.text, isMe: true, content: trimmed),
+      );
     });
     _textController.clear();
     _scrollToBottom();
@@ -179,23 +198,23 @@ class _ChatContentState extends State<_ChatContent> {
 
   void _sendEmojiMessage(String emoji) {
     setState(() {
-      _messages.add(_ChatMessage(
-        type: _MsgType.text,
-        isMe: true,
-        content: emoji,
-      ));
+      _messages.add(
+        _ChatMessage(type: _MsgType.text, isMe: true, content: emoji),
+      );
     });
     _scrollToBottom();
   }
 
   void _sendImageMessage(String imagePath) {
     setState(() {
-      _messages.add(_ChatMessage(
-        type: _MsgType.image,
-        isMe: true,
-        imageUrl: imagePath,
-        isLocalImage: true,
-      ));
+      _messages.add(
+        _ChatMessage(
+          type: _MsgType.image,
+          isMe: true,
+          imageUrl: imagePath,
+          isLocalImage: true,
+        ),
+      );
     });
     _scrollToBottom();
   }
@@ -213,16 +232,13 @@ class _ChatContentState extends State<_ChatContent> {
 
   Future<void> _toggleRecording() async {
     if (_isRecording) {
-      // 停止录音
       try {
         final path = await _recorder?.stop();
         if (path != null) {
           setState(() {
-            _messages.add(_ChatMessage(
-              type: _MsgType.voice,
-              isMe: true,
-              duration: 3, // 简化处理，实际应计算真实时长
-            ));
+            _messages.add(
+              const _ChatMessage(type: _MsgType.voice, isMe: true, duration: 3),
+            );
           });
           _scrollToBottom();
         }
@@ -231,11 +247,11 @@ class _ChatContentState extends State<_ChatContent> {
       }
       setState(() => _isRecording = false);
     } else {
-      // 开始录音
       try {
         if (await _recorder!.hasPermission()) {
           final tempDir = await Directory.systemTemp.createTemp('chat_voice');
-          final filePath = '${tempDir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+          final filePath =
+              '${tempDir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
           await _recorder!.start(const RecordConfig(), path: filePath);
           setState(() => _isRecording = true);
         }
@@ -245,9 +261,9 @@ class _ChatContentState extends State<_ChatContent> {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════════════
   // Build
-  // ═══════════════════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
@@ -262,7 +278,7 @@ class _ChatContentState extends State<_ChatContent> {
           clipBehavior: Clip.none,
           children: [
             IconButton(
-              icon: Icon(Icons.arrow_back_ios_new, size: 20, color: colorScheme.onSurface),
+              icon: const Icon(Icons.arrow_back),
               onPressed: () => Navigator.of(context).pop(),
             ),
             Positioned(
@@ -278,7 +294,11 @@ class _ChatContentState extends State<_ChatContent> {
                 alignment: Alignment.center,
                 child: const Text(
                   '2',
-                  style: TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w700),
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),
@@ -286,202 +306,50 @@ class _ChatContentState extends State<_ChatContent> {
         ),
         title: Text(
           effectiveName,
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface,
+          ),
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: Icon(Icons.more_horiz, color: colorScheme.onSurface),
-            onPressed: () {},
-          ),
+          IconButton(icon: const Icon(Icons.more_horiz), onPressed: () {}),
         ],
       ),
       body: Column(
         children: [
-          // 可滚动内容区
+          // 可滚动消息区
           Expanded(
             child: ListView(
               controller: _scrollController,
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.only(top: 8, bottom: 8),
               children: [
-                _buildPeerInfoCard(context, isDark, effectiveAvatar),
-                _buildMomentsSection(context, isDark),
-                ..._messages.map((msg) => _buildChatMessage(context, msg, isDark, effectiveAvatar)),
-                const SizedBox(height: 16),
+                ..._messages.map(
+                  (msg) =>
+                      _buildChatMessage(context, msg, isDark, effectiveAvatar),
+                ),
+                const SizedBox(height: 8),
               ],
             ),
           ),
-          // 底部输入区域
-          _buildBottomArea(context, isDark, colorScheme, effectiveAvatar),
+          // 底部区域
+          _buildBottomArea(context, isDark, colorScheme),
         ],
       ),
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════
-  // 用户信息卡片
-  // ═══════════════════════════════════════════════════════════════════════
-
-  Widget _buildPeerInfoCard(BuildContext context, bool isDark, String avatar) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF8F8FA),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundImage: NetworkImage(avatar),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.location_on, size: 14, color: colorScheme.primary),
-                    const SizedBox(width: 4),
-                    Text(
-                      _distance,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  _signature,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: isDark ? Colors.white70 : Colors.black87,
-                    fontWeight: FontWeight.w400,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════
-  // 动态展示区
-  // ═══════════════════════════════════════════════════════════════════════
-
-  Widget _buildMomentsSection(BuildContext context, bool isDark) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Column(
-        children: [
-          GestureDetector(
-            onTap: () {},
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Row(
-                children: [
-                  Text(
-                    '动态 ${_moments.length}',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(Icons.chevron_right, size: 18, color: colorScheme.onSurfaceVariant),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(
-            height: 80,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.zero,
-              itemCount: _moments.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final item = _moments[index];
-                if (item.type == _MomentType.gift) {
-                  return _buildGiftMoment(item, isDark);
-                }
-                return _buildPhotoMoment(item, isDark);
-              },
-            ),
-          ),
-          const SizedBox(height: 8),
-          Divider(height: 0.5, color: isDark ? Colors.white12 : Colors.grey[200]),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGiftMoment(_MomentItem item, bool isDark) {
-    return Container(
-      width: 80,
-      height: 80,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(item.emoji!, style: const TextStyle(fontSize: 28)),
-          const SizedBox(height: 4),
-          Text(
-            item.label ?? '',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? Colors.white70 : Colors.black87),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          Text(
-            item.subLabel!,
-            style: TextStyle(fontSize: 9, color: isDark ? Colors.white38 : Colors.grey[500]),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPhotoMoment(_MomentItem item, bool isDark) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: Image.network(
-        item.imageUrl!,
-        width: 80,
-        height: 80,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          width: 80,
-          height: 80,
-          color: isDark ? const Color(0xFF2C2C2C) : Colors.grey[200],
-          child: Icon(Icons.image, color: isDark ? Colors.white24 : Colors.grey[400]),
-        ),
-      ),
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════════════
   // 聊天消息
-  // ═══════════════════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════════════
 
-  Widget _buildChatMessage(BuildContext context, _ChatMessage msg, bool isDark, String peerAvatar) {
+  Widget _buildChatMessage(
+    BuildContext context,
+    _ChatMessage msg,
+    bool isDark,
+    String peerAvatar,
+  ) {
     switch (msg.type) {
       case _MsgType.timestamp:
         return _buildTimestamp(msg.time!);
@@ -523,18 +391,22 @@ class _ChatContentState extends State<_ChatContent> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
           if (!isMe) _buildAvatarWidget(avatarUrl, isDark),
           if (!isMe) const SizedBox(width: 10),
           Flexible(
             child: Container(
-              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.65),
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.65,
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: isMe
                     ? Theme.of(context).colorScheme.primary
-                    : (isDark ? const Color(0xFF3A3A3C) : const Color(0xFFF0F0F0)),
+                    : (isDark ? const Color(0xFF3A3A3C) : Colors.white),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(18),
                   topRight: const Radius.circular(18),
@@ -546,7 +418,9 @@ class _ChatContentState extends State<_ChatContent> {
                 msg.content!,
                 style: TextStyle(
                   fontSize: 15,
-                  color: isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
+                  color: isMe
+                      ? Colors.white
+                      : (isDark ? Colors.white : Colors.black87),
                   height: 1.4,
                 ),
               ),
@@ -566,7 +440,9 @@ class _ChatContentState extends State<_ChatContent> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: msg.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: msg.isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
           if (!msg.isMe) _buildAvatarWidget(avatarUrl, isDark),
           if (!msg.isMe) const SizedBox(width: 10),
@@ -577,8 +453,12 @@ class _ChatContentState extends State<_ChatContent> {
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
                 color: msg.isMe
-                    ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.9)
-                    : (isDark ? const Color(0xFF3A3A3C) : const Color(0xFFF0F0F0)),
+                    ? Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.9)
+                    : (isDark
+                          ? const Color(0xFF3A3A3C)
+                          : const Color(0xFFF0F0F0)),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(18),
                   topRight: const Radius.circular(18),
@@ -589,13 +469,21 @@ class _ChatContentState extends State<_ChatContent> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.graphic_eq, size: 18, color: msg.isMe ? Colors.white70 : (isDark ? Colors.white70 : Colors.black54)),
+                  Icon(
+                    Icons.graphic_eq,
+                    size: 18,
+                    color: msg.isMe
+                        ? Colors.white70
+                        : (isDark ? Colors.white70 : Colors.black54),
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     '${msg.duration}"',
                     style: TextStyle(
                       fontSize: 14,
-                      color: msg.isMe ? Colors.white : (isDark ? Colors.white70 : Colors.black54),
+                      color: msg.isMe
+                          ? Colors.white
+                          : (isDark ? Colors.white70 : Colors.black54),
                     ),
                   ),
                 ],
@@ -614,7 +502,9 @@ class _ChatContentState extends State<_ChatContent> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: msg.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: msg.isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
           if (!msg.isMe) _buildAvatarWidget(peerAvatar, isDark),
           if (!msg.isMe) const SizedBox(width: 10),
@@ -628,14 +518,16 @@ class _ChatContentState extends State<_ChatContent> {
                       width: 180,
                       height: 240,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildImagePlaceholder(isDark),
+                      errorBuilder: (_, __, ___) =>
+                          _buildImagePlaceholder(isDark),
                     )
                   : Image.network(
                       msg.imageUrl!,
                       width: 180,
                       height: 240,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildImagePlaceholder(isDark),
+                      errorBuilder: (_, __, ___) =>
+                          _buildImagePlaceholder(isDark),
                     ),
             ),
           ),
@@ -651,7 +543,11 @@ class _ChatContentState extends State<_ChatContent> {
       width: 180,
       height: 240,
       color: isDark ? const Color(0xFF2C2C2C) : Colors.grey[200],
-      child: Icon(Icons.broken_image, color: isDark ? Colors.white24 : Colors.grey[400], size: 40),
+      child: Icon(
+        Icons.broken_image,
+        color: isDark ? Colors.white24 : Colors.grey[400],
+        size: 40,
+      ),
     );
   }
 
@@ -690,7 +586,11 @@ class _ChatContentState extends State<_ChatContent> {
                 const SizedBox(width: 6),
                 Text(
                   msg.giftLabel!,
-                  style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -710,11 +610,15 @@ class _ChatContentState extends State<_ChatContent> {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════
-  // 底部区域：快捷表情栏 → 输入行 → 图标栏 → 表情面板
-  // ═══════════════════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════════════
+  // 底部区域：输入行 → 表情面板 → 可展开图标栏 → 录音指示
+  // ════════════════════════════════════════════════════════════════════════
 
-  Widget _buildBottomArea(BuildContext context, bool isDark, ColorScheme colorScheme, String peerAvatar) {
+  Widget _buildBottomArea(
+    BuildContext context,
+    bool isDark,
+    ColorScheme colorScheme,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
@@ -730,15 +634,14 @@ class _ChatContentState extends State<_ChatContent> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 快捷表情栏
-            if (_showQuickReplies) _buildQuickReplies(context, isDark),
-            // 输入行（整行）
+            // 输入行：录音按钮 | 输入框 | 表情 | +
             _buildInputRow(context, isDark, colorScheme),
-            // 图标栏
-            _buildIconBar(context, isDark, colorScheme),
             // 表情面板
             if (_showEmojiPicker) _buildEmojiPicker(context, isDark),
-            // 录音提示
+            // 可展开图标栏
+            if (_showIconBar)
+              _buildExpandedIconBar(context, isDark, colorScheme),
+            // 录音指示
             if (_isRecording) _buildRecordingIndicator(isDark),
           ],
         ),
@@ -746,17 +649,50 @@ class _ChatContentState extends State<_ChatContent> {
     );
   }
 
-  /// 输入行：整行输入框 + 发送按钮
-  Widget _buildInputRow(BuildContext context, bool isDark, ColorScheme colorScheme) {
+  /// 输入行：录音按钮 | 输入框 | 表情按钮 | 圆形加号按钮
+  Widget _buildInputRow(
+    BuildContext context,
+    bool isDark,
+    ColorScheme colorScheme,
+  ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
+          // 左侧录音按钮
+          GestureDetector(
+            onTap: _toggleRecording,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: _isRecording
+                    ? Colors.red.withValues(alpha: 0.15)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: _isRecording
+                      ? Colors.red
+                      : colorScheme.onSurfaceVariant,
+                  width: 1.5,
+                ),
+              ),
+              child: Icon(
+                _isRecording ? Icons.stop : Icons.mic,
+                size: 20,
+                color: _isRecording ? Colors.red : colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // 中间输入框
           Expanded(
             child: Container(
               height: 36,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5),
+                color: isDark
+                    ? const Color(0xFF2C2C2C)
+                    : const Color(0xFFF5F5F5),
                 borderRadius: BorderRadius.circular(18),
               ),
               child: TextField(
@@ -767,13 +703,16 @@ class _ChatContentState extends State<_ChatContent> {
                   color: isDark ? Colors.white : Colors.black87,
                 ),
                 decoration: InputDecoration(
-                  hintText: '请输入内容...',
+                  hintText: '说点什么...',
                   hintStyle: TextStyle(
                     fontSize: 14,
                     color: isDark ? Colors.white38 : Colors.grey[400],
                   ),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   isDense: true,
                 ),
                 onSubmitted: _sendTextMessage,
@@ -781,35 +720,9 @@ class _ChatContentState extends State<_ChatContent> {
             ),
           ),
           const SizedBox(width: 8),
+          // 右侧表情按钮
           GestureDetector(
-            onTap: () => _sendTextMessage(_textController.text),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: colorScheme.primary,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: const Icon(Icons.send, size: 18, color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 图标栏：表情 / 图片 / 语音 / 礼物 / 更多（无首页按钮）
-  Widget _buildIconBar(BuildContext context, bool isDark, ColorScheme colorScheme) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          // 表情按钮
-          _buildIconBarButton(
-            icon: _showEmojiPicker ? Icons.keyboard_alt_outlined : Icons.emoji_emotions_outlined,
-            colorScheme: colorScheme,
-            onPressed: () {
+            onTap: () {
               setState(() {
                 _showEmojiPicker = !_showEmojiPicker;
                 if (_showEmojiPicker) {
@@ -817,70 +730,166 @@ class _ChatContentState extends State<_ChatContent> {
                 }
               });
             },
+            child: SizedBox(
+              width: 36,
+              height: 36,
+              child: Icon(
+                _showEmojiPicker
+                    ? Icons.keyboard_alt_outlined
+                    : Icons.emoji_emotions_outlined,
+                size: 22,
+                color: _showEmojiPicker
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
+              ),
+            ),
           ),
-          // 图片按钮
-          _buildIconBarButton(
-            icon: Icons.image_outlined,
-            colorScheme: colorScheme,
-            onPressed: _pickAndSendImage,
-          ),
-          // 语音按钮
-          _buildIconBarButton(
-            icon: _isRecording ? Icons.stop_circle : Icons.mic_outlined,
-            colorScheme: colorScheme,
-            isActive: _isRecording,
-            onPressed: _toggleRecording,
-          ),
-          // 礼物按钮
+          const SizedBox(width: 8),
+          // 圆形加号按钮
           GestureDetector(
-            onTap: () {},
+            onTap: () {
+              setState(() {
+                _showIconBar = !_showIconBar;
+                if (_showIconBar) {
+                  _showEmojiPicker = false;
+                  _focusNode.unfocus();
+                }
+              });
+            },
             child: Container(
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFF6B81), Color(0xFFFF4757)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                color: _showIconBar
+                    ? colorScheme.primary.withValues(alpha: 0.15)
+                    : Colors.transparent,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: _showIconBar
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+                  width: 1.5,
                 ),
-                borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.card_giftcard, size: 20, color: Colors.white),
+              child: Icon(
+                _showIconBar ? Icons.close : Icons.add,
+                size: 20,
+                color: _showIconBar
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
+              ),
             ),
-          ),
-          // 更多按钮
-          _buildIconBarButton(
-            icon: Icons.add_circle_outline,
-            colorScheme: colorScheme,
-            onPressed: () {},
           ),
         ],
       ),
     );
   }
 
-  Widget _buildIconBarButton({
+  /// 可展开的图标操作栏
+  Widget _buildExpandedIconBar(
+    BuildContext context,
+    bool isDark,
+    ColorScheme colorScheme,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: isDark ? Colors.white12 : Colors.grey[200]!,
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          // 图片
+          _buildIconBarItem(
+            icon: Icons.image_outlined,
+            label: '图片',
+            colorScheme: colorScheme,
+            onTap: () {
+              _pickAndSendImage();
+              setState(() => _showIconBar = false);
+            },
+          ),
+          // 拍照（可选）
+          _buildIconBarItem(
+            icon: Icons.camera_alt_outlined,
+            label: '拍照',
+            colorScheme: colorScheme,
+            onTap: () {},
+          ),
+          // 礼物
+          _buildIconBarItem(
+            icon: Icons.card_giftcard,
+            label: '礼物',
+            colorScheme: colorScheme,
+            isPrimary: true,
+            onTap: () {},
+          ),
+          // 位置
+          _buildIconBarItem(
+            icon: Icons.location_on_outlined,
+            label: '位置',
+            colorScheme: colorScheme,
+            onTap: () {},
+          ),
+          // 更多
+          _buildIconBarItem(
+            icon: Icons.more_horiz,
+            label: '更多',
+            colorScheme: colorScheme,
+            onTap: () {},
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIconBarItem({
     required IconData icon,
+    required String label,
     required ColorScheme colorScheme,
-    required VoidCallback onPressed,
-    bool isActive = false,
+    required VoidCallback onTap,
+    bool isPrimary = false,
   }) {
     return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: isActive
-            ? BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(18),
-              )
-            : null,
-        child: Icon(
-          icon,
-          size: 22,
-          color: isActive ? Colors.red : colorScheme.onSurfaceVariant,
-        ),
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: isPrimary
+                  ? null
+                  : (colorScheme.brightness == Brightness.dark
+                        ? const Color(0xFF2C2C2C)
+                        : const Color(0xFFF5F5F5)),
+              gradient: isPrimary
+                  ? const LinearGradient(
+                      colors: [Color(0xFFFF6B81), Color(0xFFFF4757)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              icon,
+              size: 24,
+              color: isPrimary ? Colors.white : colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+          ),
+        ],
       ),
     );
   }
@@ -908,10 +917,7 @@ class _ChatContentState extends State<_ChatContent> {
                 color: isDark ? const Color(0xFF3A3A3C) : Colors.white,
               ),
               alignment: Alignment.center,
-              child: Text(
-                _emojis[index],
-                style: const TextStyle(fontSize: 24),
-              ),
+              child: Text(_emojis[index], style: const TextStyle(fontSize: 24)),
             ),
           );
         },
@@ -924,11 +930,11 @@ class _ChatContentState extends State<_ChatContent> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: Colors.red.withValues(alpha: 0.1),
-      child: Row(
+      child: const Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.mic, size: 18, color: Colors.red),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Text(
             '正在录音...点击停止按钮结束',
             style: TextStyle(
@@ -941,56 +947,11 @@ class _ChatContentState extends State<_ChatContent> {
       ),
     );
   }
-
-  // ═══════════════════════════════════════════════════════════════════════
-  // 快捷表情回复栏
-  // ═══════════════════════════════════════════════════════════════════════
-
-  Widget _buildQuickReplies(BuildContext context, bool isDark) {
-    return Container(
-      height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: _quickReplies.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          return GestureDetector(
-            onTap: () {
-              _textController.text = _quickReplies[index];
-              _focusNode.requestFocus();
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF0F0F0),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: isDark ? Colors.white12 : Colors.grey[300]!,
-                  width: 0.5,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  _quickReplies[index],
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? Colors.white70 : Colors.black87,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 // 数据模型
-// ═════════════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 
 enum _MsgType { timestamp, text, voice, image, gift }
 
@@ -1015,23 +976,5 @@ class _ChatMessage {
     this.giftEmoji,
     this.giftLabel,
     this.time,
-  });
-}
-
-enum _MomentType { gift, photo }
-
-class _MomentItem {
-  final _MomentType type;
-  final String? label;
-  final String? subLabel;
-  final String? emoji;
-  final String? imageUrl;
-
-  const _MomentItem({
-    required this.type,
-    this.label,
-    this.subLabel,
-    this.emoji,
-    this.imageUrl,
   });
 }
