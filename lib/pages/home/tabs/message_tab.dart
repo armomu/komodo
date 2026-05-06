@@ -2,25 +2,78 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:komodo/routes/app_routes.dart';
 
-/// 消息Tab — 微博风格消息中心
-/// 布局：搜索栏 → 快捷入口（通知/@我的/评论/赞） → 消息列表
-class MessageTab extends StatelessWidget {
+class MessageTab extends StatefulWidget {
   const MessageTab({super.key});
 
   @override
+  MessageTabState createState() => MessageTabState();
+}
+
+/// 消息Tab — 微博风格消息中心
+/// 布局：搜索栏 → 快捷入口（通知/@我的/评论/赞） → 消息列表
+class MessageTabState extends State<MessageTab> {
+  final ScrollController _scrollController = ScrollController();
+  double _scrollOffset = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      setState(() {
+        _scrollOffset = _scrollController.position.pixels;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    const maxExtent = 102.0;
+    const minExtent = kToolbarHeight;
+    final shrinkOffset = _scrollOffset.clamp(0.0, maxExtent - minExtent);
+    final collapseProgress = shrinkOffset / (maxExtent - minExtent);
+
+    const startLeft = 16.0;
+    const endLeft = 52.0;
+    final leftPadding = startLeft + (endLeft - startLeft) * collapseProgress;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
-      appBar: AppBar(title: const Text('消息')),
-      body: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          // 消息列表
-          ..._mockMessageList.map(
-            (item) => _buildMessageItem(context, item, isDark),
+    return CustomScrollView(
+      controller: _scrollController,
+      slivers: [
+        SliverAppBar(
+          leading: IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.menu_rounded),
           ),
-        ],
-      ),
+          expandedHeight: maxExtent,
+          pinned: true,
+          flexibleSpace: FlexibleSpaceBar(
+            title: const Text(
+              'Messages',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            titlePadding: EdgeInsets.only(left: leftPadding, bottom: 14),
+            centerTitle: false,
+          ),
+        ),
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (BuildContext context, int index) {
+              return _buildMessageItem(
+                context,
+                _mockMessageList[index],
+                isDark,
+              );
+            },
+            childCount: _mockMessageList.length, // 指定数量
+          ),
+        ),
+      ],
     );
   }
 
@@ -30,25 +83,25 @@ class MessageTab extends StatelessWidget {
 
   static const List<_MessageItem> _mockMessageList = [
     // 系统消息
-    _MessageItem(
-      type: _MessageType.system,
-      title: '微博视频',
-      subtitle: 'SUNMI 发布了新MV《Narcissism》',
-      time: '昨天',
-      icon: Icons.play_circle_fill,
-      iconColor: Color(0xFFFF3B30),
-      iconBgColor: Color(0xFFFFF0EF),
-    ),
-    _MessageItem(
-      type: _MessageType.system,
-      title: '未关注人消息',
-      subtitle: '有3条来自未关注人的私信',
-      time: '4-30',
-      icon: Icons.mail_rounded,
-      iconColor: Color(0xFFFF9500),
-      iconBgColor: Color(0xFFFFF5EC),
-      showBadge: true,
-    ),
+    // _MessageItem(
+    //   type: _MessageType.system,
+    //   title: '微博视频',
+    //   subtitle: 'SUNMI 发布了新MV《Narcissism》',
+    //   time: '昨天',
+    //   icon: Icons.play_circle_fill,
+    //   iconColor: Color(0xFFFF3B30),
+    //   iconBgColor: Color(0xFFFFF0EF),
+    // ),
+    // _MessageItem(
+    //   type: _MessageType.system,
+    //   title: '未关注人消息',
+    //   subtitle: '有3条来自未关注人的私信',
+    //   time: '4-30',
+    //   icon: Icons.mail_rounded,
+    //   iconColor: Color(0xFFFF9500),
+    //   iconBgColor: Color(0xFFFFF5EC),
+    //   showBadge: true,
+    // ),
     // 私信消息
     _MessageItem(
       type: _MessageType.private,
@@ -92,6 +145,34 @@ class MessageTab extends StatelessWidget {
       subtitle: '好的，没问题',
       time: '4-10',
       avatarUrl: 'https://picsum.photos/seed/user6/100/100',
+    ),
+    _MessageItem(
+      type: _MessageType.private,
+      title: 'Lisa Park',
+      subtitle: '在吗？有个事想问你',
+      time: '4-15',
+      avatarUrl: 'https://picsum.photos/seed/user7/100/100',
+    ),
+    _MessageItem(
+      type: _MessageType.private,
+      title: 'Lucy',
+      subtitle: '你今天吃啥？',
+      time: '4-18',
+      avatarUrl: 'https://picsum.photos/seed/user8/100/100',
+    ),
+    _MessageItem(
+      type: _MessageType.private,
+      title: 'Lily',
+      subtitle: '你今天吃啥？',
+      time: '4-18',
+      avatarUrl: 'https://picsum.photos/seed/user9/100/100',
+    ),
+    _MessageItem(
+      type: _MessageType.private,
+      title: 'Lucy',
+      subtitle: '你今天吃啥？',
+      time: '4-18',
+      avatarUrl: 'https://picsum.photos/seed/user10/100/100',
     ),
   ];
 

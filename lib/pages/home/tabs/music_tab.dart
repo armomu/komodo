@@ -110,24 +110,14 @@ class _MusicTabState extends State<MusicTab> {
             // backgroundColor: Colors.black,
             surfaceTintColor: Theme.of(context).colorScheme.surface,
             backgroundColor: Theme.of(context).colorScheme.surface,
-            expandedHeight: 68,
+            expandedHeight: 100,
             pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: Container(
-                height: 44,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'KOMODO',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    letterSpacing: -0.5,
-                  ),
-                ),
+            flexibleSpace: const FlexibleSpaceBar(
+              title: Text(
+                'Komodo',
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
-
-              titlePadding: const EdgeInsets.fromLTRB(16, 16, 3, 0),
+              titlePadding: EdgeInsets.fromLTRB(16, 16, 3, 12),
             ),
           ),
         ];
