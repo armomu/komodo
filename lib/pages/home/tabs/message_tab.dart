@@ -323,6 +323,7 @@ class MessageTabState extends State<MessageTab> {
 
 enum _MessageType { system, private }
 
+// ignore: unused_element
 class _QuickEntry {
   final IconData icon;
   final String label;
@@ -333,7 +334,7 @@ class _QuickEntry {
     required this.icon,
     required this.label,
     required this.gradient,
-    this.showBadge = false,
+    required this.showBadge,
   });
 }
 
@@ -361,10 +362,10 @@ class _MessageItem {
     required this.subtitle,
     required this.time,
     this.avatarUrl,
-    this.icon,
     this.iconColor,
     this.iconBgColor,
     this.showBadge = false,
     this.unread,
+    this.icon,
   });
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:komodo/routes/app_routes.dart';
 import 'video_feed_view.dart';
 import 'nearby_view.dart';
 

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
@@ -29,26 +28,10 @@ class GiftData {
 // ═══════════════════════════════════════════════════════════════════════════
 
 const List<GiftData> kGiftList = [
-  GiftData(
-    name: '闭眼入',
-    lottiePath: 'lib/lotties/闭眼入.json',
-    iconName: '💰',
-  ),
-  GiftData(
-    name: '潮范儿',
-    lottiePath: 'lib/lotties/潮范儿.json',
-    iconName: '🔥',
-  ),
-  GiftData(
-    name: '买它',
-    lottiePath: 'lib/lotties/买它.json',
-    iconName: '🛒',
-  ),
-  GiftData(
-    name: '清仓',
-    lottiePath: 'lib/lotties/清仓.json',
-    iconName: '💎',
-  ),
+  GiftData(name: '闭眼入', lottiePath: 'lib/lotties/闭眼入.json', iconName: '💰'),
+  GiftData(name: '潮范儿', lottiePath: 'lib/lotties/潮范儿.json', iconName: '🔥'),
+  GiftData(name: '买它', lottiePath: 'lib/lotties/买它.json', iconName: '🛒'),
+  GiftData(name: '清仓', lottiePath: 'lib/lotties/清仓.json', iconName: '💎'),
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -64,10 +47,8 @@ class LottieOverlayManager {
     hideAnimation();
 
     _overlayEntry = OverlayEntry(
-      builder: (context) => _LottieFullScreenOverlay(
-        gift: gift,
-        onComplete: hideAnimation,
-      ),
+      builder: (context) =>
+          _LottieFullScreenOverlay(gift: gift, onComplete: hideAnimation),
     );
 
     Overlay.of(context).insert(_overlayEntry!);
@@ -127,14 +108,13 @@ class _LottieFullScreenOverlayState extends State<_LottieFullScreenOverlay> {
 class GiftBottomSheet extends StatelessWidget {
   final void Function(GiftData gift) onGiftSelected;
 
-  const GiftBottomSheet({
-    super.key,
-    required this.onGiftSelected,
-  });
+  const GiftBottomSheet({super.key, required this.onGiftSelected});
 
   /// 显示礼物选择面板
   static void show(
-      BuildContext context, void Function(GiftData gift) onSelected) {
+    BuildContext context,
+    void Function(GiftData gift) onSelected,
+  ) {
     Get.bottomSheet(
       GiftBottomSheet(onGiftSelected: onSelected),
       backgroundColor: const Color(0xFF2A2A2A),
@@ -218,10 +198,7 @@ class _GiftButton extends StatelessWidget {
   final GiftData gift;
   final VoidCallback onTap;
 
-  const _GiftButton({
-    required this.gift,
-    required this.onTap,
-  });
+  const _GiftButton({required this.gift, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -237,10 +214,7 @@ class _GiftButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // 礼物图标 emoji
-            Text(
-              gift.iconName,
-              style: const TextStyle(fontSize: 28),
-            ),
+            Text(gift.iconName, style: const TextStyle(fontSize: 28)),
             const SizedBox(height: 4),
             // 礼物名称
             Text(

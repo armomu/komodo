@@ -306,7 +306,7 @@ class _LivePageState extends State<LivePage>
             Text(
               '粉丝 938',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.75),
+                color: Colors.white.withValues(alpha: 0.75),
                 fontSize: 10,
                 shadows: const [Shadow(color: Colors.black45, blurRadius: 4)],
               ),

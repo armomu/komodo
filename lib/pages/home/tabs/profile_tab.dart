@@ -21,44 +21,6 @@ class _ProfileTabState extends State<ProfileTab> {
   final int _activities = 109;
   final int _saved = 4;
 
-  final List<Map<String, dynamic>> _feedItems = [
-    {
-      'avatar': 'https://picsum.photos/seed/mv1/100/100',
-      'name': 'Sarah Miller',
-      'date': 'Sep 1',
-      'activity': 'Hiking',
-      'time': '2h ago',
-    },
-    {
-      'avatar': 'https://picsum.photos/seed/mv2/100/100',
-      'name': 'John Doe',
-      'date': 'Aug 28',
-      'activity': 'Cycling',
-      'time': '1d ago',
-    },
-    {
-      'avatar': 'https://picsum.photos/seed/mv3/100/100',
-      'name': 'Emma Wilson',
-      'date': 'Aug 25',
-      'activity': 'Swimming',
-      'time': '3d ago',
-    },
-    {
-      'avatar': 'https://picsum.photos/seed/mv4/100/100',
-      'name': 'Mike Chen',
-      'date': 'Aug 20',
-      'activity': 'Running',
-      'time': '1w ago',
-    },
-    {
-      'avatar': 'https://picsum.photos/seed/mv5/100/100',
-      'name': 'Lisa Park',
-      'date': 'Aug 15',
-      'activity': 'Yoga',
-      'time': '2w ago',
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -380,69 +342,6 @@ class _ProfileTabState extends State<ProfileTab> {
             onPressed: () => _showAllTabs(context),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFeedItem(
-    BuildContext context,
-    Map<String, dynamic> item,
-    bool isDark,
-  ) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isDark ? Colors.white24 : Colors.grey[200]!,
-                  width: 1,
-                ),
-                image: DecorationImage(
-                  image: NetworkImage(item['avatar']),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item['name'],
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : const Color(0xFF1A1A1A),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${item['date']} · ${item['activity']}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark ? Colors.white54 : Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Text(
-              item['time'],
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark ? Colors.white38 : Colors.grey[400],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

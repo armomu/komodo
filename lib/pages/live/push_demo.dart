@@ -48,7 +48,7 @@ String _cameraLensLabel(CameraLensDirection? direction) {
 }
 
 void logError(String code, String message) =>
-    print('Error: $code\nError Message: $message');
+    debugPrint('Error: $code\nError Message: $message');
 
 class CameraExampleHomeState extends State<CameraExampleHome>
     with WidgetsBindingObserver {

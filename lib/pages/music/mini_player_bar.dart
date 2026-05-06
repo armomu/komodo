@@ -18,10 +18,7 @@ class MiniPlayerBar extends StatelessWidget {
   /// 只有音乐 Tab 才显示浮层
   final int currentTabIndex;
 
-  const MiniPlayerBar({
-    super.key,
-    required this.currentTabIndex,
-  });
+  const MiniPlayerBar({super.key, required this.currentTabIndex});
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +57,7 @@ class MiniPlayerBar extends StatelessWidget {
               onTap: () => Get.toNamed(Routes.musicPlayer),
               behavior: HitTestBehavior.opaque,
               child: Container(
-                height: 60,
+                height: 50,
                 padding: const EdgeInsets.symmetric(
                   // horizontal: 12,
                   // vertical: 8,
@@ -132,18 +129,18 @@ class MiniPlayerBar extends StatelessWidget {
   /// 边缘露出约1/3，产生CD从唱片套中滑出的视觉效果。
   Widget _buildCoverWithCD(PlaylistItem track) {
     return SizedBox(
-      width: 74,
-      height: 60,
+      width: 64,
+      height: 50,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           // 小圆形 CD（右侧滑出）
           Positioned(
             right: 0,
-            top: 4,
+            top: 1,
             child: Container(
-              width: 52,
-              height: 52,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: const Color.fromARGB(255, 54, 54, 93),
                 shape: BoxShape.circle,
@@ -160,8 +157,8 @@ class MiniPlayerBar extends StatelessWidget {
             left: 1,
             top: 1,
             child: Container(
-              width: 59,
-              height: 59,
+              width: 49,
+              height: 49,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(6),
                 boxShadow: [

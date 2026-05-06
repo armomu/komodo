@@ -39,35 +39,35 @@ class _LivePushPageState extends State<LivePushPage> {
   }
 
   Future<void> _initCamera() async {
-    print('[推流] 正在申请权限...');
+    debugPrint('[推流] 正在申请权限...');
 
     if (Platform.isAndroid || Platform.isIOS) {
       final cameraStatus = await Permission.camera.request();
       final micStatus = await Permission.microphone.request();
       if (!cameraStatus.isGranted || !micStatus.isGranted) {
         setState(() => _permissionDenied = true);
-        print('[推流] 权限被拒绝');
+        debugPrint('[推流] 权限被拒绝');
         return;
       }
-      print('[推流] 权限申请成功');
+      debugPrint('[推流] 权限申请成功');
     }
 
     final cameras = await availableCameras();
     if (cameras.isEmpty) {
       setState(() => _permissionDenied = true);
-      print('[推流] 未检测到可用相机');
+      debugPrint('[推流] 未检测到可用相机');
       return;
     }
 
     _cameras = cameras;
-    print('[推流] 检测到 ${cameras.length} 个相机');
+    debugPrint('[推流] 检测到 ${cameras.length} 个相机');
 
     _currentCameraIndex = cameras.indexWhere(
       (c) => c.lensDirection == CameraLensDirection.front,
     );
     if (_currentCameraIndex < 0) _currentCameraIndex = 0;
 
-    print('[推流] 初始化 ${_cameraLabel(cameras[_currentCameraIndex])}...');
+    debugPrint('[推流] 初始化 ${_cameraLabel(cameras[_currentCameraIndex])}...');
 
     try {
       await _controller.initialize(cameras[_currentCameraIndex]);
@@ -78,7 +78,7 @@ class _LivePushPageState extends State<LivePushPage> {
           final event = _controller.value.event as Map<dynamic, dynamic>;
           final eventType = event['eventType'] as String;
           final detail = event['detail'] ?? '';
-          print('[推流事件] $eventType  $detail');
+          debugPrint('[推流事件] $eventType  $detail');
 
           if ((eventType == "error" || eventType == 'rtmp_stopped') &&
               isStreaming) {
@@ -89,9 +89,9 @@ class _LivePushPageState extends State<LivePushPage> {
       });
 
       if (mounted) setState(() => _isInitialized = true);
-      print('[推流] 相机初始化完成');
+      debugPrint('[推流] 相机初始化完成');
     } catch (e) {
-      print('[推流] 相机初始化失败: $e');
+      debugPrint('[推流] 相机初始化失败: $e');
       _showSnackBar('相机初始化失败');
     }
   }
@@ -129,7 +129,7 @@ class _LivePushPageState extends State<LivePushPage> {
     _currentCameraIndex = (_currentCameraIndex + 1) % _cameras.length;
     final nextCamera = _cameras[_currentCameraIndex];
 
-    print('[推流] 切换相机到 ${_cameraLabel(nextCamera)}');
+    debugPrint('[推流] 切换相机到 ${_cameraLabel(nextCamera)}');
 
     try {
       await _controller.switchCamera(nextCamera.name!);
@@ -152,7 +152,7 @@ class _LivePushPageState extends State<LivePushPage> {
 
   Future<void> _startStreaming() async {
     if (!_isInitialized) return;
-    print('[推流] 开始推流: $_rtmpUrl');
+    debugPrint('[推流] 开始推流: $_rtmpUrl');
     try {
       await _controller.startVideoStreaming(_rtmpUrl);
       await WakelockPlus.enable();
@@ -160,20 +160,20 @@ class _LivePushPageState extends State<LivePushPage> {
       _startStatsTimer();
       _showSnackBar('开始推流');
     } on CameraException catch (e) {
-      print('[推流] 推流失败: ${e.description}');
+      debugPrint('[推流] 推流失败: ${e.description}');
       _showSnackBar('推流失败: ${e.description}');
     }
   }
 
   Future<void> _stopStreaming() async {
     if (!isStreaming) return;
-    print('[推流] 停止推流');
+    debugPrint('[推流] 停止推流');
     try {
       await _controller.stopVideoStreaming();
       await WakelockPlus.disable();
       _stopStatsTimer();
     } on CameraException catch (e) {
-      print('[推流] 停止推流失败: ${e.description}');
+      debugPrint('[推流] 停止推流失败: ${e.description}');
       _showSnackBar('停止推流失败: ${e.description}');
     } finally {
       if (mounted) setState(() => isStreaming = false);

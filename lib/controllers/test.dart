@@ -30,7 +30,7 @@ class EventBus {
   //     try {
   //       handler(data);
   //     } catch (e) {
-  //       print('Handler error for $type: $e');
+  //       debugPrint('Handler error for $type: $e');
   //     }
   //   });
   // }

@@ -334,7 +334,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
 
   Widget _buildFunctionBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 28),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -342,26 +342,34 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
           _buildFuncBtn(icon: Icons.tune, label: '定时'),
           _buildFuncBtn(icon: Icons.download_for_offline_outlined, label: '下载'),
           _buildFuncBtn(icon: Icons.chat_bubble_outline_rounded, label: '评论'),
-          _buildFuncBtn(icon: Icons.more_horiz, label: '更多'),
+          _buildFuncBtn(icon: Icons.live_tv, label: '直播'),
+          _buildFuncBtn(icon: Icons.more_vert, label: '更多'),
         ],
       ),
     );
   }
 
-  Widget _buildFuncBtn({required IconData icon, required String label}) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: Colors.white70, size: 22),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            color: Colors.white.withValues(alpha: 0.5),
+  Widget _buildFuncBtn({
+    required IconData icon,
+    required String label,
+    void Function()? onTap,
+  }) {
+    return GestureDetector(
+      onTap: () => onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white70, size: 22),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.white.withValues(alpha: 0.5),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
