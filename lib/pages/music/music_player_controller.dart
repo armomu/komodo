@@ -259,6 +259,87 @@ class MusicPlayerController extends GetxController {
     await play();
   }
 
+  // ── 语音消息播放（复用全局单例 AudioPlayer）─────────────────────────────
+  // 状态
+  final RxBool isPlayingVoice = false.obs;
+  final Rx<String?> voiceFilePath = Rx<String?>(null);
+
+  // 恢复音乐所需的上下文
+  int? _savedIndex;
+  Duration? _savedPosition;
+  bool _wasPlaying = false;
+
+  /// 播放本地语音文件（录音/消息气泡），播放完成后自动恢复音乐
+  Future<void> playVoice(String filePath) async {
+    try {
+      // 1. 保存当前音乐播放状态
+      _savedIndex = currentIndex.value;
+      _savedPosition = position.value;
+      _wasPlaying = isPlaying.value;
+
+      // 2. 停止当前音乐
+      await _audioPlayer.stop();
+
+      // 3. 加载语音文件（不用 MediaItem，直接播文件）
+      await _audioPlayer.setFilePath(filePath);
+      voiceFilePath.value = filePath;
+      isPlayingVoice.value = true;
+
+      // 4. 播放
+      await _audioPlayer.play();
+      debugPrint('【VoicePlayer】开始: $filePath');
+
+      // 5. 监听播放完成 → 恢复音乐
+      _audioPlayer.playerStateStream.firstWhere(
+        (s) => s.processingState == ProcessingState.completed,
+      ).then((_) async {
+        if (!isPlayingVoice.value) return; // 已被外部停止
+        debugPrint('【VoicePlayer】播放完成，恢复音乐');
+        await _restoreMusic();
+      });
+    } catch (e) {
+      debugPrint('【VoicePlayer】播放失败: $e');
+      isPlayingVoice.value = false;
+      voiceFilePath.value = null;
+      await _restoreMusic();
+    }
+  }
+
+  /// 停止语音播放
+  Future<void> stopVoice() async {
+    if (!isPlayingVoice.value) return;
+    isPlayingVoice.value = false;
+    voiceFilePath.value = null;
+    await _audioPlayer.stop();
+    debugPrint('【VoicePlayer】停止');
+    await _restoreMusic();
+  }
+
+  Future<void> _restoreMusic() async {
+    if (_savedIndex == null) return;
+    final savedIdx = _savedIndex!;
+    final savedPos = _savedPosition ?? Duration.zero;
+    isPlayingVoice.value = false;
+    voiceFilePath.value = null;
+    _savedIndex = null;
+    _savedPosition = null;
+
+    try {
+      // 重新加载播放列表
+      await _audioPlayer.setAudioSources(
+        playlist.map(_buildAudioSource).toList(),
+        initialIndex: savedIdx,
+        initialPosition: savedPos,
+      );
+      if (_wasPlaying) {
+        await _audioPlayer.play();
+        debugPrint('【VoicePlayer】音乐已恢复: index=$savedIdx');
+      }
+    } catch (e) {
+      debugPrint('【VoicePlayer】恢复音乐失败: $e');
+    }
+  }
+
   String formatDuration(Duration d) {
     final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
     final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');

@@ -7,9 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:record/record.dart';
+import 'package:komodo/pages/music/music_player_controller.dart';
 
 /// 聊天详情页 — 社交私信聊天界面
-/// 布局：导航栏 → 消息列表 → 底部输入栏（录音/输入/表情/+）→ 可展开图标栏 + 表情面板
 class ChatPage extends StatelessWidget {
   const ChatPage({super.key});
 
@@ -18,7 +18,6 @@ class ChatPage extends StatelessWidget {
     final args = Get.arguments as Map<String, dynamic>?;
     final peerName = args?['peerName'] as String? ?? _defaultPeerName;
     final peerAvatar = args?['peerAvatar'] as String? ?? _defaultPeerAvatar;
-
     return _ChatContent(peerName: peerName, peerAvatar: peerAvatar);
   }
 
@@ -30,7 +29,6 @@ class ChatPage extends StatelessWidget {
 class _ChatContent extends StatefulWidget {
   final String peerName;
   final String peerAvatar;
-
   const _ChatContent({required this.peerName, required this.peerAvatar});
 
   @override
@@ -39,10 +37,10 @@ class _ChatContent extends StatefulWidget {
 
 // 录音状态枚举
 enum _RecordState {
-  idle, // 文字输入模式（话筒按钮）
-  ready, // 长按录音模式（输入框换成录音条）
-  recording, // 正在录音（Overlay 浮层显示中）
-  preview, // 录音完成，Overlay 浮层预览中
+  idle, // 文字输入模式
+  ready, // 长按录音模式
+  recording, // 正在录音
+  preview, // 录音预览
 }
 
 class _ChatContentState extends State<_ChatContent>
@@ -51,17 +49,13 @@ class _ChatContentState extends State<_ChatContent>
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
 
-  // 消息列表（可变）
   final List<_ChatMessage> _messages = List.from(_initialMessages);
 
-  // UI 状态
   bool _showEmojiPicker = false;
   bool _showIconBar = false;
-
-  // 录音状态机
   _RecordState _recordState = _RecordState.idle;
 
-  // 录音 & 播放
+  // 录音
   AudioRecorder? _recorder;
   String? _recordedPath;
   int _recordSeconds = 0;
@@ -70,9 +64,9 @@ class _ChatContentState extends State<_ChatContent>
   // 浮层
   OverlayEntry? _overlayEntry;
 
-  // 录音浮层预览播放状态（mock）
+  // 本地播放状态标记（实际播放走 MusicPlayerController 全局单例）
   bool _previewPlaying = false;
-  Timer? _previewPlayTimer;
+  int? _playingVoiceIndex;
 
   // 波形动画
   final List<double> _waveHeights = List.generate(20, (i) => 0.3);
@@ -81,18 +75,87 @@ class _ChatContentState extends State<_ChatContent>
   // 图片选择
   final ImagePicker _picker = ImagePicker();
 
-  // 消息内正在播放的 voice（mock index）
-  int? _playingVoiceIndex;
-  Timer? _voicePlayTimer;
-
-  // 常用表情列表
   static const List<String> _emojis = [
-    '😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😉','😊','😇','🥰','😍',
-    '🤩','😘','😗','😚','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔',
-    '🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤',
-    '😴','😷','🤒','🤕','🤢','🤮','👍','👎','👏','🙌','🤝','🙏','💪','❤️',
-    '🧡','💛','💚','💙','💜','🖤','🤍','💯','💢','💨','💫','💬','🗨️','🗯️',
-    '💭','🎉','🎊','🎈','🎁','🏆','🥇','🎵','🎶','🎤',
+    '😀',
+    '😃',
+    '😄',
+    '😁',
+    '😆',
+    '😅',
+    '🤣',
+    '😂',
+    '🙂',
+    '😉',
+    '😊',
+    '😇',
+    '🥰',
+    '😍',
+    '🤩',
+    '😘',
+    '😗',
+    '😚',
+    '😋',
+    '😛',
+    '😜',
+    '🤪',
+    '😝',
+    '🤑',
+    '🤗',
+    '🤭',
+    '🤫',
+    '🤔',
+    '🤐',
+    '🤨',
+    '😐',
+    '😑',
+    '😶',
+    '😏',
+    '😒',
+    '🙄',
+    '😬',
+    '🤥',
+    '😌',
+    '😔',
+    '😪',
+    '🤤',
+    '😴',
+    '😷',
+    '🤒',
+    '🤕',
+    '🤢',
+    '🤮',
+    '👍',
+    '👎',
+    '👏',
+    '🙌',
+    '🤝',
+    '🙏',
+    '💪',
+    '❤️',
+    '🧡',
+    '💛',
+    '💚',
+    '💙',
+    '💜',
+    '🖤',
+    '🤍',
+    '💯',
+    '💢',
+    '💨',
+    '💫',
+    '💬',
+    '🗨️',
+    '🗯️',
+    '💭',
+    '🎉',
+    '🎊',
+    '🎈',
+    '🎁',
+    '🏆',
+    '🥇',
+    '🎵',
+    '🎶',
+    '🎤',
   ];
 
   static const String _myAvatar = 'https://picsum.photos/seed/myavatar/100/100';
@@ -120,20 +183,28 @@ class _ChatContentState extends State<_ChatContent>
         setState(() => _showEmojiPicker = false);
       }
     });
+    // 监听全局语音播放完成，同步本地状态
+    final ctrl = Get.find<MusicPlayerController>();
+    ever(ctrl.isPlayingVoice, (bool playing) {
+      if (!playing && mounted) {
+        setState(() {
+          _previewPlaying = false;
+          _playingVoiceIndex = null;
+        });
+        _overlayEntry?.markNeedsBuild();
+      }
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
   }
 
   @override
   void dispose() {
-    _overlayEntry?.remove();
     _textController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
     _recorder?.dispose();
     _recordTimer?.cancel();
-    _previewPlayTimer?.cancel();
     _waveTimer?.cancel();
-    _voicePlayTimer?.cancel();
     super.dispose();
   }
 
@@ -185,17 +256,14 @@ class _ChatContentState extends State<_ChatContent>
   Future<void> _pickAndSendImage() async {
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        _sendImageMessage(image.path);
-      }
+      if (image != null) _sendImageMessage(image.path);
     } catch (e) {
       debugPrint('图片选择失败: $e');
     }
   }
 
-  // ─── 录音状态机 ───────────────────────────────────────────────────────────
+  // ─── 录音 ────────────────────────────────────────────────────────────────
 
-  /// 切换话筒模式：idle ↔ ready（输入框变录音条）
   void _toggleVoiceMode() {
     HapticFeedback.lightImpact();
     setState(() {
@@ -210,7 +278,6 @@ class _ChatContentState extends State<_ChatContent>
     });
   }
 
-  /// 长按开始录音 — 手势在底部录音条内完成，全程不会断
   Future<void> _startRecording() async {
     HapticFeedback.mediumImpact();
     try {
@@ -219,13 +286,17 @@ class _ChatContentState extends State<_ChatContent>
         final filePath =
             '${tempDir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
         await _recorder!.start(const RecordConfig(), path: filePath);
+        debugPrint('【录音开始】path=$filePath');
         _recordSeconds = 0;
         _recordTimer = Timer.periodic(const Duration(seconds: 1), (t) {
           if (!mounted) return;
           setState(() => _recordSeconds++);
+          debugPrint('【录音计时】${_recordSeconds}s');
           if (_recordSeconds >= 60) _stopRecording();
         });
         _startWaveAnimation();
+        // 停止可能正在播放的语音
+        Get.find<MusicPlayerController>().stopVoice();
         setState(() {
           _recordState = _RecordState.recording;
           _recordedPath = filePath;
@@ -236,38 +307,57 @@ class _ChatContentState extends State<_ChatContent>
         _showPermissionTip();
       }
     } catch (e) {
-      debugPrint('开始录音失败: $e');
+      debugPrint('【录音失败】开始异常: $e');
     }
   }
 
-  /// 松手停止录音 — 正常触发
   Future<void> _stopRecording() async {
     _recordTimer?.cancel();
     _stopWaveAnimation();
     try {
       await _recorder?.stop();
       if (_recordedPath != null) {
-        setState(() {
-          _recordState = _RecordState.preview;
-        });
-        _overlayEntry?.markNeedsBuild();
+        final file = File(_recordedPath!);
+        if (await file.exists()) {
+          final size = await file.length();
+          debugPrint(
+            '【录音完成】file=$_recordedPath size=$size bytes dur=${_recordSeconds}s',
+          );
+          if (size < 100) {
+            debugPrint('【录音异常】文件过小(${size}B)，可能未正常写入');
+          }
+          setState(() => _recordState = _RecordState.preview);
+          _overlayEntry?.markNeedsBuild();
+        } else {
+          debugPrint('【录音异常】文件不存在: $_recordedPath');
+          _removeOverlay();
+          setState(() => _recordState = _RecordState.ready);
+        }
       } else {
+        debugPrint('【录音异常】_recordedPath 为 null');
         _removeOverlay();
         setState(() => _recordState = _RecordState.ready);
       }
     } catch (e) {
-      debugPrint('停止录音失败: $e');
+      debugPrint('【录音失败】停止异常: $e');
       _removeOverlay();
       setState(() => _recordState = _RecordState.ready);
     }
   }
 
-  /// 发送录音消息
-  void _sendVoiceMessage() {
+  Future<void> _sendVoiceMessage() async {
     final duration = _recordSeconds.clamp(1, 60);
+    final path = _recordedPath;
+    final ctrl = Get.find<MusicPlayerController>();
+    await ctrl.stopVoice();
     setState(() {
       _messages.add(
-        _ChatMessage(type: _MsgType.voice, isMe: true, duration: duration),
+        _ChatMessage(
+          type: _MsgType.voice,
+          isMe: true,
+          duration: duration,
+          voicePath: path, // 携带真实文件路径
+        ),
       );
       _recordState = _RecordState.ready;
       _recordedPath = null;
@@ -277,10 +367,19 @@ class _ChatContentState extends State<_ChatContent>
     _removeOverlay();
     _scrollToBottom();
     HapticFeedback.lightImpact();
+    debugPrint('【发送录音】path=$path');
   }
 
-  /// 取消录音
   void _cancelRecording() {
+    if (_recordedPath != null) {
+      try {
+        File(_recordedPath!).deleteSync();
+        debugPrint('【取消录音】已删除: $_recordedPath');
+      } catch (e) {
+        debugPrint('【取消录音】删除失败: $e');
+      }
+    }
+    Get.find<MusicPlayerController>().stopVoice();
     setState(() {
       _recordState = _RecordState.ready;
       _recordedPath = null;
@@ -315,13 +414,11 @@ class _ChatContentState extends State<_ChatContent>
     });
   }
 
-  // ─── Overlay 浮层（替代 showModalBottomSheet，保持手势上下文）──────────────
+  // ─── Overlay 浮层 ─────────────────────────────────────────────────────────
 
   void _showRecordingOverlay() {
     _overlayEntry?.remove();
-    _overlayEntry = OverlayEntry(
-      builder: (ctx) => _RecordOverlay(state: this),
-    );
+    _overlayEntry = OverlayEntry(builder: (ctx) => _RecordOverlay(state: this));
     Overlay.of(context).insert(_overlayEntry!);
   }
 
@@ -336,23 +433,69 @@ class _ChatContentState extends State<_ChatContent>
     );
   }
 
-  // ─── 消息内语音播放（Mock）────────────────────────────────────────────────
+  // ─── 预览播放 ─────────────────────────────────────────────────────────────
 
-  void _playVoiceMessage(int index) {
-    if (_playingVoiceIndex == index) {
-      _voicePlayTimer?.cancel();
-      setState(() => _playingVoiceIndex = null);
+  Future<void> _togglePreviewPlay() async {
+    if (_recordedPath == null) {
+      debugPrint('【预览】_recordedPath 为 null');
       return;
     }
-    _voicePlayTimer?.cancel();
+    final ctrl = Get.find<MusicPlayerController>();
+    try {
+      // 读取全局播放器的真实状态
+      final isGlobalPlaying = ctrl.isPlayingVoice.value;
+      final globalPath = ctrl.voiceFilePath.value;
+      final isThisPlaying = isGlobalPlaying && globalPath == _recordedPath;
+
+      if (isThisPlaying) {
+        await ctrl.stopVoice();
+        setState(() => _previewPlaying = false);
+        debugPrint('【预览播放】已停止');
+      } else {
+        await ctrl.playVoice(_recordedPath!);
+        setState(() => _previewPlaying = true);
+        debugPrint('【预览播放】开始: $_recordedPath');
+      }
+    } catch (e) {
+      debugPrint('【预览播放失败】$e');
+      setState(() => _previewPlaying = false);
+    }
+  }
+
+  // ─── 消息内语音播放 ──────────────────────────────────────────────────────
+
+  Future<void> _playVoiceMessage(int index) async {
     final msg = _messages[index];
-    setState(() => _playingVoiceIndex = index);
-    _voicePlayTimer = Timer(
-      Duration(seconds: (msg.duration ?? 3) + 1),
-      () {
-        if (mounted) setState(() => _playingVoiceIndex = null);
-      },
-    );
+    if (msg.type != _MsgType.voice) return;
+
+    final ctrl = Get.find<MusicPlayerController>();
+    final globalPath = ctrl.voiceFilePath.value;
+
+    // 已经在播放这条 → 停止
+    if (_playingVoiceIndex == index &&
+        ctrl.isPlayingVoice.value &&
+        globalPath == msg.voicePath) {
+      await ctrl.stopVoice();
+      setState(() => _playingVoiceIndex = null);
+      debugPrint('【消息播放】停止: index=$index');
+      return;
+    }
+
+    try {
+      if (msg.voicePath != null) {
+        // 停止其他所有播放
+        await ctrl.stopVoice();
+        // 播放新语音
+        await ctrl.playVoice(msg.voicePath!);
+        setState(() => _playingVoiceIndex = index);
+        debugPrint('【消息播放】开始: index=$index path=${msg.voicePath}');
+      } else {
+        debugPrint('【消息播放】无文件路径(Mock): index=$index');
+      }
+    } catch (e) {
+      debugPrint('【消息播放失败】index=$index: $e');
+      if (mounted) setState(() => _playingVoiceIndex = null);
+    }
   }
 
   // ════════════════════════════════════════════════════════════════════════
@@ -363,8 +506,6 @@ class _ChatContentState extends State<_ChatContent>
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final effectiveName = widget.peerName;
-    final effectiveAvatar = widget.peerAvatar;
 
     return Scaffold(
       appBar: AppBar(
@@ -399,7 +540,7 @@ class _ChatContentState extends State<_ChatContent>
           ],
         ),
         title: Text(
-          effectiveName,
+          widget.peerName,
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w600,
@@ -419,29 +560,22 @@ class _ChatContentState extends State<_ChatContent>
               padding: const EdgeInsets.only(top: 8, bottom: 8),
               itemCount: _messages.length + 1,
               itemBuilder: (context, index) {
-                if (index == _messages.length) {
-                  return const SizedBox(height: 8);
-                }
+                if (index == _messages.length) return const SizedBox(height: 8);
                 return _buildChatMessage(
                   context,
                   _messages[index],
                   index,
                   isDark,
-                  effectiveAvatar,
+                  widget.peerAvatar,
                 );
               },
             ),
           ),
-          // 底部区域（Overlay 浮层由 Overlay.of 直接插入，不在这里）
           _buildBottomArea(context, isDark, colorScheme),
         ],
       ),
     );
   }
-
-  // ════════════════════════════════════════════════════════════════════════
-  // 聊天消息
-  // ════════════════════════════════════════════════════════════════════════
 
   Widget _buildChatMessage(
     BuildContext context,
@@ -464,45 +598,41 @@ class _ChatContentState extends State<_ChatContent>
     }
   }
 
-  Widget _buildTimestamp(String time) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            time,
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-          ),
+  Widget _buildTimestamp(String time) => Center(
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          time,
+          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
         ),
       ),
-    );
-  }
+    ),
+  );
 
   Widget _buildTextMessage(_ChatMessage msg, bool isDark, String peerAvatar) {
     final isMe = msg.isMe;
-    final avatarUrl = isMe ? _myAvatar : peerAvatar;
-
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment:
-            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
-          if (!isMe) _buildAvatarWidget(avatarUrl, isDark),
+          if (!isMe) _buildAvatarWidget(isMe ? _myAvatar : peerAvatar, isDark),
           if (!isMe) const SizedBox(width: 10),
           Flexible(
             child: Container(
               constraints: BoxConstraints(
                 maxWidth: MediaQuery.of(context).size.width * 0.65,
               ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: isMe
                     ? Theme.of(context).colorScheme.primary
@@ -527,7 +657,7 @@ class _ChatContentState extends State<_ChatContent>
             ),
           ),
           if (isMe) const SizedBox(width: 10),
-          if (isMe) _buildAvatarWidget(avatarUrl, isDark),
+          if (isMe) _buildAvatarWidget(_myAvatar, isDark),
         ],
       ),
     );
@@ -542,14 +672,15 @@ class _ChatContentState extends State<_ChatContent>
     final avatarUrl = msg.isMe ? _myAvatar : peerAvatar;
     final isPlaying = _playingVoiceIndex == index;
     final primaryColor = Theme.of(context).colorScheme.primary;
-    final bubbleWidth = 80.0 + (msg.duration ?? 3) * 10.0;
+    final bubbleWidth = (80.0 + (msg.duration ?? 3) * 10.0).clamp(80.0, 180.0);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment:
-            msg.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: msg.isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
           if (!msg.isMe) _buildAvatarWidget(avatarUrl, isDark),
           if (!msg.isMe) const SizedBox(width: 10),
@@ -558,19 +689,19 @@ class _ChatContentState extends State<_ChatContent>
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               constraints: BoxConstraints(
-                minWidth: bubbleWidth.clamp(80.0, 180.0),
-                maxWidth: bubbleWidth.clamp(80.0, 180.0),
+                minWidth: bubbleWidth,
+                maxWidth: bubbleWidth,
               ),
               height: 44,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
                 color: msg.isMe
                     ? (isPlaying
-                        ? primaryColor
-                        : primaryColor.withValues(alpha: 0.85))
+                          ? primaryColor
+                          : primaryColor.withValues(alpha: 0.85))
                     : (isDark
-                        ? const Color(0xFF3A3A3C)
-                        : const Color(0xFFEEEEEE)),
+                          ? const Color(0xFF3A3A3C)
+                          : const Color(0xFFEEEEEE)),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(18),
                   topRight: const Radius.circular(18),
@@ -583,7 +714,7 @@ class _ChatContentState extends State<_ChatContent>
                           color: primaryColor.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
-                        )
+                        ),
                       ]
                     : null,
               ),
@@ -592,9 +723,7 @@ class _ChatContentState extends State<_ChatContent>
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Icon(
-                    isPlaying
-                        ? Icons.pause_rounded
-                        : Icons.play_arrow_rounded,
+                    isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
                     size: 20,
                     color: msg.isMe
                         ? Colors.white
@@ -635,16 +764,18 @@ class _ChatContentState extends State<_ChatContent>
   }
 
   Widget _buildPlayingWave(bool isMe, bool isDark) {
-    final color =
-        isMe ? Colors.white70 : (isDark ? Colors.white54 : Colors.black38);
+    final color = isMe
+        ? Colors.white70
+        : (isDark ? Colors.white54 : Colors.black38);
     return SizedBox(
       width: 18,
       height: 18,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.center,
-        children: List.generate(3, (i) {
-          return TweenAnimationBuilder<double>(
+        children: List.generate(
+          3,
+          (i) => TweenAnimationBuilder<double>(
             tween: Tween(begin: 0.3, end: 1.0),
             duration: Duration(milliseconds: 300 + i * 100),
             curve: Curves.easeInOut,
@@ -657,20 +788,20 @@ class _ChatContentState extends State<_ChatContent>
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-          );
-        }),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildImageMessage(
-      _ChatMessage msg, bool isDark, String peerAvatar) {
+  Widget _buildImageMessage(_ChatMessage msg, bool isDark, String peerAvatar) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment:
-            msg.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: msg.isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
           if (!msg.isMe) _buildAvatarWidget(peerAvatar, isDark),
           if (!msg.isMe) const SizedBox(width: 10),
@@ -704,78 +835,71 @@ class _ChatContentState extends State<_ChatContent>
     );
   }
 
-  Widget _buildImagePlaceholder(bool isDark) {
-    return Container(
-      width: 180,
-      height: 240,
-      color: isDark ? const Color(0xFF2C2C2C) : Colors.grey[200],
-      child: Icon(
-        Icons.broken_image,
-        color: isDark ? Colors.white24 : Colors.grey[400],
-        size: 40,
-      ),
-    );
-  }
+  Widget _buildImagePlaceholder(bool isDark) => Container(
+    width: 180,
+    height: 240,
+    color: isDark ? const Color(0xFF2C2C2C) : Colors.grey[200],
+    child: Icon(
+      Icons.broken_image,
+      color: isDark ? Colors.white24 : Colors.grey[400],
+      size: 40,
+    ),
+  );
 
-  Widget _buildGiftMessage(_ChatMessage msg) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFF6B81), Color(0xFFFF4757)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(18),
-                topRight: Radius.circular(18),
-                bottomLeft: Radius.circular(18),
-                bottomRight: Radius.circular(4),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFF4757).withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+  Widget _buildGiftMessage(_ChatMessage msg) => Container(
+    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFF6B81), Color(0xFFFF4757)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(msg.giftEmoji!, style: const TextStyle(fontSize: 24)),
-                const SizedBox(width: 6),
-                Text(
-                  msg.giftLabel!,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(18),
+              topRight: Radius.circular(18),
+              bottomLeft: Radius.circular(18),
+              bottomRight: Radius.circular(4),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFFF4757).withValues(alpha: 0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          const SizedBox(width: 10),
-          _buildAvatarWidget(_myAvatar, false),
-        ],
-      ),
-    );
-  }
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(msg.giftEmoji!, style: const TextStyle(fontSize: 24)),
+              const SizedBox(width: 6),
+              Text(
+                msg.giftLabel!,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 10),
+        _buildAvatarWidget(_myAvatar, false),
+      ],
+    ),
+  );
 
-  Widget _buildAvatarWidget(String url, bool isDark) {
-    return CircleAvatar(
-      radius: 20,
-      backgroundImage: NetworkImage(url),
-      backgroundColor: isDark ? const Color(0xFF2C2C2C) : Colors.grey[200],
-    );
-  }
+  Widget _buildAvatarWidget(String url, bool isDark) => CircleAvatar(
+    radius: 20,
+    backgroundImage: NetworkImage(url),
+    backgroundColor: isDark ? const Color(0xFF2C2C2C) : Colors.grey[200],
+  );
 
   // ════════════════════════════════════════════════════════════════════════
   // 底部区域
@@ -785,45 +909,39 @@ class _ChatContentState extends State<_ChatContent>
     BuildContext context,
     bool isDark,
     ColorScheme colorScheme,
-  ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-        border: Border(
-          top: BorderSide(
-            color: isDark ? Colors.white12 : Colors.grey[200]!,
-            width: 0.5,
-          ),
+  ) => Container(
+    decoration: BoxDecoration(
+      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      border: Border(
+        top: BorderSide(
+          color: isDark ? Colors.white12 : Colors.grey[200]!,
+          width: 0.5,
         ),
       ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildInputRow(context, isDark, colorScheme),
-            if (_showEmojiPicker) _buildEmojiPicker(context, isDark),
-            if (_showIconBar)
-              _buildExpandedIconBar(context, isDark, colorScheme),
-          ],
-        ),
+    ),
+    child: SafeArea(
+      top: false,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildInputRow(context, isDark, colorScheme),
+          if (_showEmojiPicker) _buildEmojiPicker(context, isDark),
+          if (_showIconBar) _buildExpandedIconBar(context, isDark, colorScheme),
+        ],
       ),
-    );
-  }
+    ),
+  );
 
-  /// 输入行：话筒 | 输入框 or 长按录音条 | 表情 | 加号
   Widget _buildInputRow(
     BuildContext context,
     bool isDark,
     ColorScheme colorScheme,
   ) {
     final isVoiceMode = _recordState != _RecordState.idle;
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
-          // 左侧话筒/键盘切换按钮
           GestureDetector(
             onTap: _toggleVoiceMode,
             child: Container(
@@ -836,9 +954,7 @@ class _ChatContentState extends State<_ChatContent>
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
-                isVoiceMode
-                    ? Icons.keyboard_alt_outlined
-                    : Icons.mic_outlined,
+                isVoiceMode ? Icons.keyboard_alt_outlined : Icons.mic_outlined,
                 size: 22,
                 color: isVoiceMode
                     ? colorScheme.primary
@@ -847,15 +963,12 @@ class _ChatContentState extends State<_ChatContent>
             ),
           ),
           const SizedBox(width: 8),
-          // 中间：文字输入框 or 长按录音条
           Expanded(
-            child:
-                isVoiceMode
-                    ? _buildVoiceRecordBar(isDark, colorScheme)
-                    : _buildTextInputField(isDark),
+            child: isVoiceMode
+                ? _buildVoiceRecordBar(isDark, colorScheme)
+                : _buildTextInputField(isDark),
           ),
           const SizedBox(width: 8),
-          // 表情按钮
           if (!isVoiceMode)
             IconButton(
               onPressed: () {
@@ -870,7 +983,6 @@ class _ChatContentState extends State<_ChatContent>
                     : Icons.emoji_emotions_outlined,
               ),
             ),
-          // 圆形加号按钮
           IconButton(
             onPressed: () {
               setState(() {
@@ -881,152 +993,143 @@ class _ChatContentState extends State<_ChatContent>
                 }
               });
             },
-            icon: _showIconBar
-                ? const Icon(Icons.arrow_drop_down_circle_outlined)
-                : const Icon(Icons.add_circle_outline),
+            icon: Icon(
+              _showIconBar
+                  ? Icons.arrow_drop_down_circle_outlined
+                  : Icons.add_circle_outline,
+            ),
           ),
         ],
       ),
     );
   }
 
-  /// 文字输入框
-  Widget _buildTextInputField(bool isDark) {
-    return Container(
-      height: 40,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(18),
+  Widget _buildTextInputField(bool isDark) => Container(
+    height: 40,
+    decoration: BoxDecoration(
+      color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5),
+      borderRadius: BorderRadius.circular(18),
+    ),
+    child: TextField(
+      controller: _textController,
+      focusNode: _focusNode,
+      style: TextStyle(
+        fontSize: 14,
+        color: isDark ? Colors.white : Colors.black87,
       ),
-      child: TextField(
-        controller: _textController,
-        focusNode: _focusNode,
-        style: TextStyle(
+      decoration: InputDecoration(
+        hintText: '说点什么...',
+        hintStyle: TextStyle(
           fontSize: 14,
-          color: isDark ? Colors.white : Colors.black87,
+          color: isDark ? Colors.white38 : Colors.black38,
         ),
-        decoration: InputDecoration(
-          hintText: '说点什么...',
-          hintStyle: TextStyle(
-            fontSize: 14,
-            color: isDark ? Colors.white38 : Colors.black38,
-          ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 8,
-          ),
-          isDense: true,
-        ),
-        onSubmitted: _sendTextMessage,
+        border: InputBorder.none,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        isDense: true,
       ),
-    );
-  }
+      onSubmitted: _sendTextMessage,
+    ),
+  );
 
-  /// 长按录音条 — GestureDetector 在此，长按手势全程在此子树内完成
-  Widget _buildVoiceRecordBar(bool isDark, ColorScheme colorScheme) {
-    return GestureDetector(
-      onLongPressStart: (_) => _startRecording(),
-      onLongPressEnd: (_) => _stopRecording(),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        height: 40,
-        decoration: BoxDecoration(
-          color: _recordState == _RecordState.recording
-              ? colorScheme.primary.withValues(alpha: 0.15)
-              : (isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF0F0F0)),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
+  Widget _buildVoiceRecordBar(bool isDark, ColorScheme colorScheme) =>
+      GestureDetector(
+        onLongPressStart: (_) => _startRecording(),
+        onLongPressEnd: (_) => _stopRecording(),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          height: 40,
+          decoration: BoxDecoration(
             color: _recordState == _RecordState.recording
-                ? colorScheme.primary.withValues(alpha: 0.4)
-                : Colors.transparent,
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.mic,
-              size: 16,
+                ? colorScheme.primary.withValues(alpha: 0.15)
+                : (isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF0F0F0)),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
               color: _recordState == _RecordState.recording
-                  ? colorScheme.primary
-                  : (isDark ? Colors.white54 : Colors.black45),
+                  ? colorScheme.primary.withValues(alpha: 0.4)
+                  : Colors.transparent,
+              width: 1.5,
             ),
-            const SizedBox(width: 6),
-            Text(
-              '长按录音',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.mic,
+                size: 16,
                 color: _recordState == _RecordState.recording
                     ? colorScheme.primary
                     : (isDark ? Colors.white54 : Colors.black45),
               ),
-            ),
-          ],
+              const SizedBox(width: 6),
+              Text(
+                '长按录音',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: _recordState == _RecordState.recording
+                      ? colorScheme.primary
+                      : (isDark ? Colors.white54 : Colors.black45),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 
-  /// 可展开的图标操作栏
   Widget _buildExpandedIconBar(
     BuildContext context,
     bool isDark,
     ColorScheme colorScheme,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: isDark ? Colors.white12 : Colors.grey[200]!,
-            width: 0.5,
-          ),
+  ) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+    decoration: BoxDecoration(
+      border: Border(
+        top: BorderSide(
+          color: isDark ? Colors.white12 : Colors.grey[200]!,
+          width: 0.5,
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildIconBarItem(
-            icon: Icons.image_outlined,
-            label: '图片',
-            colorScheme: colorScheme,
-            onTap: () {
-              _pickAndSendImage();
-              setState(() => _showIconBar = false);
-            },
-          ),
-          _buildIconBarItem(
-            icon: Icons.camera_alt_outlined,
-            label: '拍照',
-            colorScheme: colorScheme,
-            onTap: () {},
-          ),
-          _buildIconBarItem(
-            icon: Icons.card_giftcard,
-            label: '礼物',
-            colorScheme: colorScheme,
-            isPrimary: true,
-            onTap: () {},
-          ),
-          _buildIconBarItem(
-            icon: Icons.location_on_outlined,
-            label: '位置',
-            colorScheme: colorScheme,
-            onTap: () {},
-          ),
-          _buildIconBarItem(
-            icon: Icons.more_horiz,
-            label: '更多',
-            colorScheme: colorScheme,
-            onTap: () {},
-          ),
-        ],
-      ),
-    );
-  }
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _buildIconBarItem(
+          icon: Icons.image_outlined,
+          label: '图片',
+          colorScheme: colorScheme,
+          onTap: () {
+            _pickAndSendImage();
+            setState(() => _showIconBar = false);
+          },
+        ),
+        _buildIconBarItem(
+          icon: Icons.camera_alt_outlined,
+          label: '拍照',
+          colorScheme: colorScheme,
+          onTap: () {},
+        ),
+        _buildIconBarItem(
+          icon: Icons.card_giftcard,
+          label: '礼物',
+          colorScheme: colorScheme,
+          isPrimary: true,
+          onTap: () {},
+        ),
+        _buildIconBarItem(
+          icon: Icons.location_on_outlined,
+          label: '位置',
+          colorScheme: colorScheme,
+          onTap: () {},
+        ),
+        _buildIconBarItem(
+          icon: Icons.more_horiz,
+          label: '更多',
+          colorScheme: colorScheme,
+          onTap: () {},
+        ),
+      ],
+    ),
+  );
 
   Widget _buildIconBarItem({
     required IconData icon,
@@ -1034,84 +1137,73 @@ class _ChatContentState extends State<_ChatContent>
     required ColorScheme colorScheme,
     required VoidCallback onTap,
     bool isPrimary = false,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: isPrimary
-                  ? null
-                  : (colorScheme.brightness == Brightness.dark
+  }) => GestureDetector(
+    onTap: onTap,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: isPrimary
+                ? null
+                : (colorScheme.brightness == Brightness.dark
                       ? const Color(0xFF2C2C2C)
                       : const Color(0xFFF5F5F5)),
-              gradient: isPrimary
-                  ? const LinearGradient(
-                      colors: [Color(0xFFFF6B81), Color(0xFFFF4757)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                  : null,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(
-              icon,
-              size: 24,
-              color: isPrimary ? Colors.white : colorScheme.onSurfaceVariant,
-            ),
+            gradient: isPrimary
+                ? const LinearGradient(
+                    colors: [Color(0xFFFF6B81), Color(0xFFFF4757)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            borderRadius: BorderRadius.circular(14),
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style:
-                TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+          child: Icon(
+            icon,
+            size: 24,
+            color: isPrimary ? Colors.white : colorScheme.onSurfaceVariant,
           ),
-        ],
-      ),
-    );
-  }
-
-  /// 表情选择面板
-  Widget _buildEmojiPicker(BuildContext context, bool isDark) {
-    return Container(
-      height: 220,
-      padding: const EdgeInsets.all(12),
-      color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5),
-      child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 8,
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
-          childAspectRatio: 1,
         ),
-        itemCount: _emojis.length,
-        itemBuilder: (context, index) {
-          return GestureDetector(
-            onTap: () => _sendEmojiMessage(_emojis[index]),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: isDark ? const Color(0xFF3A3A3C) : Colors.white,
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                _emojis[index],
-                style: const TextStyle(fontSize: 24),
-              ),
-            ),
-          );
-        },
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+        ),
+      ],
+    ),
+  );
+
+  Widget _buildEmojiPicker(BuildContext context, bool isDark) => Container(
+    height: 220,
+    padding: const EdgeInsets.all(12),
+    color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5),
+    child: GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 8,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: 1,
       ),
-    );
-  }
+      itemCount: _emojis.length,
+      itemBuilder: (context, index) => GestureDetector(
+        onTap: () => _sendEmojiMessage(_emojis[index]),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: isDark ? const Color(0xFF3A3A3C) : Colors.white,
+          ),
+          alignment: Alignment.center,
+          child: Text(_emojis[index], style: const TextStyle(fontSize: 24)),
+        ),
+      ),
+    ),
+  );
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// 录音 Overlay 浮层（通过 Overlay.of 插入，不阻断手势上下文）
+// 录音 Overlay 浮层
 // ──────────────────────────────────────────────────────────────────────────────
 
 class _RecordOverlay extends StatelessWidget {
@@ -1119,32 +1211,30 @@ class _RecordOverlay extends StatelessWidget {
   const _RecordOverlay({required this.state});
 
   @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 0,
-      child: Material(
-        color: Colors.transparent,
-        child: state._recordState == _RecordState.recording
-            ? _RecordOverlayRecording(state: state)
-            : _RecordOverlayPreview(state: state),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Positioned(
+    left: 0,
+    right: 0,
+    bottom: 0,
+    child: Material(
+      color: Colors.transparent,
+      child: state._recordState == _RecordState.recording
+          ? _RecordOverlayRecording(state: state)
+          : _RecordOverlayPreview(state: state),
+    ),
+  );
 }
 
-/// 录音中浮层
+String _fmtDur(int s) =>
+    '${(s ~/ 60).toString().padLeft(2, '0')}:${(s % 60).toString().padLeft(2, '0')}';
+
 class _RecordOverlayRecording extends StatelessWidget {
   final _ChatContentState state;
   const _RecordOverlayRecording({required this.state});
 
   @override
   Widget build(BuildContext context) {
-    final isDark =
-        Theme.of(context).brightness == Brightness.dark;
-    final colorScheme = Theme.of(context).colorScheme;
-
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
@@ -1165,7 +1255,6 @@ class _RecordOverlayRecording extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 把手
             Container(
               width: 36,
               height: 4,
@@ -1176,37 +1265,34 @@ class _RecordOverlayRecording extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            // 脉冲麦克风
-            _PulsingMic(colorScheme: colorScheme),
+            _PulsingMic(colorScheme: cs),
             const SizedBox(height: 8),
-            // 波形
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: SizedBox(
                 height: 40,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: state._waveHeights.map((h) {
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 80),
-                      width: 4,
-                      height: 8 + h * 28,
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withValues(
-                          alpha: 0.5 + h * 0.5,
+                  children: state._waveHeights
+                      .map(
+                        (h) => AnimatedContainer(
+                          duration: const Duration(milliseconds: 80),
+                          width: 4,
+                          height: 8 + h * 28,
+                          margin: const EdgeInsets.symmetric(horizontal: 2),
+                          decoration: BoxDecoration(
+                            color: cs.primary.withValues(alpha: 0.5 + h * 0.5),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
                         ),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    );
-                  }).toList(),
+                      )
+                      .toList(),
                 ),
               ),
             ),
             const SizedBox(height: 8),
-            // 计时器
             Text(
-              _formatDuration(state._recordSeconds),
+              _fmtDur(state._recordSeconds),
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w300,
@@ -1228,38 +1314,110 @@ class _RecordOverlayRecording extends StatelessWidget {
       ),
     );
   }
-
-  String _formatDuration(int seconds) {
-    final m = seconds ~/ 60;
-    final s = seconds % 60;
-    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
-  }
 }
 
-/// 预览/发送浮层
-class _RecordOverlayPreview extends StatefulWidget {
+class _RecordOverlayPreview extends StatelessWidget {
   final _ChatContentState state;
   const _RecordOverlayPreview({required this.state});
 
   @override
-  State<_RecordOverlayPreview> createState() => _RecordOverlayPreviewState();
-}
-
-class _RecordOverlayPreviewState extends State<_RecordOverlayPreview> {
-  @override
-  void initState() {
-    super.initState();
-    // 预览播放 mock 逻辑在父 state，这里只处理 UI 状态
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final s = widget.state;
-    final isDark =
-        Theme.of(context).brightness == Brightness.dark;
-    final colorScheme = Theme.of(context).colorScheme;
-    final duration = s._recordSeconds.clamp(1, 60);
-    final isPlaying = s._previewPlaying;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
+    final dur = state._recordSeconds.clamp(1, 60);
+    final playing = state._previewPlaying;
+
+    final handleBar = Container(
+      width: 36,
+      height: 4,
+      margin: const EdgeInsets.only(top: 10),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white24 : Colors.grey[300],
+        borderRadius: BorderRadius.circular(2),
+      ),
+    );
+
+    final playBtn = GestureDetector(
+      onTap: () => state._togglePreviewPlay(),
+      child: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(color: cs.primary, shape: BoxShape.circle),
+        child: Icon(
+          playing ? Icons.pause : Icons.play_arrow,
+          color: Colors.white,
+          size: 28,
+        ),
+      ),
+    );
+
+    final cancelBtn = GestureDetector(
+      onTap: state._cancelRecording,
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF0F0F0),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.delete_outline,
+              size: 18,
+              color: isDark ? Colors.white54 : Colors.black54,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              '取消',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.white54 : Colors.black54,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final sendBtn = GestureDetector(
+      onTap: state._sendVoiceMessage,
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: cs.primary,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        // ignore: prefer_const_constructors
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.send, size: 18, color: Colors.white),
+            SizedBox(width: 6),
+            Text(
+              '发送',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final btnRow = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          Expanded(child: cancelBtn),
+          const SizedBox(width: 12),
+          Expanded(child: sendBtn),
+        ],
+      ),
+    );
 
     return Container(
       decoration: BoxDecoration(
@@ -1281,212 +1439,38 @@ class _RecordOverlayPreviewState extends State<_RecordOverlayPreview> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 把手
-            Container(
-              width: 36,
-              height: 4,
-              margin: const EdgeInsets.only(top: 10),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white24 : Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
+            handleBar,
+            const SizedBox(height: 12),
+            Text(
+              '录音 ${_fmtDur(dur)}',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white : Colors.black87,
               ),
             ),
             const SizedBox(height: 12),
-            // 播放条
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                height: 56,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Row(
-                  children: [
-                    // 播放按钮
-                    GestureDetector(
-                      onTap: () {
-                        s.setState(() {
-                          s._previewPlaying = !s._previewPlaying;
-                        });
-                        if (s._previewPlaying) {
-                          s._previewPlayTimer?.cancel();
-                          s._previewPlayTimer =
-                              Timer(Duration(seconds: duration + 1), () {
-                            if (s.mounted) {
-                              s.setState(() => s._previewPlaying = false);
-                            }
-                          });
-                        } else {
-                          s._previewPlayTimer?.cancel();
-                        }
-                      },
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          isPlaying ? Icons.pause : Icons.play_arrow,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    // 进度条 + 时长
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: isDark ? Colors.white12 : Colors.grey[300],
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                            child: isPlaying
-                                ? TweenAnimationBuilder<double>(
-                                    tween: Tween(begin: 0, end: 1),
-                                    duration: Duration(seconds: duration),
-                                    builder: (_, v, __) =>
-                                        FractionallySizedBox(
-                                      alignment: Alignment.centerLeft,
-                                      widthFactor: v,
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: colorScheme.primary,
-                                          borderRadius: BorderRadius.circular(2),
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : const SizedBox.shrink(),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '录音 ${_formatDuration(duration)}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: isDark
-                                      ? Colors.white54
-                                      : Colors.black54,
-                                ),
-                              ),
-                              Icon(
-                                Icons.graphic_eq,
-                                size: 14,
-                                color:
-                                    isDark ? Colors.white38 : Colors.black38,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+            playBtn,
+            Text(
+              playing ? '播放中...' : '点击播放',
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? Colors.white38 : Colors.black38,
               ),
             ),
             const SizedBox(height: 16),
-            // 发送 / 取消
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  // 取消
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: s._cancelRecording,
-                      child: Container(
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF2C2C2C)
-                              : const Color(0xFFF0F0F0),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.delete_outline,
-                              size: 18,
-                              color:
-                                  isDark ? Colors.white54 : Colors.black54,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              '取消',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                                color:
-                                    isDark ? Colors.white54 : Colors.black54,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // 发送
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: s._sendVoiceMessage,
-                      child: Container(
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.send, size: 18, color: Colors.white),
-                            SizedBox(width: 6),
-                            Text(
-                              '发送',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            btnRow,
             const SizedBox(height: 16),
           ],
         ),
       ),
     );
   }
-
-  String _formatDuration(int seconds) {
-    final m = seconds ~/ 60;
-    final s = seconds % 60;
-    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
-  }
 }
 
-/// 脉冲麦克风动画
 class _PulsingMic extends StatefulWidget {
   final ColorScheme colorScheme;
   const _PulsingMic({required this.colorScheme});
-
   @override
   State<_PulsingMic> createState() => _PulsingMicState();
 }
@@ -1494,8 +1478,7 @@ class _PulsingMic extends StatefulWidget {
 class _PulsingMicState extends State<_PulsingMic>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
-  late Animation<double> _scaleAnim;
-  late Animation<double> _opacityAnim;
+  late Animation<double> _scaleAnim, _opacityAnim;
 
   @override
   void initState() {
@@ -1504,12 +1487,14 @@ class _PulsingMicState extends State<_PulsingMic>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    _scaleAnim = Tween<double>(begin: 1.0, end: 1.25).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
-    _opacityAnim = Tween<double>(begin: 0.4, end: 0.0).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeOut),
-    );
+    _scaleAnim = Tween<double>(
+      begin: 1.0,
+      end: 1.25,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+    _opacityAnim = Tween<double>(
+      begin: 0.4,
+      end: 0.0,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
     _ctrl.repeat();
   }
 
@@ -1520,49 +1505,41 @@ class _PulsingMicState extends State<_PulsingMic>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 80,
-      height: 80,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // 脉冲环
-          AnimatedBuilder(
-            animation: _ctrl,
-            builder: (_, __) => Transform.scale(
-              scale: _scaleAnim.value,
-              child: Opacity(
-                opacity: _opacityAnim.value,
-                child: Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: widget.colorScheme.primary.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                  ),
+  Widget build(BuildContext context) => SizedBox(
+    width: 80,
+    height: 80,
+    child: Stack(
+      alignment: Alignment.center,
+      children: [
+        AnimatedBuilder(
+          animation: _ctrl,
+          builder: (_, __) => Transform.scale(
+            scale: _scaleAnim.value,
+            child: Opacity(
+              opacity: _opacityAnim.value,
+              child: Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: widget.colorScheme.primary.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
                 ),
               ),
             ),
           ),
-          // 麦克风本体
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: widget.colorScheme.primary.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.mic,
-              size: 32,
-              color: widget.colorScheme.primary,
-            ),
+        ),
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: widget.colorScheme.primary.withValues(alpha: 0.12),
+            shape: BoxShape.circle,
           ),
-        ],
-      ),
-    );
-  }
+          child: Icon(Icons.mic, size: 32, color: widget.colorScheme.primary),
+        ),
+      ],
+    ),
+  );
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1578,6 +1555,7 @@ class _ChatMessage {
   final String? imageUrl;
   final bool isLocalImage;
   final int? duration;
+  final String? voicePath; // 录音文件真实路径
   final String? giftEmoji;
   final String? giftLabel;
   final String? time;
@@ -1589,6 +1567,7 @@ class _ChatMessage {
     this.imageUrl,
     this.isLocalImage = false,
     this.duration,
+    this.voicePath,
     // ignore: unused_element_parameter
     this.giftEmoji,
     // ignore: unused_element_parameter
