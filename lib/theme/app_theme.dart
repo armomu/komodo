@@ -27,7 +27,7 @@ class AppTheme {
         surfaceTintColor: Colors.white,
         foregroundColor: Colors.black,
         titleTextStyle: TextStyle(
-          fontSize: 18,
+          fontSize: 20,
           fontWeight: FontWeight.w600,
           color: Colors.black,
         ),
@@ -89,7 +89,7 @@ class AppTheme {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         titleTextStyle: TextStyle(
-          fontSize: 18,
+          fontSize: 20,
           fontWeight: FontWeight.w700,
           color: Colors.white,
         ),
