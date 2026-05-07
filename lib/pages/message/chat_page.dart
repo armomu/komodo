@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:komodo/pages/message/emojis.dart';
 import 'package:record/record.dart';
 import 'package:komodo/pages/music/music_player_controller.dart';
 
@@ -75,89 +76,6 @@ class _ChatContentState extends State<_ChatContent>
   // 图片选择
   final ImagePicker _picker = ImagePicker();
 
-  static const List<String> _emojis = [
-    '😀',
-    '😃',
-    '😄',
-    '😁',
-    '😆',
-    '😅',
-    '🤣',
-    '😂',
-    '🙂',
-    '😉',
-    '😊',
-    '😇',
-    '🥰',
-    '😍',
-    '🤩',
-    '😘',
-    '😗',
-    '😚',
-    '😋',
-    '😛',
-    '😜',
-    '🤪',
-    '😝',
-    '🤑',
-    '🤗',
-    '🤭',
-    '🤫',
-    '🤔',
-    '🤐',
-    '🤨',
-    '😐',
-    '😑',
-    '😶',
-    '😏',
-    '😒',
-    '🙄',
-    '😬',
-    '🤥',
-    '😌',
-    '😔',
-    '😪',
-    '🤤',
-    '😴',
-    '😷',
-    '🤒',
-    '🤕',
-    '🤢',
-    '🤮',
-    '👍',
-    '👎',
-    '👏',
-    '🙌',
-    '🤝',
-    '🙏',
-    '💪',
-    '❤️',
-    '🧡',
-    '💛',
-    '💚',
-    '💙',
-    '💜',
-    '🖤',
-    '🤍',
-    '💯',
-    '💢',
-    '💨',
-    '💫',
-    '💬',
-    '🗨️',
-    '🗯️',
-    '💭',
-    '🎉',
-    '🎊',
-    '🎈',
-    '🎁',
-    '🏆',
-    '🥇',
-    '🎵',
-    '🎶',
-    '🎤',
-  ];
-
   static const String _myAvatar = 'https://picsum.photos/seed/myavatar/100/100';
 
   static const List<_ChatMessage> _initialMessages = [
@@ -171,7 +89,12 @@ class _ChatContentState extends State<_ChatContent>
     ),
     _ChatMessage(type: _MsgType.text, isMe: false, content: '回复了一条信息'),
     _ChatMessage(type: _MsgType.text, isMe: true, content: '你好呀～'),
-    _ChatMessage(type: _MsgType.voice, isMe: true, duration: 5),
+    _ChatMessage(
+      type: _MsgType.voice,
+      voicePath: 'https://www.w3schools.com/html/horse.mp3',
+      isMe: true,
+      duration: 5,
+    ),
   ];
 
   @override
@@ -939,38 +862,29 @@ class _ChatContentState extends State<_ChatContent>
   ) {
     final isVoiceMode = _recordState != _RecordState.idle;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: _toggleVoiceMode,
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: isVoiceMode
-                    ? colorScheme.primary.withValues(alpha: 0.12)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                isVoiceMode ? Icons.keyboard_alt_outlined : Icons.mic_outlined,
-                size: 22,
-                color: isVoiceMode
-                    ? colorScheme.primary
-                    : colorScheme.onSurfaceVariant,
-              ),
+          IconButton(
+            visualDensity: VisualDensity.comfortable,
+            onPressed: _toggleVoiceMode,
+            icon: Icon(
+              isVoiceMode ? Icons.keyboard_alt_outlined : Icons.mic_outlined,
+              size: 26,
+              color: colorScheme.onPrimaryContainer,
             ),
           ),
-          const SizedBox(width: 8),
+
+          const SizedBox(width: 2),
           Expanded(
             child: isVoiceMode
                 ? _buildVoiceRecordBar(isDark, colorScheme)
-                : _buildTextInputField(isDark),
+                : _buildTextInputField(isDark, colorScheme),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 2),
           if (!isVoiceMode)
             IconButton(
+              visualDensity: VisualDensity.comfortable,
               onPressed: () {
                 setState(() {
                   _showEmojiPicker = !_showEmojiPicker;
@@ -981,9 +895,12 @@ class _ChatContentState extends State<_ChatContent>
                 _showEmojiPicker
                     ? Icons.keyboard_alt_outlined
                     : Icons.emoji_emotions_outlined,
+                size: 26,
+                color: colorScheme.onPrimaryContainer,
               ),
             ),
           IconButton(
+            visualDensity: VisualDensity.comfortable,
             onPressed: () {
               setState(() {
                 _showIconBar = !_showIconBar;
@@ -997,6 +914,8 @@ class _ChatContentState extends State<_ChatContent>
               _showIconBar
                   ? Icons.arrow_drop_down_circle_outlined
                   : Icons.add_circle_outline,
+              size: 26,
+              color: colorScheme.onPrimaryContainer,
             ),
           ),
         ],
@@ -1004,10 +923,13 @@ class _ChatContentState extends State<_ChatContent>
     );
   }
 
-  Widget _buildTextInputField(bool isDark) => Container(
+  Widget _buildTextInputField(
+    bool isDark,
+    ColorScheme colorScheme,
+  ) => Container(
     height: 40,
     decoration: BoxDecoration(
-      color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5),
+      color: colorScheme.primaryContainer,
       borderRadius: BorderRadius.circular(18),
     ),
     child: TextField(
@@ -1018,11 +940,7 @@ class _ChatContentState extends State<_ChatContent>
         color: isDark ? Colors.white : Colors.black87,
       ),
       decoration: InputDecoration(
-        hintText: '说点什么...',
-        hintStyle: TextStyle(
-          fontSize: 14,
-          color: isDark ? Colors.white38 : Colors.black38,
-        ),
+        hintStyle: TextStyle(fontSize: 14, color: colorScheme.primaryContainer),
         border: InputBorder.none,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         isDense: true,
@@ -1186,16 +1104,16 @@ class _ChatContentState extends State<_ChatContent>
         crossAxisSpacing: 8,
         childAspectRatio: 1,
       ),
-      itemCount: _emojis.length,
+      itemCount: EmojiList.length,
       itemBuilder: (context, index) => GestureDetector(
-        onTap: () => _sendEmojiMessage(_emojis[index]),
+        onTap: () => _sendEmojiMessage(EmojiList[index]),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             color: isDark ? const Color(0xFF3A3A3C) : Colors.white,
           ),
           alignment: Alignment.center,
-          child: Text(_emojis[index], style: const TextStyle(fontSize: 24)),
+          child: Text(EmojiList[index], style: const TextStyle(fontSize: 24)),
         ),
       ),
     ),
