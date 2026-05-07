@@ -31,8 +31,8 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   final double _lyricLineHeight = 40.0;
   // Mini 歌词滚动控制器
   final ScrollController _miniLyricsScrollController = ScrollController();
-  static const double _miniLyricLineHeight = 24.0;
-  static const double _miniLyricVisibleHeight = 72.0; // 3行 × 24
+  static const double _miniLyricLineHeight = 32.0;
+  static const double _miniLyricVisibleHeight = 94.0; // 3行 × 24
   Worker? _lyricIndexWorker;
 
   @override
@@ -400,10 +400,9 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
                   child: AnimatedDefaultTextStyle(
                     duration: const Duration(milliseconds: 300),
                     style: TextStyle(
-                      fontSize: isCurrent ? 13 : 12,
+                      fontSize: isCurrent ? 16 : 14,
                       fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w400,
                       color: isCurrent ? Colors.white : Colors.white38,
-                      height: 1.4,
                     ),
                     child: Text(
                       line.text,
