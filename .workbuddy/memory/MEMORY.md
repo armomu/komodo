@@ -100,3 +100,21 @@
   - 横向 Tab 导航（Feed, Photos, Reviews, Activities）
   - 动态列表展示活动内容
 - **文件位置**：lib/pages/home/tabs/profile_tab.dart
+
+### ChatPage 主题重构 (2026-05-13)
+- **变更**：移除 `ChatThemeExtension` 自定义主题扩展类
+- **原因**：用户反馈不应创建自定义 `ThemeExtension` 来定义大量颜色
+- **正确做法**：直接使用 `Theme.of(context).colorScheme.*` 内置色彩方案
+- **颜色映射**：
+  - `myBubbleColor` → `colorScheme.primary`
+  - `peerBubbleColor` → `isDark ? Color(0xFF3A3A3C) : colorScheme.surface`
+  - `myBubbleTextColor` → `Colors.white`
+  - `peerBubbleTextColor` → `isDark ? Colors.white : Colors.black87`
+  - `timestampBgColor` → `isDark ? Colors.white12 : Colors.grey[300]`
+  - `timestampTextColor` → `isDark ? Colors.white54 : Colors.grey[600]`
+  - `overlayBgColor` → `isDark ? Color(0xFF1C1C1E) : Colors.white`
+  - `iconBarBgColor` → `isDark ? Color(0xFF2C2C2C) : Color(0xFFF5F5F5)`
+  - `emojiPickerBgColor` → `isDark ? Color(0xFF2C2C2C) : Color(0xFFF5F5F5)`
+  - `avatarBgColor` → `isDark ? Color(0xFF2C2C2C) : Colors.grey[200]`
+- **Flutter ColorScheme 会自动适配深浅主题**，无需手动定义
+- **文件位置**：lib/pages/message/chat_page.dart

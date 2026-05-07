@@ -46,6 +46,40 @@ enum _RecordState {
   preview, // 录音预览
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// 数据模型
+// ══════════════════════════════════════════════════════════════════════════════
+
+enum _MsgType { timestamp, text, voice, image, gift }
+
+class _ChatMessage {
+  final _MsgType type;
+  final bool isMe;
+  final String? content;
+  final String? imageUrl;
+  final bool isLocalImage;
+  final int? duration;
+  final String? voicePath; // 录音文件真实路径
+  final String? giftEmoji;
+  final String? giftLabel;
+  final String? time;
+
+  const _ChatMessage({
+    required this.type,
+    this.isMe = false,
+    this.content,
+    this.imageUrl,
+    this.isLocalImage = false,
+    this.duration,
+    this.voicePath,
+    // ignore: unused_element_parameter
+    this.giftEmoji,
+    // ignore: unused_element_parameter
+    this.giftLabel,
+    this.time,
+  });
+}
+
 class _ChatContentState extends State<_ChatContent>
     with TickerProviderStateMixin {
   final TextEditingController _textController = TextEditingController();
@@ -435,7 +469,6 @@ class _ChatContentState extends State<_ChatContent>
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -452,8 +485,8 @@ class _ChatContentState extends State<_ChatContent>
               child: Container(
                 width: 16,
                 height: 16,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFF3B30),
+                decoration: BoxDecoration(
+                  color: Colors.red,
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
@@ -495,13 +528,12 @@ class _ChatContentState extends State<_ChatContent>
                   context,
                   _messages[index],
                   index,
-                  isDark,
                   widget.peerAvatar,
                 );
               },
             ),
           ),
-          _buildBottomArea(context, isDark, colorScheme),
+          _buildBottomArea(context, colorScheme),
         ],
       ),
     );
@@ -511,42 +543,46 @@ class _ChatContentState extends State<_ChatContent>
     BuildContext context,
     _ChatMessage msg,
     int index,
-    bool isDark,
     String peerAvatar,
   ) {
     switch (msg.type) {
       case _MsgType.timestamp:
         return _buildTimestamp(msg.time!);
       case _MsgType.text:
-        return _buildTextMessage(msg, isDark, peerAvatar);
+        return _buildTextMessage(msg, context, peerAvatar);
       case _MsgType.voice:
-        return _buildVoiceMessage(msg, index, isDark, peerAvatar);
+        return _buildVoiceMessage(msg, index, context, peerAvatar);
       case _MsgType.image:
-        return _buildImageMessage(msg, isDark, peerAvatar);
+        return _buildImageMessage(msg, context, peerAvatar);
       case _MsgType.gift:
         return _buildGiftMessage(msg);
     }
   }
 
-  Widget _buildTimestamp(String time) => Center(
-    child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.grey[300],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          time,
-          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+  Widget _buildTimestamp(String time) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white12 : Colors.grey[300]!,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            time,
+            style: TextStyle(fontSize: 12, color: isDark ? Colors.white54 : Colors.grey[600]!),
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 
-  Widget _buildTextMessage(_ChatMessage msg, bool isDark, String peerAvatar) {
+  Widget _buildTextMessage(_ChatMessage msg, BuildContext context, String peerAvatar) {
     final isMe = msg.isMe;
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
@@ -555,7 +591,7 @@ class _ChatContentState extends State<_ChatContent>
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
         children: [
-          if (!isMe) _buildAvatarWidget(isMe ? _myAvatar : peerAvatar, isDark),
+          if (!isMe) _buildAvatarWidget(isMe ? _myAvatar : peerAvatar, context),
           if (!isMe) const SizedBox(width: 10),
           Flexible(
             child: Container(
@@ -565,8 +601,8 @@ class _ChatContentState extends State<_ChatContent>
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: isMe
-                    ? Theme.of(context).colorScheme.primary
-                    : (isDark ? const Color(0xFF3A3A3C) : Colors.white),
+                    ? colorScheme.primary
+                    : (isDark ? const Color(0xFF3A3A3C) : colorScheme.surface),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(18),
                   topRight: const Radius.circular(18),
@@ -587,7 +623,7 @@ class _ChatContentState extends State<_ChatContent>
             ),
           ),
           if (isMe) const SizedBox(width: 10),
-          if (isMe) _buildAvatarWidget(_myAvatar, isDark),
+          if (isMe) _buildAvatarWidget(_myAvatar, context),
         ],
       ),
     );
@@ -596,13 +632,17 @@ class _ChatContentState extends State<_ChatContent>
   Widget _buildVoiceMessage(
     _ChatMessage msg,
     int index,
-    bool isDark,
+    BuildContext context,
     String peerAvatar,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
     final avatarUrl = msg.isMe ? _myAvatar : peerAvatar;
     final isPlaying = _playingVoiceIndex == index;
-    final primaryColor = Theme.of(context).colorScheme.primary;
+    final primaryColor = colorScheme.primary;
     final bubbleWidth = (80.0 + (msg.duration ?? 3) * 10.0).clamp(80.0, 180.0);
+    final peerBubbleColor = isDark ? const Color(0xFF3A3A3C) : colorScheme.surface;
+    final peerBubbleTextColor = isDark ? Colors.white : Colors.black87;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -612,7 +652,7 @@ class _ChatContentState extends State<_ChatContent>
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
         children: [
-          if (!msg.isMe) _buildAvatarWidget(avatarUrl, isDark),
+          if (!msg.isMe) _buildAvatarWidget(avatarUrl, context),
           if (!msg.isMe) const SizedBox(width: 10),
           GestureDetector(
             onTap: () => _playVoiceMessage(index),
@@ -629,9 +669,7 @@ class _ChatContentState extends State<_ChatContent>
                     ? (isPlaying
                           ? primaryColor
                           : primaryColor.withValues(alpha: 0.85))
-                    : (isDark
-                          ? const Color(0xFF3A3A3C)
-                          : const Color(0xFFEEEEEE)),
+                    : peerBubbleColor,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(18),
                   topRight: const Radius.circular(18),
@@ -657,17 +695,17 @@ class _ChatContentState extends State<_ChatContent>
                     size: 20,
                     color: msg.isMe
                         ? Colors.white
-                        : (isDark ? Colors.white70 : Colors.black54),
+                        : peerBubbleTextColor.withValues(alpha: 0.7),
                   ),
                   const SizedBox(width: 4),
                   isPlaying
-                      ? _buildPlayingWave(msg.isMe, isDark)
+                      ? _buildPlayingWave(msg.isMe, context)
                       : Icon(
                           Icons.graphic_eq,
                           size: 18,
                           color: msg.isMe
                               ? Colors.white70
-                              : (isDark ? Colors.white54 : Colors.black38),
+                              : peerBubbleTextColor.withValues(alpha: 0.5),
                         ),
                   const SizedBox(width: 4),
                   Expanded(
@@ -678,7 +716,7 @@ class _ChatContentState extends State<_ChatContent>
                         fontSize: 12,
                         color: msg.isMe
                             ? Colors.white
-                            : (isDark ? Colors.white70 : Colors.black54),
+                            : peerBubbleTextColor.withValues(alpha: 0.7),
                       ),
                     ),
                   ),
@@ -687,16 +725,17 @@ class _ChatContentState extends State<_ChatContent>
             ),
           ),
           if (msg.isMe) const SizedBox(width: 10),
-          if (msg.isMe) _buildAvatarWidget(avatarUrl, isDark),
+          if (msg.isMe) _buildAvatarWidget(avatarUrl, context),
         ],
       ),
     );
   }
 
-  Widget _buildPlayingWave(bool isMe, bool isDark) {
+  Widget _buildPlayingWave(bool isMe, BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = isMe
         ? Colors.white70
-        : (isDark ? Colors.white54 : Colors.black38);
+        : (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.5);
     return SizedBox(
       width: 18,
       height: 18,
@@ -724,7 +763,7 @@ class _ChatContentState extends State<_ChatContent>
     );
   }
 
-  Widget _buildImageMessage(_ChatMessage msg, bool isDark, String peerAvatar) {
+  Widget _buildImageMessage(_ChatMessage msg, BuildContext context, String peerAvatar) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
@@ -733,7 +772,7 @@ class _ChatContentState extends State<_ChatContent>
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
         children: [
-          if (!msg.isMe) _buildAvatarWidget(peerAvatar, isDark),
+          if (!msg.isMe) _buildAvatarWidget(peerAvatar, context),
           if (!msg.isMe) const SizedBox(width: 10),
           GestureDetector(
             onTap: () => _openImageViewer(context, msg.imageUrl!, msg.isLocalImage),
@@ -746,7 +785,7 @@ class _ChatContentState extends State<_ChatContent>
                       height: 240,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) =>
-                          _buildImagePlaceholder(isDark),
+                        _buildImagePlaceholder(context),
                     )
                   : Image.network(
                       msg.imageUrl!,
@@ -758,16 +797,16 @@ class _ChatContentState extends State<_ChatContent>
                         return SizedBox(
                           width: 180,
                           height: 240,
-                          child: _buildImagePlaceholder(isDark),
+                          child: _buildImagePlaceholder(context),
                         );
                       },
                       errorBuilder: (_, __, ___) =>
-                          _buildImagePlaceholder(isDark),
+                        _buildImagePlaceholder(context),
                     ),
             ),
           ),
           if (msg.isMe) const SizedBox(width: 10),
-          if (msg.isMe) _buildAvatarWidget(_myAvatar, isDark),
+          if (msg.isMe) _buildAvatarWidget(_myAvatar, context),
         ],
       ),
     );
@@ -783,16 +822,19 @@ class _ChatContentState extends State<_ChatContent>
     );
   }
 
-  Widget _buildImagePlaceholder(bool isDark) => Container(
-    width: 180,
-    height: 240,
-    color: isDark ? const Color(0xFF2C2C2C) : Colors.grey[200],
-    child: Icon(
-      Icons.broken_image,
-      color: isDark ? Colors.white24 : Colors.grey[400],
-      size: 40,
-    ),
-  );
+  Widget _buildImagePlaceholder(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      width: 180,
+      height: 240,
+      color: isDark ? const Color(0xFF2C2C2C) : Colors.grey[200],
+      child: Icon(
+        Icons.broken_image,
+        color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.3),
+        size: 40,
+      ),
+    );
+  }
 
   Widget _buildGiftMessage(_ChatMessage msg) => Container(
     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -838,16 +880,19 @@ class _ChatContentState extends State<_ChatContent>
           ),
         ),
         const SizedBox(width: 10),
-        _buildAvatarWidget(_myAvatar, false),
+        _buildAvatarWidget(_myAvatar, context),
       ],
     ),
   );
 
-  Widget _buildAvatarWidget(String url, bool isDark) => CircleAvatar(
-    radius: 20,
-    backgroundImage: NetworkImage(url),
-    backgroundColor: isDark ? const Color(0xFF2C2C2C) : Colors.grey[200],
-  );
+  Widget _buildAvatarWidget(String url, BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return CircleAvatar(
+      radius: 20,
+      backgroundImage: NetworkImage(url),
+      backgroundColor: isDark ? const Color(0xFF2C2C2C) : Colors.grey[200],
+    );
+  }
 
   // ════════════════════════════════════════════════════════════════════════
   // 底部区域
@@ -855,14 +900,15 @@ class _ChatContentState extends State<_ChatContent>
 
   Widget _buildBottomArea(
     BuildContext context,
-    bool isDark,
     ColorScheme colorScheme,
-  ) => Container(
+  ) {
+    final isDark = colorScheme.brightness == Brightness.dark;
+    return Container(
     decoration: BoxDecoration(
-      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      color: colorScheme.surface,
       border: Border(
         top: BorderSide(
-          color: isDark ? Colors.white12 : Colors.grey[200]!,
+          color: isDark ? Colors.white12 : Colors.grey[300]!,
           width: 0.5,
         ),
       ),
@@ -872,17 +918,17 @@ class _ChatContentState extends State<_ChatContent>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildInputRow(context, isDark, colorScheme),
-          if (_showEmojiPicker) _buildEmojiPicker(context, isDark),
-          if (_showIconBar) _buildExpandedIconBar(context, isDark, colorScheme),
+          _buildInputRow(context, colorScheme),
+          if (_showEmojiPicker) _buildEmojiPicker(context),
+          if (_showIconBar) _buildExpandedIconBar(context, colorScheme),
         ],
       ),
     ),
   );
+  }
 
   Widget _buildInputRow(
     BuildContext context,
-    bool isDark,
     ColorScheme colorScheme,
   ) {
     final isVoiceMode = _recordState != _RecordState.idle;
@@ -896,15 +942,15 @@ class _ChatContentState extends State<_ChatContent>
             icon: Icon(
               isVoiceMode ? Icons.keyboard_alt_outlined : Icons.mic_outlined,
               size: 26,
-              color: colorScheme.onPrimaryContainer,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
 
           const SizedBox(width: 2),
           Expanded(
             child: isVoiceMode
-                ? _buildVoiceRecordBar(isDark, colorScheme)
-                : _buildTextInputField(isDark, colorScheme),
+                ? _buildVoiceRecordBar(colorScheme)
+                : _buildTextInputField(colorScheme),
           ),
           const SizedBox(width: 2),
           if (!isVoiceMode)
@@ -921,7 +967,7 @@ class _ChatContentState extends State<_ChatContent>
                     ? Icons.keyboard_alt_outlined
                     : Icons.emoji_emotions_outlined,
                 size: 26,
-                color: colorScheme.onPrimaryContainer,
+                color: colorScheme.onSurfaceVariant,
               ),
             ),
           IconButton(
@@ -940,7 +986,7 @@ class _ChatContentState extends State<_ChatContent>
                   ? Icons.arrow_drop_down_circle_outlined
                   : Icons.add_circle_outline,
               size: 26,
-              color: colorScheme.onPrimaryContainer,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -949,130 +995,138 @@ class _ChatContentState extends State<_ChatContent>
   }
 
   Widget _buildTextInputField(
-    bool isDark,
     ColorScheme colorScheme,
-  ) => Container(
-    height: 40,
-    decoration: BoxDecoration(
-      color: colorScheme.primaryContainer,
-      borderRadius: BorderRadius.circular(18),
-    ),
-    child: TextField(
-      controller: _textController,
-      focusNode: _focusNode,
-      style: TextStyle(
-        fontSize: 14,
-        color: isDark ? Colors.white : Colors.black87,
+  ) {
+    final isDark = colorScheme.brightness == Brightness.dark;
+    return Container(
+      height: 40,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(18),
       ),
-      decoration: InputDecoration(
-        hintStyle: TextStyle(fontSize: 14, color: colorScheme.primaryContainer),
-        border: InputBorder.none,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        isDense: true,
+      child: TextField(
+        controller: _textController,
+        focusNode: _focusNode,
+        style: TextStyle(
+          fontSize: 14,
+          color: isDark ? Colors.white : Colors.black87,
+        ),
+        decoration: InputDecoration(
+          hintStyle: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          isDense: true,
+        ),
+        onSubmitted: _sendTextMessage,
       ),
-      onSubmitted: _sendTextMessage,
-    ),
-  );
+    );
+  }
 
-  Widget _buildVoiceRecordBar(bool isDark, ColorScheme colorScheme) =>
-      GestureDetector(
-        onLongPressStart: (_) => _startRecording(),
-        onLongPressEnd: (_) => _stopRecording(),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          height: 40,
-          decoration: BoxDecoration(
+  Widget _buildVoiceRecordBar(ColorScheme colorScheme) {
+    final isDark = colorScheme.brightness == Brightness.dark;
+    final peerBubbleTextColor = isDark ? Colors.white : Colors.black87;
+    final iconBarBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5);
+    return GestureDetector(
+      onLongPressStart: (_) => _startRecording(),
+      onLongPressEnd: (_) => _stopRecording(),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        height: 40,
+        decoration: BoxDecoration(
+          color: _recordState == _RecordState.recording
+              ? colorScheme.primary.withValues(alpha: 0.15)
+              : iconBarBgColor,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
             color: _recordState == _RecordState.recording
-                ? colorScheme.primary.withValues(alpha: 0.15)
-                : (isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF0F0F0)),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: _recordState == _RecordState.recording
-                  ? colorScheme.primary.withValues(alpha: 0.4)
-                  : Colors.transparent,
-              width: 1.5,
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.mic,
-                size: 16,
-                color: _recordState == _RecordState.recording
-                    ? colorScheme.primary
-                    : (isDark ? Colors.white54 : Colors.black45),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                '长按录音',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: _recordState == _RecordState.recording
-                      ? colorScheme.primary
-                      : (isDark ? Colors.white54 : Colors.black45),
-                ),
-              ),
-            ],
+                ? colorScheme.primary.withValues(alpha: 0.4)
+                : Colors.transparent,
+            width: 1.5,
           ),
         ),
-      );
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.mic,
+              size: 16,
+              color: _recordState == _RecordState.recording
+                  ? colorScheme.primary
+                  : peerBubbleTextColor.withValues(alpha: 0.5),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              '长按录音',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: _recordState == _RecordState.recording
+                    ? colorScheme.primary
+                    : peerBubbleTextColor.withValues(alpha: 0.5),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildExpandedIconBar(
     BuildContext context,
-    bool isDark,
     ColorScheme colorScheme,
-  ) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-    decoration: BoxDecoration(
-      border: Border(
-        top: BorderSide(
-          color: isDark ? Colors.white12 : Colors.grey[200]!,
-          width: 0.5,
+  ) {
+    final isDark = colorScheme.brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: isDark ? Colors.white12 : Colors.grey[300]!,
+            width: 0.5,
+          ),
         ),
       ),
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _buildIconBarItem(
-          icon: Icons.image_outlined,
-          label: '图片',
-          colorScheme: colorScheme,
-          onTap: () {
-            _pickAndSendImage();
-            setState(() => _showIconBar = false);
-          },
-        ),
-        _buildIconBarItem(
-          icon: Icons.camera_alt_outlined,
-          label: '拍照',
-          colorScheme: colorScheme,
-          onTap: () {},
-        ),
-        _buildIconBarItem(
-          icon: Icons.card_giftcard,
-          label: '礼物',
-          colorScheme: colorScheme,
-          isPrimary: true,
-          onTap: () {},
-        ),
-        _buildIconBarItem(
-          icon: Icons.location_on_outlined,
-          label: '位置',
-          colorScheme: colorScheme,
-          onTap: () {},
-        ),
-        _buildIconBarItem(
-          icon: Icons.more_horiz,
-          label: '更多',
-          colorScheme: colorScheme,
-          onTap: () {},
-        ),
-      ],
-    ),
-  );
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildIconBarItem(
+            icon: Icons.image_outlined,
+            label: '图片',
+            colorScheme: colorScheme,
+            onTap: () {
+              _pickAndSendImage();
+              setState(() => _showIconBar = false);
+            },
+          ),
+          _buildIconBarItem(
+            icon: Icons.camera_alt_outlined,
+            label: '拍照',
+            colorScheme: colorScheme,
+            onTap: () {},
+          ),
+          _buildIconBarItem(
+            icon: Icons.card_giftcard,
+            label: '礼物',
+            colorScheme: colorScheme,
+            isPrimary: true,
+            onTap: () {},
+          ),
+          _buildIconBarItem(
+            icon: Icons.location_on_outlined,
+            label: '位置',
+            colorScheme: colorScheme,
+            onTap: () {},
+          ),
+          _buildIconBarItem(
+            icon: Icons.more_horiz,
+            label: '更多',
+            colorScheme: colorScheme,
+            onTap: () {},
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildIconBarItem({
     required IconData icon,
@@ -1080,69 +1134,75 @@ class _ChatContentState extends State<_ChatContent>
     required ColorScheme colorScheme,
     required VoidCallback onTap,
     bool isPrimary = false,
-  }) => GestureDetector(
-    onTap: onTap,
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: isPrimary
-                ? null
-                : (colorScheme.brightness == Brightness.dark
-                      ? const Color(0xFF2C2C2C)
-                      : const Color(0xFFF5F5F5)),
-            gradient: isPrimary
-                ? const LinearGradient(
-                    colors: [Color(0xFFFF6B81), Color(0xFFFF4757)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : null,
-            borderRadius: BorderRadius.circular(14),
+  }) {
+    final isDark = colorScheme.brightness == Brightness.dark;
+    final iconBarBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5);
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: isPrimary
+                  ? null
+                  : iconBarBgColor,
+              gradient: isPrimary
+                  ? const LinearGradient(
+                      colors: [Color(0xFFFF6B81), Color(0xFFFF4757)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              icon,
+              size: 24,
+              color: isPrimary ? Colors.white : colorScheme.onSurfaceVariant,
+            ),
           ),
-          child: Icon(
-            icon,
-            size: 24,
-            color: isPrimary ? Colors.white : colorScheme.onSurfaceVariant,
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 
-  Widget _buildEmojiPicker(BuildContext context, bool isDark) => Container(
-    height: 220,
-    padding: const EdgeInsets.all(12),
-    color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5),
-    child: GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 8,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-        childAspectRatio: 1,
-      ),
-      itemCount: EmojiList.length,
-      itemBuilder: (context, index) => GestureDetector(
-        onTap: () => _sendEmojiMessage(EmojiList[index]),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: isDark ? const Color(0xFF3A3A3C) : Colors.white,
+  Widget _buildEmojiPicker(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+    return Container(
+      height: 220,
+      padding: const EdgeInsets.all(12),
+      color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5),
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 8,
+          mainAxisSpacing: 8,
+          crossAxisSpacing: 8,
+          childAspectRatio: 1,
+        ),
+        itemCount: EmojiList.length,
+        itemBuilder: (context, index) => GestureDetector(
+          onTap: () => _sendEmojiMessage(EmojiList[index]),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: isDark ? const Color(0xFF3A3A3C) : colorScheme.surface,
+            ),
+            alignment: Alignment.center,
+            child: Text(EmojiList[index], style: const TextStyle(fontSize: 24)),
           ),
-          alignment: Alignment.center,
-          child: Text(EmojiList[index], style: const TextStyle(fontSize: 24)),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -1176,8 +1236,8 @@ class _RecordOverlayRecording extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
+    final isDark = cs.brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
@@ -1203,7 +1263,7 @@ class _RecordOverlayRecording extends StatelessWidget {
               height: 4,
               margin: const EdgeInsets.only(top: 10),
               decoration: BoxDecoration(
-                color: isDark ? Colors.white24 : Colors.grey[300],
+                color: isDark ? Colors.white12 : Colors.grey[300]!,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -1248,7 +1308,7 @@ class _RecordOverlayRecording extends StatelessWidget {
               '松手结束录音',
               style: TextStyle(
                 fontSize: 13,
-                color: isDark ? Colors.white38 : Colors.black38,
+                color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: 16),
@@ -1265,8 +1325,9 @@ class _RecordOverlayPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
+    final isDark = cs.brightness == Brightness.dark;
+    final peerBubbleTextColor = isDark ? Colors.white : Colors.black87;
     final dur = state._recordSeconds.clamp(1, 60);
     final playing = state._previewPlaying;
 
@@ -1275,7 +1336,7 @@ class _RecordOverlayPreview extends StatelessWidget {
       height: 4,
       margin: const EdgeInsets.only(top: 10),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white24 : Colors.grey[300],
+        color: isDark ? Colors.white12 : Colors.grey[300]!,
         borderRadius: BorderRadius.circular(2),
       ),
     );
@@ -1299,7 +1360,7 @@ class _RecordOverlayPreview extends StatelessWidget {
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF0F0F0),
+          color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
@@ -1308,7 +1369,7 @@ class _RecordOverlayPreview extends StatelessWidget {
             Icon(
               Icons.delete_outline,
               size: 18,
-              color: isDark ? Colors.white54 : Colors.black54,
+              color: peerBubbleTextColor.withValues(alpha: 0.5),
             ),
             const SizedBox(width: 6),
             Text(
@@ -1316,7 +1377,7 @@ class _RecordOverlayPreview extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
-                color: isDark ? Colors.white54 : Colors.black54,
+                color: peerBubbleTextColor.withValues(alpha: 0.5),
               ),
             ),
           ],
@@ -1332,13 +1393,12 @@ class _RecordOverlayPreview extends StatelessWidget {
           color: cs.primary,
           borderRadius: BorderRadius.circular(14),
         ),
-        // ignore: prefer_const_constructors
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Icon(Icons.send, size: 18, color: Colors.white),
-            SizedBox(width: 6),
-            Text(
+            const SizedBox(width: 6),
+            const Text(
               '发送',
               style: TextStyle(
                 fontSize: 15,
@@ -1389,7 +1449,7 @@ class _RecordOverlayPreview extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : Colors.black87,
+                color: peerBubbleTextColor,
               ),
             ),
             const SizedBox(height: 12),
@@ -1398,7 +1458,7 @@ class _RecordOverlayPreview extends StatelessWidget {
               playing ? '播放中...' : '点击播放',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? Colors.white38 : Colors.black38,
+                color: peerBubbleTextColor.withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: 16),
@@ -1483,38 +1543,4 @@ class _PulsingMicState extends State<_PulsingMic>
       ],
     ),
   );
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// 数据模型
-// ══════════════════════════════════════════════════════════════════════════════
-
-enum _MsgType { timestamp, text, voice, image, gift }
-
-class _ChatMessage {
-  final _MsgType type;
-  final bool isMe;
-  final String? content;
-  final String? imageUrl;
-  final bool isLocalImage;
-  final int? duration;
-  final String? voicePath; // 录音文件真实路径
-  final String? giftEmoji;
-  final String? giftLabel;
-  final String? time;
-
-  const _ChatMessage({
-    required this.type,
-    this.isMe = false,
-    this.content,
-    this.imageUrl,
-    this.isLocalImage = false,
-    this.duration,
-    this.voicePath,
-    // ignore: unused_element_parameter
-    this.giftEmoji,
-    // ignore: unused_element_parameter
-    this.giftLabel,
-    this.time,
-  });
 }
