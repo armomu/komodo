@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:komodo/pages/music/audio_waveform.dart';
 import 'package:komodo/pages/music/music_player_controller.dart';
 import 'package:komodo/pages/music/playlist_bottom_sheet.dart';
 import 'package:komodo/pages/music/vinyl_record_player.dart';
@@ -30,6 +29,10 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   // 歌词滚动控制器
   final ScrollController _lyricsScrollController = ScrollController();
   final double _lyricLineHeight = 40.0;
+  // Mini 歌词滚动控制器
+  final ScrollController _miniLyricsScrollController = ScrollController();
+  static const double _miniLyricLineHeight = 24.0;
+  static const double _miniLyricVisibleHeight = 72.0; // 3行 × 24
   Worker? _lyricIndexWorker;
 
   @override
@@ -40,10 +43,15 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
     _pageController = PageController(initialPage: 0);
     _tabController = TabController(length: 2, vsync: this);
     _controller.loadCurrentLyricIndex();
-    // 监听歌词索引变化，自动滚动
+    // 监听歌词索引变化，自动滚动（歌词Tab + Mini歌词）
     _lyricIndexWorker = ever(_controller.currentLyricIndex, (index) {
-      if (index >= 0 && _lyricsScrollController.hasClients) {
-        _scrollToCurrentLyric(index);
+      if (index >= 0) {
+        if (_lyricsScrollController.hasClients) {
+          _scrollToCurrentLyric(index);
+        }
+        if (_miniLyricsScrollController.hasClients) {
+          _scrollMiniLyricToCenter(index);
+        }
       }
     });
     // Tab 和 PageView 同步
@@ -61,6 +69,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   @override
   void dispose() {
     _lyricsScrollController.dispose();
+    _miniLyricsScrollController.dispose();
     _pageController.dispose();
     _tabController.dispose();
     _lyricIndexWorker?.dispose();
@@ -86,6 +95,26 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
       targetOffset.clamp(0, _lyricsScrollController.position.maxScrollExtent),
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
+    );
+  }
+
+  /// Mini歌词滚动：让当前行对齐到3行视口的中间行
+  void _scrollMiniLyricToCenter(int index) {
+    final controller = _miniLyricsScrollController;
+    if (!controller.hasClients) return;
+
+    // 上下各留1行高度作为padding，让第0行和最后一行也能居中
+    const padLineHeight = _miniLyricLineHeight;
+    final targetOffset =
+        padLineHeight + // top padding (1行)
+        index * _miniLyricLineHeight +
+        _miniLyricLineHeight / 2 -
+        _miniLyricVisibleHeight / 2;
+
+    controller.animateTo(
+      targetOffset.clamp(0, controller.position.maxScrollExtent),
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
     );
   }
 
@@ -279,7 +308,10 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
               size: MediaQuery.of(context).size.width * 0.50,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
+
+          // ── Mini 歌词展示（3行，当前行居中高亮） ──
+          _buildMiniLyrics(),
 
           const SizedBox(height: 20),
           // 标题行
@@ -321,6 +353,70 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
             children: [_buildTag('SQ'), _buildTag('MV'), _buildTag('视频')],
           ),
         ],
+      );
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Mini 歌词展示（歌曲Tab下方，真实 ListView 滚动，3行可见，当前行居中）
+  // ══════════════════════════════════════════════════════════════════════════
+
+  Widget _buildMiniLyrics() {
+    return Obx(() {
+      final lyricsList = _controller.lyrics;
+      if (lyricsList.isEmpty) return const SizedBox.shrink();
+
+      return SizedBox(
+        height: _miniLyricVisibleHeight,
+        child: ShaderMask(
+          // 上下边缘渐隐，柔化滚动边界
+          shaderCallback: (bounds) {
+            return const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.transparent,
+                Colors.white,
+                Colors.white,
+                Colors.transparent,
+              ],
+              stops: [0.0, 0.25, 0.75, 1.0],
+            ).createShader(bounds);
+          },
+          blendMode: BlendMode.dstIn,
+          child: ListView.builder(
+            controller: _miniLyricsScrollController,
+            physics: const NeverScrollableScrollPhysics(), // 禁止手动滚动
+            padding: const EdgeInsets.symmetric(
+              vertical: _miniLyricLineHeight, // 上下各留1行，让首尾歌词也能居中
+            ),
+            itemCount: lyricsList.length,
+            itemExtent: _miniLyricLineHeight,
+            itemBuilder: (context, index) {
+              final line = lyricsList[index];
+              return Obx(() {
+                final isCurrent = index == _controller.currentLyricIndex.value;
+                return Center(
+                  child: AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 300),
+                    style: TextStyle(
+                      fontSize: isCurrent ? 13 : 12,
+                      fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w400,
+                      color: isCurrent ? Colors.white : Colors.white38,
+                      height: 1.4,
+                    ),
+                    child: Text(
+                      line.text,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                );
+              });
+            },
+          ),
+        ),
       );
     });
   }
