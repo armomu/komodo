@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:komodo/components/switch_theme.dart';
 import '../../../theme/app_theme.dart';
 
 /// ========================================
@@ -12,10 +13,7 @@ class ColorsSection extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('颜色系统'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+        actions: const [SwitchThemeWidget()],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -71,10 +69,12 @@ class _BasicColorGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ColorGrid(colors: [
-      _ColorItem('Black', AppTheme.black, isWhite: true),
-      _ColorItem('White', AppTheme.white),
-    ]);
+    return _ColorGrid(
+      colors: [
+        _ColorItem('Black', AppTheme.black, isWhite: true),
+        _ColorItem('White', AppTheme.white),
+      ],
+    );
   }
 }
 
@@ -84,18 +84,20 @@ class _GrayColorGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ColorGrid(colors: [
-      _ColorItem('50', AppTheme.gray50),
-      _ColorItem('100', AppTheme.gray100),
-      _ColorItem('200', AppTheme.gray200),
-      _ColorItem('300', AppTheme.gray300),
-      _ColorItem('400', AppTheme.gray400),
-      _ColorItem('500', AppTheme.gray500),
-      _ColorItem('600', AppTheme.gray600),
-      _ColorItem('700', AppTheme.gray700),
-      _ColorItem('800', AppTheme.gray800),
-      _ColorItem('900', AppTheme.gray900),
-    ]);
+    return _ColorGrid(
+      colors: [
+        _ColorItem('50', AppTheme.gray50),
+        _ColorItem('100', AppTheme.gray100),
+        _ColorItem('200', AppTheme.gray200),
+        _ColorItem('300', AppTheme.gray300),
+        _ColorItem('400', AppTheme.gray400),
+        _ColorItem('500', AppTheme.gray500),
+        _ColorItem('600', AppTheme.gray600),
+        _ColorItem('700', AppTheme.gray700),
+        _ColorItem('800', AppTheme.gray800),
+        _ColorItem('900', AppTheme.gray900),
+      ],
+    );
   }
 }
 
@@ -105,14 +107,16 @@ class _SemanticColorGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ColorGrid(colors: [
-      _ColorItem('Primary', AppTheme.primary),
-      _ColorItem('Accent', AppTheme.accent),
-      _ColorItem('Success', AppTheme.success),
-      _ColorItem('Warning', AppTheme.warning),
-      _ColorItem('Error', AppTheme.error),
-      _ColorItem('Info', AppTheme.info),
-    ]);
+    return _ColorGrid(
+      colors: [
+        _ColorItem('Primary', AppTheme.primary),
+        _ColorItem('Accent', AppTheme.accent),
+        _ColorItem('Success', AppTheme.success),
+        _ColorItem('Warning', AppTheme.warning),
+        _ColorItem('Error', AppTheme.error),
+        _ColorItem('Info', AppTheme.info),
+      ],
+    );
   }
 }
 
@@ -136,7 +140,8 @@ class _ColorItem {
   final Color color;
   final bool isWhite;
   _ColorItem(this.name, this.color, {this.isWhite = false});
-  String get hexCode => '#${color.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
+  String get hexCode =>
+      '#${color.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
 }
 
 class _ColorCard extends StatelessWidget {
@@ -156,19 +161,40 @@ class _ColorCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: item.color,
             borderRadius: BorderRadius.circular(12),
-            border: item.isWhite ? Border.all(color: AppTheme.gray200, width: 1) : null,
-            boxShadow: [BoxShadow(color: item.color.withAlpha(40), blurRadius: 8, offset: const Offset(0, 2))],
+            border: item.isWhite
+                ? Border.all(color: AppTheme.gray200, width: 1)
+                : null,
+            boxShadow: [
+              BoxShadow(
+                color: item.color.withAlpha(40),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Center(
             child: Text(
               item.name == 'White' || item.name == 'Black' ? '' : item.name[0],
-              style: TextStyle(color: textColor, fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: textColor,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
         const SizedBox(height: 6),
-        Text(item.name, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500)),
-        Text(item.hexCode, style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        Text(
+          item.name,
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+        ),
+        Text(
+          item.hexCode,
+          style: TextStyle(
+            fontSize: 10,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
       ],
     );
   }
@@ -186,29 +212,73 @@ class _ColorSchemeColors extends StatelessWidget {
       children: [
         _ColorRow('primary', cs.primary, cs.onPrimary),
         _ColorRow('onPrimary', cs.onPrimary, cs.primary),
-        _ColorRow('primaryContainer', cs.primaryContainer, cs.onPrimaryContainer),
-        _ColorRow('onPrimaryContainer', cs.onPrimaryContainer, cs.primaryContainer),
+        _ColorRow(
+          'primaryContainer',
+          cs.primaryContainer,
+          cs.onPrimaryContainer,
+        ),
+        _ColorRow(
+          'onPrimaryContainer',
+          cs.onPrimaryContainer,
+          cs.primaryContainer,
+        ),
         const SizedBox(height: 8),
         _ColorRow('secondary', cs.secondary, cs.onSecondary),
         _ColorRow('onSecondary', cs.onSecondary, cs.secondary),
-        _ColorRow('secondaryContainer', cs.secondaryContainer, cs.onSecondaryContainer),
-        _ColorRow('onSecondaryContainer', cs.onSecondaryContainer, cs.secondaryContainer),
+        _ColorRow(
+          'secondaryContainer',
+          cs.secondaryContainer,
+          cs.onSecondaryContainer,
+        ),
+        _ColorRow(
+          'onSecondaryContainer',
+          cs.onSecondaryContainer,
+          cs.secondaryContainer,
+        ),
         const SizedBox(height: 8),
         _ColorRow('tertiary', cs.tertiary, cs.onTertiary),
         _ColorRow('onTertiary', cs.onTertiary, cs.tertiary),
-        _ColorRow('tertiaryContainer', cs.tertiaryContainer, cs.onTertiaryContainer),
-        _ColorRow('onTertiaryContainer', cs.onTertiaryContainer, cs.tertiaryContainer),
+        _ColorRow(
+          'tertiaryContainer',
+          cs.tertiaryContainer,
+          cs.onTertiaryContainer,
+        ),
+        _ColorRow(
+          'onTertiaryContainer',
+          cs.onTertiaryContainer,
+          cs.tertiaryContainer,
+        ),
         const SizedBox(height: 8),
         _ColorRow('surface', cs.surface, cs.onSurface),
         _ColorRow('onSurface', cs.onSurface, cs.surface),
-        _ColorRow('surfaceVariant (deprecated)', cs.surfaceVariant, cs.onSurfaceVariant),
-        _ColorRow('onSurfaceVariant (deprecated)', cs.onSurfaceVariant, cs.surfaceVariant),
+        _ColorRow(
+          'surfaceVariant (deprecated)',
+          cs.surfaceContainerHighest,
+          cs.onSurfaceVariant,
+        ),
+        _ColorRow(
+          'onSurfaceVariant (deprecated)',
+          cs.onSurfaceVariant,
+          cs.surfaceContainerHighest,
+        ),
         const SizedBox(height: 8),
-        _ColorRow('surfaceContainerLowest', cs.surfaceContainerLowest, cs.onSurface),
+        _ColorRow(
+          'surfaceContainerLowest',
+          cs.surfaceContainerLowest,
+          cs.onSurface,
+        ),
         _ColorRow('surfaceContainerLow', cs.surfaceContainerLow, cs.onSurface),
         _ColorRow('surfaceContainer', cs.surfaceContainer, cs.onSurface),
-        _ColorRow('surfaceContainerHigh', cs.surfaceContainerHigh, cs.onSurface),
-        _ColorRow('surfaceContainerHighest', cs.surfaceContainerHighest, cs.onSurfaceVariant),
+        _ColorRow(
+          'surfaceContainerHigh',
+          cs.surfaceContainerHigh,
+          cs.onSurface,
+        ),
+        _ColorRow(
+          'surfaceContainerHighest',
+          cs.surfaceContainerHighest,
+          cs.onSurfaceVariant,
+        ),
         const SizedBox(height: 8),
         _ColorRow('error', cs.error, cs.onError),
         _ColorRow('onError', cs.onError, cs.error),
@@ -237,12 +307,31 @@ class _ColorRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: [
-          SizedBox(width: 150, child: Text(name, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))),
+          SizedBox(
+            width: 150,
+            child: Text(
+              name,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(6)),
-              child: Text(name, style: TextStyle(fontSize: 12, color: textColor, fontWeight: FontWeight.w500)),
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                name,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: textColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           ),
         ],

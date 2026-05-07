@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:komodo/components/switch_theme.dart';
 import '../../../theme/app_theme.dart';
 
 /// ========================================
@@ -12,10 +13,7 @@ class DialogsSection extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('对话框'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+        actions: const [SwitchThemeWidget()],
       ),
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(16),
@@ -51,7 +49,10 @@ class _AlertDialogDemo extends StatelessWidget {
         title: const Text('提示'),
         content: const Text('这是一条提示信息。'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('确定')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('确定'),
+          ),
         ],
       ),
     );
@@ -64,9 +65,18 @@ class _AlertDialogDemo extends StatelessWidget {
         title: const Text('设置'),
         content: const Text('是否保存您的更改？'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('不保存')),
-          ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text('保存')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('不保存'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('保存'),
+          ),
         ],
       ),
     );
@@ -89,8 +99,14 @@ class _AlertDialogDemo extends StatelessWidget {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('不同意')),
-          ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text('同意')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('不同意'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('同意'),
+          ),
         ],
       ),
     );
@@ -105,9 +121,18 @@ class _AlertDialogDemo extends StatelessWidget {
         spacing: 12,
         runSpacing: 12,
         children: [
-          ElevatedButton(onPressed: () => _showAlertDialog(context), child: const Text('基础对话框')),
-          ElevatedButton(onPressed: () => _showAlertDialogWithActions(context), child: const Text('带操作')),
-          ElevatedButton(onPressed: () => _showScrollableDialog(context), child: const Text('可滚动内容')),
+          ElevatedButton(
+            onPressed: () => _showAlertDialog(context),
+            child: const Text('基础对话框'),
+          ),
+          ElevatedButton(
+            onPressed: () => _showAlertDialogWithActions(context),
+            child: const Text('带操作'),
+          ),
+          ElevatedButton(
+            onPressed: () => _showScrollableDialog(context),
+            child: const Text('可滚动内容'),
+          ),
         ],
       ),
     );
@@ -124,15 +149,29 @@ class _SimpleDialogDemo extends StatelessWidget {
       builder: (context) => SimpleDialog(
         title: const Text('选择选项'),
         children: [
-          SimpleDialogOption(onPressed: () => Navigator.pop(context, '选项 A'), child: const Text('选项 A')),
-          SimpleDialogOption(onPressed: () => Navigator.pop(context, '选项 B'), child: const Text('选项 B')),
-          SimpleDialogOption(onPressed: () => Navigator.pop(context, '选项 C'), child: const Text('选项 C')),
-          SimpleDialogOption(onPressed: () => Navigator.pop(context, '选项 D'), child: const Text('选项 D')),
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, '选项 A'),
+            child: const Text('选项 A'),
+          ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, '选项 B'),
+            child: const Text('选项 B'),
+          ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, '选项 C'),
+            child: const Text('选项 C'),
+          ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, '选项 D'),
+            child: const Text('选项 D'),
+          ),
         ],
       ),
     ).then((value) {
       if (value != null && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('选择了: $value')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('选择了: $value')));
       }
     });
   }
@@ -146,17 +185,39 @@ class _SimpleDialogDemo extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _IconOption(icon: Icons.wechat, label: '微信', color: Colors.green, onTap: () => Navigator.pop(context, '微信')),
-              _IconOption(icon: Icons.chat, label: '微博', color: Colors.orange, onTap: () => Navigator.pop(context, '微博')),
-              _IconOption(icon: Icons.link, label: '复制', color: Colors.blue, onTap: () => Navigator.pop(context, '复制')),
-              _IconOption(icon: Icons.more_horiz, label: '更多', color: Colors.grey, onTap: () => Navigator.pop(context, '更多')),
+              _IconOption(
+                icon: Icons.wechat,
+                label: '微信',
+                color: Colors.green,
+                onTap: () => Navigator.pop(context, '微信'),
+              ),
+              _IconOption(
+                icon: Icons.chat,
+                label: '微博',
+                color: Colors.orange,
+                onTap: () => Navigator.pop(context, '微博'),
+              ),
+              _IconOption(
+                icon: Icons.link,
+                label: '复制',
+                color: Colors.blue,
+                onTap: () => Navigator.pop(context, '复制'),
+              ),
+              _IconOption(
+                icon: Icons.more_horiz,
+                label: '更多',
+                color: Colors.grey,
+                onTap: () => Navigator.pop(context, '更多'),
+              ),
             ],
           ),
         ],
       ),
     ).then((value) {
       if (value != null && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('选择了: $value')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('选择了: $value')));
       }
     });
   }
@@ -170,8 +231,14 @@ class _SimpleDialogDemo extends StatelessWidget {
         spacing: 12,
         runSpacing: 12,
         children: [
-          ElevatedButton(onPressed: () => _showSimpleDialog(context), child: const Text('选项列表')),
-          ElevatedButton(onPressed: () => _showIconDialog(context), child: const Text('带图标')),
+          ElevatedButton(
+            onPressed: () => _showSimpleDialog(context),
+            child: const Text('选项列表'),
+          ),
+          ElevatedButton(
+            onPressed: () => _showIconDialog(context),
+            child: const Text('带图标'),
+          ),
         ],
       ),
     );
@@ -184,7 +251,12 @@ class _IconOption extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
 
-  const _IconOption({required this.icon, required this.label, required this.color, required this.onTap});
+  const _IconOption({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -198,7 +270,10 @@ class _IconOption extends StatelessWidget {
             Container(
               width: 48,
               height: 48,
-              decoration: BoxDecoration(color: color.withAlpha(25), shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                color: color.withAlpha(25),
+                shape: BoxShape.circle,
+              ),
               child: Icon(icon, color: color),
             ),
             const SizedBox(height: 8),
@@ -214,7 +289,12 @@ class _IconOption extends StatelessWidget {
 class _ConfirmDialogDemo extends StatelessWidget {
   const _ConfirmDialogDemo();
 
-  void _showConfirmDialog(BuildContext context, String title, String content, IconData icon) {
+  void _showConfirmDialog(
+    BuildContext context,
+    String title,
+    String content,
+    IconData icon,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -222,10 +302,15 @@ class _ConfirmDialogDemo extends StatelessWidget {
         title: Text(title),
         content: Text(content),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
             child: const Text('确认'),
           ),
         ],
@@ -243,11 +328,21 @@ class _ConfirmDialogDemo extends StatelessWidget {
         runSpacing: 12,
         children: [
           ElevatedButton(
-            onPressed: () => _showConfirmDialog(context, '确认删除', '确定要删除吗？此操作无法撤销。', Icons.delete),
+            onPressed: () => _showConfirmDialog(
+              context,
+              '确认删除',
+              '确定要删除吗？此操作无法撤销。',
+              Icons.delete,
+            ),
             child: const Text('删除确认'),
           ),
           ElevatedButton(
-            onPressed: () => _showConfirmDialog(context, '确认退出', '您确定要退出吗？', Icons.exit_to_app),
+            onPressed: () => _showConfirmDialog(
+              context,
+              '确认退出',
+              '您确定要退出吗？',
+              Icons.exit_to_app,
+            ),
             child: const Text('退出确认'),
           ),
         ],
@@ -272,16 +367,24 @@ class _CustomDialogDemo extends StatelessWidget {
             children: [
               const Icon(Icons.check_circle, size: 64, color: AppTheme.success),
               const SizedBox(height: 16),
-              const Text('操作成功', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+              const Text(
+                '操作成功',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: 8),
               Text(
                 '您的操作已成功完成。',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text('完成')),
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('完成'),
+                ),
               ),
             ],
           ),
@@ -299,7 +402,10 @@ class _CustomDialogDemo extends StatelessWidget {
         spacing: 12,
         runSpacing: 12,
         children: [
-          ElevatedButton(onPressed: () => _showCustomDialog(context), child: const Text('自定义对话框')),
+          ElevatedButton(
+            onPressed: () => _showCustomDialog(context),
+            child: const Text('自定义对话框'),
+          ),
         ],
       ),
     );
@@ -317,8 +423,16 @@ class _FullScreenDialogDemo extends StatelessWidget {
         child: Scaffold(
           appBar: AppBar(
             title: const Text('全屏对话框'),
-            leading: IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
-            actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('完成'))],
+            leading: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.pop(context),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('完成'),
+              ),
+            ],
           ),
           body: ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -346,7 +460,10 @@ class _FullScreenDialogDemo extends StatelessWidget {
         spacing: 12,
         runSpacing: 12,
         children: [
-          ElevatedButton(onPressed: () => _showFullScreenDialog(context), child: const Text('全屏对话框')),
+          ElevatedButton(
+            onPressed: () => _showFullScreenDialog(context),
+            child: const Text('全屏对话框'),
+          ),
         ],
       ),
     );
@@ -365,14 +482,21 @@ class _DateTimePickerDialogDemo extends StatelessWidget {
       lastDate: DateTime(2030),
     );
     if (date != null && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('选择日期: $date')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('选择日期: $date')));
     }
   }
 
   Future<void> _showTimePicker(BuildContext context) async {
-    final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
     if (time != null && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('选择时间: $time')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('选择时间: $time')));
     }
   }
 
@@ -423,14 +547,16 @@ class _DialogCategory extends StatelessWidget {
           children: [
             Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
               description,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 16),
             child,

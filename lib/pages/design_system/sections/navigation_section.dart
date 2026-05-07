@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:komodo/components/switch_theme.dart';
 
 /// ========================================
 /// 导航组件 - Material 3 Navigation
@@ -11,10 +12,7 @@ class NavigationSection extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('导航组件'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+        actions: const [SwitchThemeWidget()],
       ),
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(16),
@@ -55,19 +53,28 @@ class _AppBarDemo extends StatelessWidget {
             AppBar(
               title: const Text('标题'),
               automaticallyImplyLeading: false,
-              actions: [IconButton(icon: const Icon(Icons.more_vert), onPressed: () {})],
+              actions: [
+                IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
+              ],
             ),
             AppBar(
               title: const Text('带返回'),
-              leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () {}),
-              actions: [IconButton(icon: const Icon(Icons.share), onPressed: () {})],
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {},
+              ),
+              actions: [
+                IconButton(icon: const Icon(Icons.share), onPressed: () {}),
+              ],
             ),
             SliverAppBar(
               title: const Text('SliverAppBar'),
               pinned: true,
               expandedHeight: 100,
               flexibleSpace: FlexibleSpaceBar(
-                background: Container(color: Theme.of(context).colorScheme.primaryContainer),
+                background: Container(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                ),
               ),
             ),
           ],
@@ -85,7 +92,8 @@ class _TabBarDemo extends StatefulWidget {
   State<_TabBarDemo> createState() => _TabBarDemoState();
 }
 
-class _TabBarDemoState extends State<_TabBarDemo> with SingleTickerProviderStateMixin {
+class _TabBarDemoState extends State<_TabBarDemo>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -127,9 +135,20 @@ class _TabBarDemoState extends State<_TabBarDemo> with SingleTickerProviderState
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.home, size: 32, color: Theme.of(context).colorScheme.primary),
+                        Icon(
+                          Icons.home,
+                          size: 32,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                         const SizedBox(height: 8),
-                        Text('首页内容', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                        Text(
+                          '首页内容',
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -137,9 +156,20 @@ class _TabBarDemoState extends State<_TabBarDemo> with SingleTickerProviderState
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.search, size: 32, color: Theme.of(context).colorScheme.primary),
+                        Icon(
+                          Icons.search,
+                          size: 32,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                         const SizedBox(height: 8),
-                        Text('搜索内容', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                        Text(
+                          '搜索内容',
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -147,9 +177,20 @@ class _TabBarDemoState extends State<_TabBarDemo> with SingleTickerProviderState
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.settings, size: 32, color: Theme.of(context).colorScheme.primary),
+                        Icon(
+                          Icons.settings,
+                          size: 32,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                         const SizedBox(height: 8),
-                        Text('设置内容', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                        Text(
+                          '设置内容',
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -188,10 +229,26 @@ class _BottomNavDemoState extends State<_BottomNavDemo> {
             onTap: (index) => setState(() => _currentIndex = index),
             type: BottomNavigationBarType.fixed,
             items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: '首页'),
-              BottomNavigationBarItem(icon: Icon(Icons.search), activeIcon: Icon(Icons.search), label: '搜索'),
-              BottomNavigationBarItem(icon: Icon(Icons.notifications_outlined), activeIcon: Icon(Icons.notifications), label: '通知'),
-              BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: '我的'),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home_outlined),
+                activeIcon: Icon(Icons.home),
+                label: '首页',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.search),
+                activeIcon: Icon(Icons.search),
+                label: '搜索',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.notifications_outlined),
+                activeIcon: Icon(Icons.notifications),
+                label: '通知',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline),
+                activeIcon: Icon(Icons.person),
+                label: '我的',
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -204,9 +261,15 @@ class _BottomNavDemoState extends State<_BottomNavDemo> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(_icons[_currentIndex], color: Theme.of(context).colorScheme.primary),
+                Icon(
+                  _icons[_currentIndex],
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
-                Text('当前: ${_titles[_currentIndex]}', style: Theme.of(context).textTheme.bodyLarge),
+                Text(
+                  '当前: ${_titles[_currentIndex]}',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
               ],
             ),
           ),
@@ -236,12 +299,29 @@ class _NavigationBarDemoState extends State<_NavigationBarDemo> {
         children: [
           NavigationBar(
             selectedIndex: _currentIndex,
-            onDestinationSelected: (index) => setState(() => _currentIndex = index),
+            onDestinationSelected: (index) =>
+                setState(() => _currentIndex = index),
             destinations: const [
-              NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: '首页'),
-              NavigationDestination(icon: Icon(Icons.search), selectedIcon: Icon(Icons.search), label: '搜索'),
-              NavigationDestination(icon: Icon(Icons.notifications_outlined), selectedIcon: Icon(Icons.notifications), label: '通知'),
-              NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: '我的'),
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home),
+                label: '首页',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.search),
+                selectedIcon: Icon(Icons.search),
+                label: '搜索',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.notifications_outlined),
+                selectedIcon: Icon(Icons.notifications),
+                label: '通知',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person),
+                label: '我的',
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -254,11 +334,16 @@ class _NavigationBarDemoState extends State<_NavigationBarDemo> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.navigation, color: Theme.of(context).colorScheme.onPrimaryContainer),
+                Icon(
+                  Icons.navigation,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   '当前导航: 第 ${_currentIndex + 1} 项',
-                  style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                 ),
               ],
             ),
@@ -289,13 +374,30 @@ class _NavigationRailDemoState extends State<_NavigationRailDemo> {
         children: [
           NavigationRail(
             selectedIndex: _selectedIndex,
-            onDestinationSelected: (index) => setState(() => _selectedIndex = index),
+            onDestinationSelected: (index) =>
+                setState(() => _selectedIndex = index),
             labelType: NavigationRailLabelType.all,
             destinations: const [
-              NavigationRailDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: Text('首页')),
-              NavigationRailDestination(icon: Icon(Icons.search), selectedIcon: Icon(Icons.search), label: Text('搜索')),
-              NavigationRailDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: Text('设置')),
-              NavigationRailDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: Text('我的')),
+              NavigationRailDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home),
+                label: Text('首页'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.search),
+                selectedIcon: Icon(Icons.search),
+                label: Text('搜索'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.settings_outlined),
+                selectedIcon: Icon(Icons.settings),
+                label: Text('设置'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person),
+                label: Text('我的'),
+              ),
             ],
           ),
           const SizedBox(width: 16),
@@ -313,7 +415,9 @@ class _NavigationRailDemoState extends State<_NavigationRailDemo> {
                   const SizedBox(height: 8),
                   Text(
                     _getPageContent(),
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -352,7 +456,10 @@ class _NavigationDrawerDemo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('点击按钮打开导航抽屉:', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          const Text(
+            '点击按钮打开导航抽屉:',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -379,11 +486,17 @@ class _NavigationDrawerDemo extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('NavigationDrawer 示例结构:', style: TextStyle(fontWeight: FontWeight.w600)),
+                const Text(
+                  'NavigationDrawer 示例结构:',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
                 const SizedBox(height: 8),
                 Text(
                   '• 头部区域（可选）\n• 分组标题\n• NavigationDrawerDestination\n• 分割线\n• 更多选项',
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -416,14 +529,16 @@ class _NavCategory extends StatelessWidget {
           children: [
             Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
               description,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 16),
             child,

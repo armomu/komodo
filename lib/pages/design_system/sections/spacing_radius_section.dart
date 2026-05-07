@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:komodo/components/switch_theme.dart';
 
 /// ========================================
 /// 间距与圆角规范 - Material 3 Spacing & Radius
@@ -11,10 +12,7 @@ class SpacingRadiusSection extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('间距与圆角'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+        actions: const [SwitchThemeWidget()],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -51,17 +49,25 @@ class SpacingRadiusSection extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.straighten, color: Theme.of(context).colorScheme.primary),
+                Icon(
+                  Icons.straighten,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
-                Text('间距规范', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  '间距规范',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
               '基于 8px 基准网格系统，确保元素间距一致',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 16),
             const Divider(),
@@ -96,17 +102,25 @@ class SpacingRadiusSection extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.rounded_corner, color: Theme.of(context).colorScheme.primary),
+                Icon(
+                  Icons.rounded_corner,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
-                Text('圆角规范', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  '圆角规范',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
               '圆角大小根据元素类型和使用场景选择',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 16),
             const Divider(),
@@ -114,7 +128,9 @@ class SpacingRadiusSection extends StatelessWidget {
             Wrap(
               spacing: 16,
               runSpacing: 20,
-              children: radiusValues.map((item) => _RadiusPreview(item.$1, item.$2, item.$3)).toList(),
+              children: radiusValues
+                  .map((item) => _RadiusPreview(item.$1, item.$2, item.$3))
+                  .toList(),
             ),
             const SizedBox(height: 16),
             _RadiusCode(),
@@ -245,7 +261,13 @@ class _RadiusPreview extends StatelessWidget {
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(4),
           ),
-          child: Text(label, style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
         ),
       ],
     );

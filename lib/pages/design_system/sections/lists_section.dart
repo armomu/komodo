@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:komodo/components/switch_theme.dart';
 import '../../../theme/app_theme.dart';
 
 /// ========================================
@@ -12,10 +13,7 @@ class ListsSection extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('列表组件'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+        actions: const [SwitchThemeWidget()],
       ),
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(16),
@@ -102,10 +100,13 @@ class _ListTileVariantsDemo extends StatelessWidget {
               subtitle: Text('带头像的列表项'),
             ),
             const Divider(height: 1, indent: 72),
-            ListTile(
-              leading: const CircleAvatar(backgroundColor: AppTheme.accent, child: Icon(Icons.add, color: Colors.white)),
-              title: const Text('带头像图标'),
-              subtitle: const Text('头像为彩色图标'),
+            const ListTile(
+              leading: CircleAvatar(
+                backgroundColor: AppTheme.accent,
+                child: Icon(Icons.add, color: Colors.white),
+              ),
+              title: Text('带头像图标'),
+              subtitle: Text('头像为彩色图标'),
             ),
             const Divider(height: 1, indent: 72),
             ListTile(
@@ -113,14 +114,16 @@ class _ListTileVariantsDemo extends StatelessWidget {
               trailing: Switch(value: true, onChanged: (v) {}),
             ),
             const Divider(height: 1, indent: 16),
-            ListTile(
-              title: const Text('三行文本'),
-              subtitle: const Text('这是第二行\n这是第三行'),
-              leading: const Icon(Icons.notes),
+            const ListTile(
+              title: Text('三行文本'),
+              subtitle: Text('这是第二行\n这是第三行'),
+              leading: Icon(Icons.notes),
             ),
             const Divider(height: 1, indent: 56),
             const ListTile(
-              leading: CircleAvatar(backgroundImage: NetworkImage('https://picsum.photos/100')),
+              leading: CircleAvatar(
+                backgroundImage: NetworkImage('https://picsum.photos/100'),
+              ),
               title: Text('带头像图片'),
               subtitle: Text('网络图片'),
               trailing: Icon(Icons.chevron_right),
@@ -295,22 +298,22 @@ class _DividerDemo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ListCategory(
+    return const _ListCategory(
       title: 'Divider',
       description: '分割线组件',
       child: Card(
         margin: EdgeInsets.zero,
         child: Column(
           children: [
-            const ListTile(title: Text('上面')),
-            const Divider(),
-            const ListTile(title: Text('默认分割线')),
-            const Divider(color: AppTheme.accent, thickness: 2),
-            const ListTile(title: Text('彩色分割线')),
-            const Divider(indent: 32, endIndent: 32),
-            const ListTile(title: Text('带缩进的分割线')),
-            const Divider(height: 2, thickness: 3),
-            const ListTile(title: Text('粗分割线')),
+            ListTile(title: Text('上面')),
+            Divider(),
+            ListTile(title: Text('默认分割线')),
+            Divider(color: AppTheme.accent, thickness: 2),
+            ListTile(title: Text('彩色分割线')),
+            Divider(indent: 32, endIndent: 32),
+            ListTile(title: Text('带缩进的分割线')),
+            Divider(height: 2, thickness: 3),
+            ListTile(title: Text('粗分割线')),
           ],
         ),
       ),
@@ -340,14 +343,16 @@ class _ListCategory extends StatelessWidget {
           children: [
             Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
               description,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 16),
             child,

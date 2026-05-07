@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:komodo/components/switch_theme.dart';
 import '../../../theme/app_theme.dart';
 
 /// ========================================
@@ -12,10 +13,7 @@ class OtherSection extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('其他组件'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+        actions: const [SwitchThemeWidget()],
       ),
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(16),
@@ -56,7 +54,10 @@ class _AvatarDemo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('基础 Avatar', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          const Text(
+            '基础 Avatar',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 12,
@@ -66,30 +67,51 @@ class _AvatarDemo extends StatelessWidget {
               const CircleAvatar(child: Icon(Icons.person)),
               CircleAvatar(
                 backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                child: Icon(Icons.person, color: Theme.of(context).colorScheme.onPrimaryContainer),
+                child: Icon(
+                  Icons.person,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
               ),
-              CircleAvatar(
-                backgroundImage: const NetworkImage('https://picsum.photos/100'),
+              const CircleAvatar(
+                backgroundImage: NetworkImage('https://picsum.photos/100'),
                 radius: 28,
               ),
               const CircleAvatar(
                 backgroundColor: AppTheme.accent,
-                child: Text('99+', style: TextStyle(fontSize: 12, color: Colors.white)),
+                child: Text(
+                  '99+',
+                  style: TextStyle(fontSize: 12, color: Colors.white),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          const Text('不同尺寸', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          const Text(
+            '不同尺寸',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
           const SizedBox(height: 8),
-          Row(
+          const Row(
             children: [
-              CircleAvatar(radius: 16, child: Text('S', style: TextStyle(fontSize: 12))),
-              const SizedBox(width: 12),
-              CircleAvatar(radius: 24, child: Text('M', style: TextStyle(fontSize: 14))),
-              const SizedBox(width: 12),
-              CircleAvatar(radius: 32, child: Text('L', style: TextStyle(fontSize: 16))),
-              const SizedBox(width: 12),
-              CircleAvatar(radius: 40, child: Text('XL', style: TextStyle(fontSize: 18))),
+              CircleAvatar(
+                radius: 16,
+                child: Text('S', style: TextStyle(fontSize: 12)),
+              ),
+              SizedBox(width: 12),
+              CircleAvatar(
+                radius: 24,
+                child: Text('M', style: TextStyle(fontSize: 14)),
+              ),
+              SizedBox(width: 12),
+              CircleAvatar(
+                radius: 32,
+                child: Text('L', style: TextStyle(fontSize: 16)),
+              ),
+              SizedBox(width: 12),
+              CircleAvatar(
+                radius: 40,
+                child: Text('XL', style: TextStyle(fontSize: 18)),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -112,7 +134,9 @@ class _AvatarDemo extends StatelessWidget {
                 backgroundColor: Theme.of(context).colorScheme.secondary,
                 child: const CircleAvatar(
                   radius: 26,
-                  backgroundImage: NetworkImage('https://picsum.photos/seed/2/100'),
+                  backgroundImage: NetworkImage(
+                    'https://picsum.photos/seed/2/100',
+                  ),
                 ),
               ),
             ],
@@ -148,13 +172,19 @@ class _AnimatedContainerDemoState extends State<_AnimatedContainerDemo> {
               width: _expanded ? 200 : 100,
               height: _expanded ? 200 : 100,
               decoration: BoxDecoration(
-                color: _expanded ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.secondary,
+                color: _expanded
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.secondary,
                 borderRadius: BorderRadius.circular(_expanded ? 24 : 8),
               ),
               child: Center(
                 child: Text(
                   _expanded ? '展开' : '收起',
-                  style: TextStyle(color: _expanded ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSecondary),
+                  style: TextStyle(
+                    color: _expanded
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : Theme.of(context).colorScheme.onSecondary,
+                  ),
                 ),
               ),
             ),
@@ -176,7 +206,7 @@ class _ExpansionTileDemo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _OtherCategory(
+    return const _OtherCategory(
       title: 'ExpansionTile',
       description: '可展开的列表项',
       child: Card(
@@ -185,42 +215,42 @@ class _ExpansionTileDemo extends StatelessWidget {
         child: Column(
           children: [
             ExpansionTile(
-              leading: const Icon(Icons.folder),
-              title: const Text('文件夹'),
-              subtitle: const Text('点击展开'),
+              leading: Icon(Icons.folder),
+              title: Text('文件夹'),
+              subtitle: Text('点击展开'),
               children: [
                 ListTile(
-                  leading: const Icon(Icons.insert_drive_file),
-                  title: const Text('文件 1.txt'),
+                  leading: Icon(Icons.insert_drive_file),
+                  title: Text('文件 1.txt'),
                   dense: true,
                 ),
                 ListTile(
-                  leading: const Icon(Icons.insert_drive_file),
-                  title: const Text('文件 2.txt'),
+                  leading: Icon(Icons.insert_drive_file),
+                  title: Text('文件 2.txt'),
                   dense: true,
                 ),
               ],
             ),
-            const Divider(height: 1),
+            Divider(height: 1),
             ExpansionTile(
-              leading: const Icon(Icons.image),
-              title: const Text('图片'),
-              subtitle: const Text('3 个项目'),
+              leading: Icon(Icons.image),
+              title: Text('图片'),
+              subtitle: Text('3 个项目'),
               children: [
                 ListTile(
-                  leading: const Icon(Icons.photo),
-                  title: const Text('photo1.jpg'),
+                  leading: Icon(Icons.photo),
+                  title: Text('photo1.jpg'),
                   dense: true,
                 ),
                 ListTile(
-                  leading: const Icon(Icons.photo),
-                  title: const Text('photo2.jpg'),
+                  leading: Icon(Icons.photo),
+                  title: Text('photo2.jpg'),
                   dense: true,
                 ),
               ],
             ),
-            const Divider(height: 1),
-            const ExpansionTile(
+            Divider(height: 1),
+            ExpansionTile(
               leading: Icon(Icons.settings),
               title: Text('设置'),
               subtitle: Text('展开查看更多'),
@@ -249,7 +279,10 @@ class _WrapDemo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Wrap 布局', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          const Text(
+            'Wrap 布局',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -260,7 +293,10 @@ class _WrapDemo extends StatelessWidget {
                 label: Text('标签 ${index + 1}'),
                 avatar: CircleAvatar(
                   backgroundColor: Theme.of(context).colorScheme.primary,
-                  child: Text('${index + 1}', style: const TextStyle(fontSize: 10, color: Colors.white)),
+                  child: Text(
+                    '${index + 1}',
+                    style: const TextStyle(fontSize: 10, color: Colors.white),
+                  ),
                 ),
               ),
             ),
@@ -302,9 +338,18 @@ class _AnimatedCrossFadeDemoState extends State<_AnimatedCrossFadeDemo> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.favorite, size: 48, color: Theme.of(context).colorScheme.onPrimaryContainer),
+                    Icon(
+                      Icons.favorite,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
                     const SizedBox(height: 8),
-                    Text('喜欢', style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer)),
+                    Text(
+                      '喜欢',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -320,14 +365,27 @@ class _AnimatedCrossFadeDemoState extends State<_AnimatedCrossFadeDemo> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.star, size: 48, color: Theme.of(context).colorScheme.onSecondaryContainer),
+                    Icon(
+                      Icons.star,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                    ),
                     const SizedBox(height: 8),
-                    Text('收藏', style: TextStyle(color: Theme.of(context).colorScheme.onSecondaryContainer)),
+                    Text(
+                      '收藏',
+                      style: TextStyle(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSecondaryContainer,
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
-            crossFadeState: _showFirst ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+            crossFadeState: _showFirst
+                ? CrossFadeState.showFirst
+                : CrossFadeState.showSecond,
           ),
           const SizedBox(height: 16),
           ElevatedButton(
@@ -352,7 +410,10 @@ class _GridViewDemo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('GridView.count', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          const Text(
+            'GridView.count',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
           const SizedBox(height: 8),
           SizedBox(
             height: 160,
@@ -369,7 +430,16 @@ class _GridViewDemo extends StatelessWidget {
                   ),
                   child: Center(
                     child: Icon(
-                      [Icons.home, Icons.search, Icons.settings, Icons.person, Icons.star, Icons.favorite, Icons.notifications, Icons.email][index],
+                      [
+                        Icons.home,
+                        Icons.search,
+                        Icons.settings,
+                        Icons.person,
+                        Icons.star,
+                        Icons.favorite,
+                        Icons.notifications,
+                        Icons.email,
+                      ][index],
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
                     ),
                   ),
@@ -398,7 +468,10 @@ class _AspectRatioFittedBoxDemo extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('16:9', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                const Text(
+                  '16:9',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
                 const SizedBox(height: 8),
                 AspectRatio(
                   aspectRatio: 16 / 9,
@@ -407,7 +480,16 @@ class _AspectRatioFittedBoxDemo extends StatelessWidget {
                       color: Theme.of(context).colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Center(child: Text('16:9', style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer))),
+                    child: Center(
+                      child: Text(
+                        '16:9',
+                        style: TextStyle(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -418,7 +500,10 @@ class _AspectRatioFittedBoxDemo extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('4:3', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                const Text(
+                  '4:3',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
                 const SizedBox(height: 8),
                 AspectRatio(
                   aspectRatio: 4 / 3,
@@ -427,7 +512,16 @@ class _AspectRatioFittedBoxDemo extends StatelessWidget {
                       color: Theme.of(context).colorScheme.secondaryContainer,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Center(child: Text('4:3', style: TextStyle(color: Theme.of(context).colorScheme.onSecondaryContainer))),
+                    child: Center(
+                      child: Text(
+                        '4:3',
+                        style: TextStyle(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSecondaryContainer,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -438,7 +532,10 @@ class _AspectRatioFittedBoxDemo extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('1:1', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                const Text(
+                  '1:1',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
                 const SizedBox(height: 8),
                 AspectRatio(
                   aspectRatio: 1,
@@ -447,7 +544,16 @@ class _AspectRatioFittedBoxDemo extends StatelessWidget {
                       color: Theme.of(context).colorScheme.tertiaryContainer,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Center(child: Text('1:1', style: TextStyle(color: Theme.of(context).colorScheme.onTertiaryContainer))),
+                    child: Center(
+                      child: Text(
+                        '1:1',
+                        style: TextStyle(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onTertiaryContainer,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -494,9 +600,18 @@ class _GestureDetectorDemoState extends State<_GestureDetectorDemo> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.touch_app, size: 32, color: Theme.of(context).colorScheme.primary),
+                    Icon(
+                      Icons.touch_app,
+                      size: 32,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     const SizedBox(height: 8),
-                    Text('尝试各种手势', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    Text(
+                      '尝试各种手势',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -514,7 +629,12 @@ class _GestureDetectorDemoState extends State<_GestureDetectorDemo> {
               children: [
                 const Icon(Icons.gesture),
                 const SizedBox(width: 8),
-                Text('最后手势: $_lastGesture', style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer)),
+                Text(
+                  '最后手势: $_lastGesture',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                ),
               ],
             ),
           ),
@@ -546,14 +666,16 @@ class _OtherCategory extends StatelessWidget {
           children: [
             Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
               description,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 16),
             child,

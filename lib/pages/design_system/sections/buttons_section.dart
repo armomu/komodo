@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:komodo/components/switch_theme.dart';
 
 /// ========================================
 /// 按钮规范 - Material 3 Buttons
@@ -11,10 +12,7 @@ class ButtonsSection extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('按钮规范'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+        actions: const [SwitchThemeWidget()],
       ),
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(16),
@@ -50,7 +48,9 @@ class _ElevatedButtonDemo extends StatelessWidget {
   const _ElevatedButtonDemo();
 
   void _showSnackBar(BuildContext context, String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), duration: const Duration(seconds: 1)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), duration: const Duration(seconds: 1)),
+    );
   }
 
   @override
@@ -62,10 +62,21 @@ class _ElevatedButtonDemo extends StatelessWidget {
         spacing: 12,
         runSpacing: 12,
         children: [
-          ElevatedButton(onPressed: () => _showSnackBar(context, '主要按钮点击'), child: const Text('主要按钮')),
-          ElevatedButton.icon(onPressed: () => _showSnackBar(context, '带图标'), icon: const Icon(Icons.add), label: const Text('图标按钮')),
-          ElevatedButton(onPressed: () => _showSnackBar(context, '长按触发'), onLongPress: () => _showSnackBar(context, '长按了！'), child: const Text('长按按钮')),
-          ElevatedButton(onPressed: null, child: const Text('禁用状态')),
+          ElevatedButton(
+            onPressed: () => _showSnackBar(context, '主要按钮点击'),
+            child: const Text('主要按钮'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () => _showSnackBar(context, '带图标'),
+            icon: const Icon(Icons.add),
+            label: const Text('图标按钮'),
+          ),
+          ElevatedButton(
+            onPressed: () => _showSnackBar(context, '长按触发'),
+            onLongPress: () => _showSnackBar(context, '长按了！'),
+            child: const Text('长按按钮'),
+          ),
+          const ElevatedButton(onPressed: null, child: Text('禁用状态')),
         ],
       ),
     );
@@ -77,7 +88,9 @@ class _FilledButtonDemo extends StatelessWidget {
   const _FilledButtonDemo();
 
   void _showSnackBar(BuildContext context, String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), duration: const Duration(seconds: 1)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), duration: const Duration(seconds: 1)),
+    );
   }
 
   @override
@@ -89,11 +102,25 @@ class _FilledButtonDemo extends StatelessWidget {
         spacing: 12,
         runSpacing: 12,
         children: [
-          FilledButton(onPressed: () => _showSnackBar(context, 'Filled 按钮'), child: const Text('Filled 按钮')),
-          FilledButton.icon(onPressed: () => _showSnackBar(context, 'Filled 带图标'), icon: const Icon(Icons.check), label: const Text('确认')),
-          FilledButton.tonal(onPressed: () => _showSnackBar(context, 'Tonal 按钮'), child: const Text('Tonal 按钮')),
-          FilledButton.tonalIcon(onPressed: () => _showSnackBar(context, 'Tonal 带图标'), icon: const Icon(Icons.home), label: const Text('首页')),
-          FilledButton(onPressed: null, child: const Text('禁用状态')),
+          FilledButton(
+            onPressed: () => _showSnackBar(context, 'Filled 按钮'),
+            child: const Text('Filled 按钮'),
+          ),
+          FilledButton.icon(
+            onPressed: () => _showSnackBar(context, 'Filled 带图标'),
+            icon: const Icon(Icons.check),
+            label: const Text('确认'),
+          ),
+          FilledButton.tonal(
+            onPressed: () => _showSnackBar(context, 'Tonal 按钮'),
+            child: const Text('Tonal 按钮'),
+          ),
+          FilledButton.tonalIcon(
+            onPressed: () => _showSnackBar(context, 'Tonal 带图标'),
+            icon: const Icon(Icons.home),
+            label: const Text('首页'),
+          ),
+          const FilledButton(onPressed: null, child: Text('禁用状态')),
         ],
       ),
     );
@@ -105,7 +132,9 @@ class _OutlinedButtonDemo extends StatelessWidget {
   const _OutlinedButtonDemo();
 
   void _showSnackBar(BuildContext context, String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), duration: const Duration(seconds: 1)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), duration: const Duration(seconds: 1)),
+    );
   }
 
   @override
@@ -117,9 +146,16 @@ class _OutlinedButtonDemo extends StatelessWidget {
         spacing: 12,
         runSpacing: 12,
         children: [
-          OutlinedButton(onPressed: () => _showSnackBar(context, '次要按钮'), child: const Text('次要按钮')),
-          OutlinedButton.icon(onPressed: () => _showSnackBar(context, '分享'), icon: const Icon(Icons.share), label: const Text('分享')),
-          OutlinedButton(onPressed: null, child: const Text('禁用状态')),
+          OutlinedButton(
+            onPressed: () => _showSnackBar(context, '次要按钮'),
+            child: const Text('次要按钮'),
+          ),
+          OutlinedButton.icon(
+            onPressed: () => _showSnackBar(context, '分享'),
+            icon: const Icon(Icons.share),
+            label: const Text('分享'),
+          ),
+          const OutlinedButton(onPressed: null, child: Text('禁用状态')),
         ],
       ),
     );
@@ -131,7 +167,9 @@ class _TextButtonDemo extends StatelessWidget {
   const _TextButtonDemo();
 
   void _showSnackBar(BuildContext context, String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), duration: const Duration(seconds: 1)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), duration: const Duration(seconds: 1)),
+    );
   }
 
   @override
@@ -143,9 +181,16 @@ class _TextButtonDemo extends StatelessWidget {
         spacing: 12,
         runSpacing: 12,
         children: [
-          TextButton(onPressed: () => _showSnackBar(context, '文字按钮'), child: const Text('文字按钮')),
-          TextButton.icon(onPressed: () => _showSnackBar(context, '详情'), icon: const Icon(Icons.info_outline), label: const Text('详情')),
-          TextButton(onPressed: null, child: const Text('禁用状态')),
+          TextButton(
+            onPressed: () => _showSnackBar(context, '文字按钮'),
+            child: const Text('文字按钮'),
+          ),
+          TextButton.icon(
+            onPressed: () => _showSnackBar(context, '详情'),
+            icon: const Icon(Icons.info_outline),
+            label: const Text('详情'),
+          ),
+          const TextButton(onPressed: null, child: Text('禁用状态')),
         ],
       ),
     );
@@ -157,7 +202,9 @@ class _FABDemo extends StatelessWidget {
   const _FABDemo();
 
   void _showSnackBar(BuildContext context, String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), duration: const Duration(seconds: 1)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), duration: const Duration(seconds: 1)),
+    );
   }
 
   @override
@@ -169,11 +216,33 @@ class _FABDemo extends StatelessWidget {
         spacing: 16,
         runSpacing: 12,
         children: [
-          FloatingActionButton.small(onPressed: () => _showSnackBar(context, 'Small FAB'), heroTag: 'fab1', child: const Icon(Icons.add)),
-          FloatingActionButton(onPressed: () => _showSnackBar(context, 'Regular FAB'), heroTag: 'fab2', child: const Icon(Icons.add)),
-          FloatingActionButton.large(onPressed: () => _showSnackBar(context, 'Large FAB'), heroTag: 'fab3', child: const Icon(Icons.add)),
-          FloatingActionButton.extended(onPressed: () => _showSnackBar(context, 'Extended FAB'), heroTag: 'fab4', icon: const Icon(Icons.add), label: const Text('新增')),
-          FloatingActionButton.extended(onPressed: () => _showSnackBar(context, '扫描'), heroTag: 'fab5', icon: const Icon(Icons.qr_code_scanner), label: const Text('扫描')),
+          FloatingActionButton.small(
+            onPressed: () => _showSnackBar(context, 'Small FAB'),
+            heroTag: 'fab1',
+            child: const Icon(Icons.add),
+          ),
+          FloatingActionButton(
+            onPressed: () => _showSnackBar(context, 'Regular FAB'),
+            heroTag: 'fab2',
+            child: const Icon(Icons.add),
+          ),
+          FloatingActionButton.large(
+            onPressed: () => _showSnackBar(context, 'Large FAB'),
+            heroTag: 'fab3',
+            child: const Icon(Icons.add),
+          ),
+          FloatingActionButton.extended(
+            onPressed: () => _showSnackBar(context, 'Extended FAB'),
+            heroTag: 'fab4',
+            icon: const Icon(Icons.add),
+            label: const Text('新增'),
+          ),
+          FloatingActionButton.extended(
+            onPressed: () => _showSnackBar(context, '扫描'),
+            heroTag: 'fab5',
+            icon: const Icon(Icons.qr_code_scanner),
+            label: const Text('扫描'),
+          ),
         ],
       ),
     );
@@ -185,7 +254,9 @@ class _IconButtonDemo extends StatelessWidget {
   const _IconButtonDemo();
 
   void _showSnackBar(BuildContext context, String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), duration: const Duration(seconds: 1)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), duration: const Duration(seconds: 1)),
+    );
   }
 
   @override
@@ -197,14 +268,46 @@ class _IconButtonDemo extends StatelessWidget {
         spacing: 8,
         runSpacing: 8,
         children: [
-          IconButton(onPressed: () => _showSnackBar(context, '首页'), icon: const Icon(Icons.home), tooltip: '首页'),
-          IconButton(onPressed: () => _showSnackBar(context, '搜索'), icon: const Icon(Icons.search), tooltip: '搜索'),
-          IconButton(onPressed: () => _showSnackBar(context, '设置'), icon: const Icon(Icons.settings), tooltip: '设置'),
-          IconButton(onPressed: () => _showSnackBar(context, '通知'), icon: const Icon(Icons.notifications), tooltip: '通知'),
-          IconButton(onPressed: () => _showSnackBar(context, '消息'), icon: const Icon(Icons.message), tooltip: '消息'),
-          IconButton(onPressed: () => _showSnackBar(context, '书签'), icon: const Icon(Icons.bookmark), tooltip: '书签'),
-          IconButton(onPressed: () => _showSnackBar(context, '分享'), icon: const Icon(Icons.share), tooltip: '分享'),
-          IconButton(onPressed: null, icon: const Icon(Icons.home), tooltip: '禁用'),
+          IconButton(
+            onPressed: () => _showSnackBar(context, '首页'),
+            icon: const Icon(Icons.home),
+            tooltip: '首页',
+          ),
+          IconButton(
+            onPressed: () => _showSnackBar(context, '搜索'),
+            icon: const Icon(Icons.search),
+            tooltip: '搜索',
+          ),
+          IconButton(
+            onPressed: () => _showSnackBar(context, '设置'),
+            icon: const Icon(Icons.settings),
+            tooltip: '设置',
+          ),
+          IconButton(
+            onPressed: () => _showSnackBar(context, '通知'),
+            icon: const Icon(Icons.notifications),
+            tooltip: '通知',
+          ),
+          IconButton(
+            onPressed: () => _showSnackBar(context, '消息'),
+            icon: const Icon(Icons.message),
+            tooltip: '消息',
+          ),
+          IconButton(
+            onPressed: () => _showSnackBar(context, '书签'),
+            icon: const Icon(Icons.bookmark),
+            tooltip: '书签',
+          ),
+          IconButton(
+            onPressed: () => _showSnackBar(context, '分享'),
+            icon: const Icon(Icons.share),
+            tooltip: '分享',
+          ),
+          const IconButton(
+            onPressed: null,
+            icon: Icon(Icons.home),
+            tooltip: '禁用',
+          ),
         ],
       ),
     );
@@ -228,9 +331,21 @@ class _SegmentedButtonDemo extends StatelessWidget {
             children: [
               SegmentedButton<int>(
                 segments: const [
-                  ButtonSegment(value: 0, label: Text('综合'), icon: Icon(Icons.grid_view)),
-                  ButtonSegment(value: 1, label: Text('最新'), icon: Icon(Icons.schedule)),
-                  ButtonSegment(value: 2, label: Text('最热'), icon: Icon(Icons.local_fire_department)),
+                  ButtonSegment(
+                    value: 0,
+                    label: Text('综合'),
+                    icon: Icon(Icons.grid_view),
+                  ),
+                  ButtonSegment(
+                    value: 1,
+                    label: Text('最新'),
+                    icon: Icon(Icons.schedule),
+                  ),
+                  ButtonSegment(
+                    value: 2,
+                    label: Text('最热'),
+                    icon: Icon(Icons.local_fire_department),
+                  ),
                 ],
                 selected: {selected},
                 onSelectionChanged: (Set<int> newSelection) {
@@ -240,7 +355,7 @@ class _SegmentedButtonDemo extends StatelessWidget {
               const SizedBox(height: 12),
               SegmentedButton<int>(
                 segments: const [
-                  ButtonSegment(value: 0, label: Text('日'))  ,
+                  ButtonSegment(value: 0, label: Text('日')),
                   ButtonSegment(value: 1, label: Text('周')),
                   ButtonSegment(value: 2, label: Text('月')),
                   ButtonSegment(value: 3, label: Text('年')),
@@ -275,15 +390,23 @@ class _ButtonSizesDemo extends StatelessWidget {
           const SizedBox(height: 8),
           ElevatedButton(
             onPressed: () {},
-            style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), minimumSize: const Size(0, 32)),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              minimumSize: const Size(0, 32),
+            ),
             child: const Text('Small', style: TextStyle(fontSize: 14)),
           ),
           const SizedBox(height: 12),
-          const Text('中按钮 (默认)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          const Text(
+            '中按钮 (默认)',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
           const SizedBox(height: 8),
           ElevatedButton(
             onPressed: () {},
-            style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14)),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            ),
             child: const Text('Medium', style: TextStyle(fontSize: 16)),
           ),
           const SizedBox(height: 12),
@@ -291,7 +414,9 @@ class _ButtonSizesDemo extends StatelessWidget {
           const SizedBox(height: 8),
           ElevatedButton(
             onPressed: () {},
-            style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18)),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+            ),
             child: const Text('Large', style: TextStyle(fontSize: 18)),
           ),
         ],
@@ -312,7 +437,10 @@ class _ButtonStatesDemo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('自定义颜色', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          const Text(
+            '自定义颜色',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 12,
@@ -320,35 +448,58 @@ class _ButtonStatesDemo extends StatelessWidget {
             children: [
               ElevatedButton(
                 onPressed: () {},
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
                 child: const Text('红色'),
               ),
               ElevatedButton(
                 onPressed: () {},
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
                 child: const Text('绿色'),
               ),
               ElevatedButton(
                 onPressed: () {},
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                ),
                 child: const Text('橙色'),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          const Text('加载状态', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          const Text(
+            '加载状态',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 12,
             runSpacing: 12,
             children: [
-              ElevatedButton(
+              const ElevatedButton(
                 onPressed: null,
-                child: const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
               ),
               FilledButton.icon(
                 onPressed: null,
-                icon: const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                icon: const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                ),
                 label: const Text('加载中...'),
               ),
             ],
@@ -381,14 +532,16 @@ class _ButtonCategory extends StatelessWidget {
           children: [
             Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
               description,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 16),
             child,

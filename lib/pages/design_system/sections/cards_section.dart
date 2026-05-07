@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:komodo/components/switch_theme.dart';
 
 /// ========================================
 /// 卡片组件 - Material 3 Cards
@@ -11,10 +12,7 @@ class CardsSection extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('卡片组件'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+        actions: const [SwitchThemeWidget()],
       ),
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(16),
@@ -58,9 +56,17 @@ class _BasicCardDemo extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('卡片标题', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              const Text(
+                '卡片标题',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: 8),
-              Text('卡片内容描述文字，显示卡片内部的具体信息。', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              Text(
+                '卡片内容描述文字，显示卡片内部的具体信息。',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
             ],
           ),
         ),
@@ -87,7 +93,10 @@ class _IconCardDemo extends StatelessWidget {
               color: Theme.of(context).colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.notifications, color: Theme.of(context).colorScheme.onPrimaryContainer),
+            child: Icon(
+              Icons.notifications,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
           ),
           title: const Text('通知中心'),
           subtitle: const Text('您有 3 条新消息'),
@@ -111,7 +120,9 @@ class _ClickableCardDemo extends StatelessWidget {
       child: Card(
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('点击卡片'))),
+          onTap: () => ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('点击卡片'))),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -119,16 +130,32 @@ class _ClickableCardDemo extends StatelessWidget {
                 height: 120,
                 width: double.infinity,
                 color: Theme.of(context).colorScheme.primaryContainer,
-                child: Icon(Icons.image, size: 48, color: Theme.of(context).colorScheme.onPrimaryContainer),
+                child: Icon(
+                  Icons.image,
+                  size: 48,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('图片卡片', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    const Text(
+                      '图片卡片',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text('点击可触发 InkWell 波纹效果', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
+                    Text(
+                      '点击可触发 InkWell 波纹效果',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -156,7 +183,11 @@ class _HorizontalCardDemo extends StatelessWidget {
               width: 100,
               height: 100,
               color: Theme.of(context).colorScheme.secondaryContainer,
-              child: Icon(Icons.music_note, size: 40, color: Theme.of(context).colorScheme.onSecondaryContainer),
+              child: Icon(
+                Icons.music_note,
+                size: 40,
+                color: Theme.of(context).colorScheme.onSecondaryContainer,
+              ),
             ),
             Expanded(
               child: Padding(
@@ -164,14 +195,28 @@ class _HorizontalCardDemo extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('音乐标题', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    const Text(
+                      '音乐标题',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text('艺术家名称', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    Text(
+                      '艺术家名称',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
-            IconButton(icon: const Icon(Icons.play_circle_filled, size: 40), onPressed: () {}),
+            IconButton(
+              icon: const Icon(Icons.play_circle_filled, size: 40),
+              onPressed: () {},
+            ),
           ],
         ),
       ),
@@ -248,8 +293,19 @@ class _OutlinedCardDemo extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('OutlinedCard 示例', style: TextStyle(fontWeight: FontWeight.w600)),
-                        Text('使用带边框的卡片组件', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
+                        const Text(
+                          'OutlinedCard 示例',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        Text(
+                          '使用带边框的卡片组件',
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -265,7 +321,10 @@ class _OutlinedCardDemo extends StatelessWidget {
               side: BorderSide(color: Theme.of(context).colorScheme.primary),
             ),
             child: ListTile(
-              leading: Icon(Icons.tips_and_updates, color: Theme.of(context).colorScheme.primary),
+              leading: Icon(
+                Icons.tips_and_updates,
+                color: Theme.of(context).colorScheme.primary,
+              ),
               title: const Text('提示信息'),
               subtitle: const Text('点击查看更多'),
             ),
@@ -294,14 +353,33 @@ class _FilledCardDemo extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle_outline, color: Theme.of(context).colorScheme.onPrimaryContainer),
+                  Icon(
+                    Icons.check_circle_outline,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('FilledCard 示例', style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onPrimaryContainer)),
-                        Text('使用填充色的卡片组件', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onPrimaryContainer.withAlpha(180))),
+                        Text(
+                          'FilledCard 示例',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                        Text(
+                          '使用填充色的卡片组件',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer.withAlpha(180),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -314,9 +392,24 @@ class _FilledCardDemo extends StatelessWidget {
             elevation: 0,
             color: Theme.of(context).colorScheme.secondaryContainer,
             child: ListTile(
-              leading: Icon(Icons.lightbulb_outline, color: Theme.of(context).colorScheme.onSecondaryContainer),
-              title: Text('创意提示', style: TextStyle(color: Theme.of(context).colorScheme.onSecondaryContainer)),
-              subtitle: Text('尝试新功能', style: TextStyle(color: Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(180))),
+              leading: Icon(
+                Icons.lightbulb_outline,
+                color: Theme.of(context).colorScheme.onSecondaryContainer,
+              ),
+              title: Text(
+                '创意提示',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                ),
+              ),
+              subtitle: Text(
+                '尝试新功能',
+                style: TextStyle(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSecondaryContainer.withAlpha(180),
+                ),
+              ),
             ),
           ),
         ],
@@ -339,7 +432,10 @@ class _ElevatedCardDemo extends StatelessWidget {
           Card(
             elevation: 2,
             child: ListTile(
-              leading: Icon(Icons.architecture, color: Theme.of(context).colorScheme.primary),
+              leading: Icon(
+                Icons.architecture,
+                color: Theme.of(context).colorScheme.primary,
+              ),
               title: const Text('建筑设计'),
               subtitle: const Text('查看建筑作品集'),
             ),
@@ -348,7 +444,10 @@ class _ElevatedCardDemo extends StatelessWidget {
           Card(
             elevation: 4,
             child: ListTile(
-              leading: Icon(Icons.landscape, color: Theme.of(context).colorScheme.tertiary),
+              leading: Icon(
+                Icons.landscape,
+                color: Theme.of(context).colorScheme.tertiary,
+              ),
               title: const Text('景观设计'),
               subtitle: const Text('探索自然之美'),
             ),
@@ -357,7 +456,10 @@ class _ElevatedCardDemo extends StatelessWidget {
           Card(
             elevation: 8,
             child: ListTile(
-              leading: Icon(Icons.chair, color: Theme.of(context).colorScheme.error),
+              leading: Icon(
+                Icons.chair,
+                color: Theme.of(context).colorScheme.error,
+              ),
               title: const Text('室内设计'),
               subtitle: const Text('打造温馨家居'),
             ),
@@ -390,14 +492,16 @@ class _CardCategory extends StatelessWidget {
           children: [
             Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
               description,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 16),
             child,

@@ -270,24 +270,27 @@ class _MusicTabState extends State<MusicTab> {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
           ),
         ),
-        Card(
-          borderOnForeground: true,
-          child: Column(
-            children: localPlaylist.asMap().entries.map((entry) {
-              final index = entry.key;
-              final data = entry.value;
-              final isLast = index == localPlaylist.length - 1;
-              return _LocalRankingItem(
-                data: data,
-                rank: index + 1,
-                isLast: isLast,
-                // 点击：切换到对应曲目并跳转播放器页
-                onTap: () {
-                  Get.find<MusicPlayerController>().selectTrack(index);
-                  // Get.toNamed(Routes.musicPlayer);
-                },
-              );
-            }).toList(),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          child: Card(
+            borderOnForeground: true,
+            child: Column(
+              children: localPlaylist.asMap().entries.map((entry) {
+                final index = entry.key;
+                final data = entry.value;
+                final isLast = index == localPlaylist.length - 1;
+                return _LocalRankingItem(
+                  data: data,
+                  rank: index + 1,
+                  isLast: isLast,
+                  // 点击：切换到对应曲目并跳转播放器页
+                  onTap: () {
+                    Get.find<MusicPlayerController>().selectTrack(index);
+                    // Get.toNamed(Routes.musicPlayer);
+                  },
+                );
+              }).toList(),
+            ),
           ),
         ),
       ],

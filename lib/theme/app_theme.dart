@@ -106,12 +106,13 @@ class AppTheme {
       // 卡片
       cardTheme: CardThemeData(
         elevation: 0,
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        // margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         color: white,
+        margin: EdgeInsets.zero,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: gray200, width: 1),
+          side: const BorderSide(color: gray100, width: 1),
         ),
       ),
 
@@ -119,8 +120,13 @@ class AppTheme {
       listTileTheme: const ListTileThemeData(
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         minLeadingWidth: 24,
-        iconColor: gray600,
-        textColor: gray900,
+        iconColor: gray800,
+        titleTextStyle: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: gray900,
+        ),
+        subtitleTextStyle: TextStyle(fontSize: 13, color: gray600),
       ),
 
       // 分割线
@@ -134,16 +140,13 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
           foregroundColor: white,
           backgroundColor: primary,
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
 
@@ -156,10 +159,7 @@ class AppTheme {
           ),
           side: const BorderSide(color: gray300, width: 1),
           foregroundColor: gray800,
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
 
@@ -167,14 +167,9 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           foregroundColor: primary,
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
 
@@ -182,7 +177,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: gray50,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide.none,
@@ -217,8 +215,14 @@ class AppTheme {
         elevation: 8,
         showSelectedLabels: true,
         showUnselectedLabels: true,
-        selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+        selectedLabelStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w400,
+        ),
       ),
 
       // Tab 栏
@@ -226,7 +230,10 @@ class AppTheme {
         labelColor: primary,
         unselectedLabelColor: gray500,
         labelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
         indicator: UnderlineTabIndicator(
           borderSide: BorderSide(color: primary, width: 3),
         ),
@@ -268,9 +275,7 @@ class AppTheme {
         }),
         checkColor: WidgetStateProperty.all(white),
         side: const BorderSide(color: gray400, width: 2),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
 
       // Radio
@@ -286,18 +291,13 @@ class AppTheme {
         backgroundColor: white,
         surfaceTintColor: Colors.transparent,
         elevation: 8,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         titleTextStyle: const TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: gray900,
         ),
-        contentTextStyle: const TextStyle(
-          fontSize: 16,
-          color: gray700,
-        ),
+        contentTextStyle: const TextStyle(fontSize: 16, color: gray700),
       ),
 
       // BottomSheet
@@ -317,9 +317,7 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         backgroundColor: gray900,
         contentTextStyle: const TextStyle(color: white, fontSize: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         behavior: SnackBarBehavior.floating,
       ),
 
@@ -414,12 +412,12 @@ class AppTheme {
       // 卡片
       cardTheme: CardThemeData(
         elevation: 0,
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         color: const Color(0xFF1E1E1E),
+        margin: EdgeInsets.zero,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: gray700, width: 1),
+          side: BorderSide.none,
         ),
       ),
 
@@ -427,8 +425,13 @@ class AppTheme {
       listTileTheme: const ListTileThemeData(
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         minLeadingWidth: 24,
-        iconColor: gray400,
-        textColor: gray100,
+        iconColor: gray100,
+        titleTextStyle: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: white,
+        ),
+        subtitleTextStyle: TextStyle(fontSize: 13, color: gray300),
       ),
 
       // 分割线
@@ -448,10 +451,7 @@ class AppTheme {
           ),
           foregroundColor: black,
           backgroundColor: white,
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
 
@@ -464,10 +464,7 @@ class AppTheme {
           ),
           side: const BorderSide(color: gray600, width: 1),
           foregroundColor: gray100,
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
 
@@ -475,14 +472,9 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           foregroundColor: white,
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
 
@@ -490,7 +482,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: const Color(0xFF2A2A2A),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide.none,
@@ -525,8 +520,14 @@ class AppTheme {
         elevation: 8,
         showSelectedLabels: true,
         showUnselectedLabels: true,
-        selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+        selectedLabelStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w400,
+        ),
       ),
 
       // Tab 栏
@@ -534,7 +535,10 @@ class AppTheme {
         labelColor: white,
         unselectedLabelColor: gray500,
         labelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
         indicator: UnderlineTabIndicator(
           borderSide: BorderSide(color: white, width: 3),
         ),
@@ -576,9 +580,7 @@ class AppTheme {
         }),
         checkColor: WidgetStateProperty.all(black),
         side: const BorderSide(color: gray500, width: 2),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
 
       // Radio
@@ -594,18 +596,13 @@ class AppTheme {
         backgroundColor: const Color(0xFF2A2A2A),
         surfaceTintColor: Colors.transparent,
         elevation: 16,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         titleTextStyle: const TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: gray100,
         ),
-        contentTextStyle: const TextStyle(
-          fontSize: 16,
-          color: gray400,
-        ),
+        contentTextStyle: const TextStyle(fontSize: 16, color: gray400),
       ),
 
       // BottomSheet
@@ -625,9 +622,7 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         backgroundColor: gray200,
         contentTextStyle: const TextStyle(color: gray900, fontSize: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         behavior: SnackBarBehavior.floating,
       ),
 

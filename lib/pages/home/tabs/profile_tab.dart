@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:komodo/components/switch_theme.dart';
+import 'package:komodo/pages/design_system/design_system_page.dart';
 import 'package:komodo/routes/app_routes.dart';
 
 class ProfileTab extends StatefulWidget {
@@ -28,11 +30,8 @@ class _ProfileTabState extends State<ProfileTab> {
 
     return Scaffold(
       appBar: AppBar(
-        // leading: IconButton(
-        //   icon: const Icon(Icons.more_horiz),
-        //   onPressed: () {},
-        // ),
         actions: [
+          const SwitchThemeWidget(),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
@@ -41,200 +40,213 @@ class _ProfileTabState extends State<ProfileTab> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Avatar with plus badge
-            Row(
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(left: 16),
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 4),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withAlpha(20),
-                              blurRadius: 5,
-                              offset: const Offset(0, 0),
-                            ),
-                          ],
-                          image: const DecorationImage(
-                            image: NetworkImage(
-                              'https://picsum.photos/seed/mv2/100/100',
-                            ),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      // Plus badge
-                      Positioned(
-                        bottom: 0,
-                        right: -4,
-                        child: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: colorScheme.onSurface,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 3),
-                          ),
-                          child: Icon(
-                            Icons.add,
-                            size: 18,
-                            color: colorScheme.surface,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      body: ListView(
+        children: [
+          // Avatar with plus badge
+          Row(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(left: 16),
+                child: Stack(
+                  clipBehavior: Clip.none,
                   children: [
                     Container(
-                      margin: const EdgeInsets.only(left: 16),
-                      child: Text(
-                        _userName,
-                        style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 4),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(20),
+                            blurRadius: 5,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
+                        image: const DecorationImage(
+                          image: NetworkImage(
+                            'https://picsum.photos/seed/mv2/100/100',
+                          ),
+                          fit: BoxFit.cover,
                         ),
                       ),
                     ),
-
-                    const SizedBox(height: 4),
-                    // Location
-                    Container(
-                      margin: const EdgeInsets.only(left: 16),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.location_on,
-                            size: 16,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            _location,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
+                    // Plus badge
+                    Positioned(
+                      bottom: 0,
+                      right: -4,
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: colorScheme.onSurface,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 3),
+                        ),
+                        child: Icon(
+                          Icons.add,
+                          size: 18,
+                          color: colorScheme.surface,
+                        ),
                       ),
                     ),
                   ],
                 ),
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(left: 16),
+                    child: Text(
+                      _userName,
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 4),
+                  // Location
+                  Container(
+                    margin: const EdgeInsets.only(left: 16),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.location_on,
+                          size: 16,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _location,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // User info
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Row(
+              children: [
+                Text(
+                  '互相关注 $_following',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 12),
+                  width: 1,
+                  height: 12,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                Text(
+                  '关注 $_followers',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 12),
+                  width: 1,
+                  height: 12,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                Text(
+                  '粉丝 $_following',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Expanded(child: Container()),
+                SizedBox(
+                  child: ElevatedButton(
+                    onPressed: () => Get.toNamed(Routes.livePush),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.onSurface,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      '开直播',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.surface,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
+          ),
 
-            const SizedBox(height: 16),
+          // const SizedBox(height: 16),
 
-            // User info
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: Row(
-                children: [
-                  Text(
-                    '$_followers 关注',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
+          // Stats cards row
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildStatsCard(
+                    icon: Icons.change_history,
+                    count: '$_activities',
+                    title: 'Activities',
+                    colorScheme: colorScheme,
                   ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 12),
-                    width: 1,
-                    height: 12,
-                    color: colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildStatsCard(
+                    icon: Icons.multitrack_audio,
+                    count: '6,815',
+                    title: 'Multitrack',
+                    colorScheme: colorScheme,
                   ),
-                  Text(
-                    '$_following 已关注',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Expanded(child: Container()),
-                  SizedBox(
-                    child: ElevatedButton(
-                      onPressed: () => Get.toNamed(Routes.livePush),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.onSurface,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        '开直播',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: colorScheme.surface,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
+          ),
 
-            // const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
-            // Stats cards row
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildStatsCard(
-                      icon: Icons.change_history,
-                      count: '$_activities',
-                      title: 'Activities',
-                      colorScheme: colorScheme,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildStatsCard(
-                      icon: Icons.multitrack_audio,
-                      count: '6,815',
-                      title: 'Multitrack',
-                      colorScheme: colorScheme,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          // Tab navigation
+          _buildTabNavigation(context, isDark),
 
-            const SizedBox(height: 20),
+          const SizedBox(height: 12),
 
-            // Tab navigation
-            _buildTabNavigation(context, isDark),
-
-            const SizedBox(height: 8),
-
-            // Feed list
-            // ..._feedItems.map((item) => _buildFeedItem(context, item, isDark)),
-            const SizedBox(height: 100),
-            const Center(child: Text('Coming soon')),
-            const SizedBox(height: 100),
-          ],
-        ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: buildDesignSystemHeader(context),
+          ),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: buildDesignSystemSectionGrid(context),
+          ),
+          const SizedBox(height: 100),
+        ],
       ),
     );
   }
@@ -252,7 +264,7 @@ class _ProfileTabState extends State<ProfileTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, size: 26, color: colorScheme.onSurfaceVariant),
+            Icon(icon, size: 26, color: colorScheme.onSurface),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -278,7 +290,7 @@ class _ProfileTabState extends State<ProfileTab> {
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w600,
-                color: colorScheme.onSurfaceVariant,
+                color: colorScheme.onSurface,
               ),
             ),
           ],
@@ -318,14 +330,7 @@ class _ProfileTabState extends State<ProfileTab> {
                                 : FontWeight.w500,
                             color: isSelected
                                 ? primaryColor
-                                : (isDark
-                                      ? Colors.white54
-                                      : const Color.fromARGB(
-                                          255,
-                                          101,
-                                          100,
-                                          100,
-                                        )),
+                                : colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 4),

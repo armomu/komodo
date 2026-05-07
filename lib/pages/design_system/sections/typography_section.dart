@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:komodo/components/switch_theme.dart';
 
 /// ========================================
 /// 字体规范 - Material 3 Typography
@@ -11,10 +12,7 @@ class TypographySection extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('字体规范'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+        actions: const [SwitchThemeWidget()],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -47,17 +45,25 @@ class TypographySection extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.text_fields, color: Theme.of(context).colorScheme.primary),
+                Icon(
+                  Icons.text_fields,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
-                Text('字体系统', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  '字体系统',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
             Text(
               'Material 3 使用系统字体，通过 TextTheme 定义不同的文本样式层次。字体规范确保应用内的文本具有一致的视觉层次和可读性。',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -136,7 +142,12 @@ class TypographySection extends StatelessWidget {
               children: [
                 Icon(Icons.code, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 8),
-                Text('代码样式', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  '代码样式',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -184,21 +195,23 @@ class _TypographyCategory extends StatelessWidget {
           children: [
             Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
               description,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 8),
-            ...styles.map((style) => _TextPreview(name: style.$1, style: style.$2)),
+            ...styles.map(
+              (style) => _TextPreview(name: style.$1, style: style.$2),
+            ),
           ],
         ),
       ),
@@ -230,16 +243,16 @@ class _TextPreview extends StatelessWidget {
                 child: Text(
                   name,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
               Text(
                 '${style.fontSize?.toInt() ?? 0}px / ${style.fontWeight?.toString().replaceAll('FontWeight.w', '') ?? 'normal'}',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),

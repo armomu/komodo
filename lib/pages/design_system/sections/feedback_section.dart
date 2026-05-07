@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:komodo/components/switch_theme.dart';
 import '../../../theme/app_theme.dart';
 
 /// ========================================
@@ -12,10 +13,7 @@ class FeedbackSection extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('反馈组件'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+        actions: const [SwitchThemeWidget()],
       ),
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(16),
@@ -44,7 +42,11 @@ class FeedbackSection extends StatelessWidget {
 class _SnackBarDemo extends StatelessWidget {
   const _SnackBarDemo();
 
-  void _showSnackBar(BuildContext context, String msg, {Color? backgroundColor}) {
+  void _showSnackBar(
+    BuildContext context,
+    String msg, {
+    Color? backgroundColor,
+  }) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg),
@@ -68,25 +70,34 @@ class _SnackBarDemo extends StatelessWidget {
             child: const Text('默认'),
           ),
           ElevatedButton(
-            onPressed: () => _showSnackBar(context, '成功操作！', backgroundColor: AppTheme.success),
+            onPressed: () => _showSnackBar(
+              context,
+              '成功操作！',
+              backgroundColor: AppTheme.success,
+            ),
             child: const Text('成功'),
           ),
           ElevatedButton(
-            onPressed: () => _showSnackBar(context, '发生错误！', backgroundColor: AppTheme.error),
+            onPressed: () => _showSnackBar(
+              context,
+              '发生错误！',
+              backgroundColor: AppTheme.error,
+            ),
             child: const Text('错误'),
           ),
           ElevatedButton(
-            onPressed: () => _showSnackBar(context, '警告信息', backgroundColor: AppTheme.warning),
+            onPressed: () => _showSnackBar(
+              context,
+              '警告信息',
+              backgroundColor: AppTheme.warning,
+            ),
             child: const Text('警告'),
           ),
           ElevatedButton(
             onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: const Text('带操作按钮的提示'),
-                action: SnackBarAction(
-                  label: '撤销',
-                  onPressed: () {},
-                ),
+                action: SnackBarAction(label: '撤销', onPressed: () {}),
               ),
             ),
             child: const Text('带操作'),
@@ -121,12 +132,12 @@ class _BannerDemo extends StatelessWidget {
             message: '横幅消息',
             location: BannerLocation.topEnd,
             color: Theme.of(context).colorScheme.error,
-            child: Card(
+            child: const Card(
               margin: EdgeInsets.zero,
               child: ListTile(
-                leading: const Icon(Icons.warning),
-                title: const Text('带 Banner 的卡片'),
-                subtitle: const Text('顶部显示横幅'),
+                leading: Icon(Icons.warning),
+                title: Text('带 Banner 的卡片'),
+                subtitle: Text('顶部显示横幅'),
               ),
             ),
           ),
@@ -135,12 +146,12 @@ class _BannerDemo extends StatelessWidget {
             message: '新功能',
             location: BannerLocation.bottomStart,
             color: Theme.of(context).colorScheme.primary,
-            child: Card(
+            child: const Card(
               margin: EdgeInsets.zero,
               child: ListTile(
-                leading: const Icon(Icons.new_releases),
-                title: const Text('另一个 Banner'),
-                subtitle: const Text('底部显示'),
+                leading: Icon(Icons.new_releases),
+                title: Text('另一个 Banner'),
+                subtitle: Text('底部显示'),
               ),
             ),
           ),
@@ -183,9 +194,9 @@ class _TooltipDemo extends StatelessWidget {
               onPressed: () {},
             ),
           ),
-          Tooltip(
+          const Tooltip(
             message: '禁用状态',
-            child: ElevatedButton(onPressed: null, child: const Text('禁用按钮')),
+            child: ElevatedButton(onPressed: null, child: Text('禁用按钮')),
           ),
         ],
       ),
@@ -198,7 +209,9 @@ class _InkWellDemo extends StatelessWidget {
   const _InkWellDemo();
 
   void _showSnackBar(BuildContext context, String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), duration: const Duration(seconds: 1)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), duration: const Duration(seconds: 1)),
+    );
   }
 
   @override
@@ -216,23 +229,23 @@ class _InkWellDemo extends StatelessWidget {
               trailing: const Icon(Icons.touch_app),
               onTap: () => _showSnackBar(context, '点击了！'),
             ),
-                        const Divider(height: 1),
+            const Divider(height: 1),
             GestureDetector(
               onTap: () => _showSnackBar(context, '点击了！'),
               onDoubleTap: () => _showSnackBar(context, '双击了！'),
-              child: ListTile(
-                title: const Text('双击效果'),
-                subtitle: const Text('试试双击此处'),
-                trailing: const Icon(Icons.ads_click),
+              child: const ListTile(
+                title: Text('双击效果'),
+                subtitle: Text('试试双击此处'),
+                trailing: Icon(Icons.ads_click),
               ),
             ),
             const Divider(height: 1),
             GestureDetector(
               onLongPress: () => _showSnackBar(context, '长按了！'),
-              child: ListTile(
-                title: const Text('长按效果'),
-                subtitle: const Text('试试长按此处'),
-                trailing: const Icon(Icons.touch_app_outlined),
+              child: const ListTile(
+                title: Text('长按效果'),
+                subtitle: Text('试试长按此处'),
+                trailing: Icon(Icons.touch_app_outlined),
               ),
             ),
           ],
@@ -259,7 +272,10 @@ class _BadgeDemo extends StatelessWidget {
             children: [
               Badge(
                 label: const Text('3'),
-                child: IconButton(icon: const Icon(Icons.notifications), onPressed: () {}),
+                child: IconButton(
+                  icon: const Icon(Icons.notifications),
+                  onPressed: () {},
+                ),
               ),
               const SizedBox(height: 4),
               const Text('数字', style: TextStyle(fontSize: 12)),
@@ -269,7 +285,10 @@ class _BadgeDemo extends StatelessWidget {
             children: [
               Badge(
                 label: const Text('99+'),
-                child: IconButton(icon: const Icon(Icons.email), onPressed: () {}),
+                child: IconButton(
+                  icon: const Icon(Icons.email),
+                  onPressed: () {},
+                ),
               ),
               const SizedBox(height: 4),
               const Text('99+', style: TextStyle(fontSize: 12)),
@@ -280,7 +299,10 @@ class _BadgeDemo extends StatelessWidget {
               Badge(
                 label: const Text('新'),
                 smallSize: 8,
-                child: IconButton(icon: const Icon(Icons.star), onPressed: () {}),
+                child: IconButton(
+                  icon: const Icon(Icons.star),
+                  onPressed: () {},
+                ),
               ),
               const SizedBox(height: 4),
               const Text('小徽章', style: TextStyle(fontSize: 12)),
@@ -291,7 +313,10 @@ class _BadgeDemo extends StatelessWidget {
               Badge(
                 label: const Text('热门'),
                 backgroundColor: AppTheme.accent,
-                child: IconButton(icon: const Icon(Icons.trending_up), onPressed: () {}),
+                child: IconButton(
+                  icon: const Icon(Icons.trending_up),
+                  onPressed: () {},
+                ),
               ),
               const SizedBox(height: 4),
               const Text('自定义颜色', style: TextStyle(fontSize: 12)),
@@ -300,7 +325,10 @@ class _BadgeDemo extends StatelessWidget {
           Column(
             children: [
               Badge(
-                child: IconButton(icon: const Icon(Icons.message), onPressed: () {}),
+                child: IconButton(
+                  icon: const Icon(Icons.message),
+                  onPressed: () {},
+                ),
               ),
               const SizedBox(height: 4),
               const Text('无文字', style: TextStyle(fontSize: 12)),
@@ -318,24 +346,30 @@ class _ProgressIndicatorFullDemo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _FeedbackCategory(
+    return const _FeedbackCategory(
       title: 'ProgressIndicator',
       description: '进度指示器',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('LinearProgressIndicator', style: TextStyle(fontSize: 12, color: Colors.grey)),
-          const SizedBox(height: 8),
-          const LinearProgressIndicator(),
-          const SizedBox(height: 8),
-          const LinearProgressIndicator(value: 0.3),
-          const SizedBox(height: 8),
-          const LinearProgressIndicator(value: 0.6),
-          const SizedBox(height: 8),
-          const LinearProgressIndicator(value: 0.9),
-          const SizedBox(height: 16),
-          const Text('CircularProgressIndicator', style: TextStyle(fontSize: 12, color: Colors.grey)),
-          const SizedBox(height: 8),
+          Text(
+            'LinearProgressIndicator',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          SizedBox(height: 8),
+          LinearProgressIndicator(),
+          SizedBox(height: 8),
+          LinearProgressIndicator(value: 0.3),
+          SizedBox(height: 8),
+          LinearProgressIndicator(value: 0.6),
+          SizedBox(height: 8),
+          LinearProgressIndicator(value: 0.9),
+          SizedBox(height: 16),
+          Text(
+            'CircularProgressIndicator',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -349,14 +383,14 @@ class _ProgressIndicatorFullDemo extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          const Text('自定义颜色', style: TextStyle(fontSize: 12, color: Colors.grey)),
-          const SizedBox(height: 8),
-          const LinearProgressIndicator(value: 0.3, color: AppTheme.accent),
-          const SizedBox(height: 8),
-          const LinearProgressIndicator(value: 0.6, color: AppTheme.success),
-          const SizedBox(height: 8),
-          const LinearProgressIndicator(value: 0.8, color: AppTheme.error),
+          SizedBox(height: 16),
+          Text('自定义颜色', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          SizedBox(height: 8),
+          LinearProgressIndicator(value: 0.3, color: AppTheme.accent),
+          SizedBox(height: 8),
+          LinearProgressIndicator(value: 0.6, color: AppTheme.success),
+          SizedBox(height: 8),
+          LinearProgressIndicator(value: 0.8, color: AppTheme.error),
         ],
       ),
     );
@@ -385,14 +419,16 @@ class _FeedbackCategory extends StatelessWidget {
           children: [
             Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
               description,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 16),
             child,
