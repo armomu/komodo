@@ -560,19 +560,19 @@ class _ChatContentState extends State<_ChatContent>
   }
 
   Widget _buildTimestamp(String time) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
-            color: isDark ? Colors.white12 : Colors.grey[300]!,
+            color: colorScheme.surfaceContainer,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
             time,
-            style: TextStyle(fontSize: 12, color: isDark ? Colors.white54 : Colors.grey[600]!),
+            style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
           ),
         ),
       ),
@@ -582,7 +582,6 @@ class _ChatContentState extends State<_ChatContent>
   Widget _buildTextMessage(_ChatMessage msg, BuildContext context, String peerAvatar) {
     final isMe = msg.isMe;
     final colorScheme = Theme.of(context).colorScheme;
-    final isDark = colorScheme.brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
@@ -602,7 +601,7 @@ class _ChatContentState extends State<_ChatContent>
               decoration: BoxDecoration(
                 color: isMe
                     ? colorScheme.primary
-                    : (isDark ? const Color(0xFF3A3A3C) : colorScheme.surface),
+                    : colorScheme.surfaceContainer,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(18),
                   topRight: const Radius.circular(18),
@@ -615,8 +614,8 @@ class _ChatContentState extends State<_ChatContent>
                 style: TextStyle(
                   fontSize: 15,
                   color: isMe
-                      ? Colors.white
-                      : (isDark ? Colors.white : Colors.black87),
+                      ? colorScheme.onPrimary
+                      : colorScheme.onSurface,
                   height: 1.4,
                 ),
               ),
@@ -636,13 +635,12 @@ class _ChatContentState extends State<_ChatContent>
     String peerAvatar,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isDark = colorScheme.brightness == Brightness.dark;
     final avatarUrl = msg.isMe ? _myAvatar : peerAvatar;
     final isPlaying = _playingVoiceIndex == index;
     final primaryColor = colorScheme.primary;
     final bubbleWidth = (80.0 + (msg.duration ?? 3) * 10.0).clamp(80.0, 180.0);
-    final peerBubbleColor = isDark ? const Color(0xFF3A3A3C) : colorScheme.surface;
-    final peerBubbleTextColor = isDark ? Colors.white : Colors.black87;
+    final peerBubbleColor = colorScheme.surfaceContainer;
+    final peerBubbleTextColor = colorScheme.onSurface;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -694,7 +692,7 @@ class _ChatContentState extends State<_ChatContent>
                     isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
                     size: 20,
                     color: msg.isMe
-                        ? Colors.white
+                        ? colorScheme.onPrimary
                         : peerBubbleTextColor.withValues(alpha: 0.7),
                   ),
                   const SizedBox(width: 4),
@@ -704,7 +702,7 @@ class _ChatContentState extends State<_ChatContent>
                           Icons.graphic_eq,
                           size: 18,
                           color: msg.isMe
-                              ? Colors.white70
+                              ? colorScheme.onPrimary.withValues(alpha: 0.7)
                               : peerBubbleTextColor.withValues(alpha: 0.5),
                         ),
                   const SizedBox(width: 4),
@@ -715,7 +713,7 @@ class _ChatContentState extends State<_ChatContent>
                       style: TextStyle(
                         fontSize: 12,
                         color: msg.isMe
-                            ? Colors.white
+                            ? colorScheme.onPrimary
                             : peerBubbleTextColor.withValues(alpha: 0.7),
                       ),
                     ),
@@ -732,10 +730,10 @@ class _ChatContentState extends State<_ChatContent>
   }
 
   Widget _buildPlayingWave(bool isMe, BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
     final color = isMe
-        ? Colors.white70
-        : (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.5);
+        ? colorScheme.onPrimary.withValues(alpha: 0.7)
+        : colorScheme.onSurface.withValues(alpha: 0.5);
     return SizedBox(
       width: 18,
       height: 18,
@@ -823,14 +821,14 @@ class _ChatContentState extends State<_ChatContent>
   }
 
   Widget _buildImagePlaceholder(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       width: 180,
       height: 240,
-      color: isDark ? const Color(0xFF2C2C2C) : Colors.grey[200],
+      color: colorScheme.surfaceContainerHighest,
       child: Icon(
         Icons.broken_image,
-        color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.3),
+        color: colorScheme.onSurface.withValues(alpha: 0.3),
         size: 40,
       ),
     );
@@ -886,11 +884,11 @@ class _ChatContentState extends State<_ChatContent>
   );
 
   Widget _buildAvatarWidget(String url, BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
     return CircleAvatar(
       radius: 20,
       backgroundImage: NetworkImage(url),
-      backgroundColor: isDark ? const Color(0xFF2C2C2C) : Colors.grey[200],
+      backgroundColor: colorScheme.surfaceContainerHighest,
     );
   }
 
@@ -902,13 +900,12 @@ class _ChatContentState extends State<_ChatContent>
     BuildContext context,
     ColorScheme colorScheme,
   ) {
-    final isDark = colorScheme.brightness == Brightness.dark;
     return Container(
     decoration: BoxDecoration(
       color: colorScheme.surface,
       border: Border(
         top: BorderSide(
-          color: isDark ? Colors.white12 : Colors.grey[300]!,
+          color: colorScheme.outline.withValues(alpha: 0.3),
           width: 0.5,
         ),
       ),
@@ -997,7 +994,6 @@ class _ChatContentState extends State<_ChatContent>
   Widget _buildTextInputField(
     ColorScheme colorScheme,
   ) {
-    final isDark = colorScheme.brightness == Brightness.dark;
     return Container(
       height: 40,
       decoration: BoxDecoration(
@@ -1009,7 +1005,7 @@ class _ChatContentState extends State<_ChatContent>
         focusNode: _focusNode,
         style: TextStyle(
           fontSize: 14,
-          color: isDark ? Colors.white : Colors.black87,
+          color: colorScheme.onSurface,
         ),
         decoration: InputDecoration(
           hintStyle: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
@@ -1023,9 +1019,6 @@ class _ChatContentState extends State<_ChatContent>
   }
 
   Widget _buildVoiceRecordBar(ColorScheme colorScheme) {
-    final isDark = colorScheme.brightness == Brightness.dark;
-    final peerBubbleTextColor = isDark ? Colors.white : Colors.black87;
-    final iconBarBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5);
     return GestureDetector(
       onLongPressStart: (_) => _startRecording(),
       onLongPressEnd: (_) => _stopRecording(),
@@ -1035,7 +1028,7 @@ class _ChatContentState extends State<_ChatContent>
         decoration: BoxDecoration(
           color: _recordState == _RecordState.recording
               ? colorScheme.primary.withValues(alpha: 0.15)
-              : iconBarBgColor,
+              : colorScheme.surfaceContainer,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: _recordState == _RecordState.recording
@@ -1052,7 +1045,7 @@ class _ChatContentState extends State<_ChatContent>
               size: 16,
               color: _recordState == _RecordState.recording
                   ? colorScheme.primary
-                  : peerBubbleTextColor.withValues(alpha: 0.5),
+                  : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             const SizedBox(width: 6),
             Text(
@@ -1062,7 +1055,7 @@ class _ChatContentState extends State<_ChatContent>
                 fontWeight: FontWeight.w500,
                 color: _recordState == _RecordState.recording
                     ? colorScheme.primary
-                    : peerBubbleTextColor.withValues(alpha: 0.5),
+                    : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
               ),
             ),
           ],
@@ -1075,13 +1068,12 @@ class _ChatContentState extends State<_ChatContent>
     BuildContext context,
     ColorScheme colorScheme,
   ) {
-    final isDark = colorScheme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: isDark ? Colors.white12 : Colors.grey[300]!,
+            color: colorScheme.outline.withValues(alpha: 0.3),
             width: 0.5,
           ),
         ),
@@ -1135,8 +1127,6 @@ class _ChatContentState extends State<_ChatContent>
     required VoidCallback onTap,
     bool isPrimary = false,
   }) {
-    final isDark = colorScheme.brightness == Brightness.dark;
-    final iconBarBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5);
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -1148,7 +1138,7 @@ class _ChatContentState extends State<_ChatContent>
             decoration: BoxDecoration(
               color: isPrimary
                   ? null
-                  : iconBarBgColor,
+                  : colorScheme.surfaceContainer,
               gradient: isPrimary
                   ? const LinearGradient(
                       colors: [Color(0xFFFF6B81), Color(0xFFFF4757)],
@@ -1176,11 +1166,10 @@ class _ChatContentState extends State<_ChatContent>
 
   Widget _buildEmojiPicker(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isDark = colorScheme.brightness == Brightness.dark;
     return Container(
       height: 220,
       padding: const EdgeInsets.all(12),
-      color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5),
+      color: colorScheme.surfaceContainer,
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 8,
@@ -1194,7 +1183,7 @@ class _ChatContentState extends State<_ChatContent>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              color: isDark ? const Color(0xFF3A3A3C) : colorScheme.surface,
+              color: colorScheme.surfaceContainer,
             ),
             alignment: Alignment.center,
             child: Text(EmojiList[index], style: const TextStyle(fontSize: 24)),
@@ -1237,10 +1226,9 @@ class _RecordOverlayRecording extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final isDark = cs.brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+        color: cs.surface,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
@@ -1263,7 +1251,7 @@ class _RecordOverlayRecording extends StatelessWidget {
               height: 4,
               margin: const EdgeInsets.only(top: 10),
               decoration: BoxDecoration(
-                color: isDark ? Colors.white12 : Colors.grey[300]!,
+                color: cs.outline.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -1299,7 +1287,7 @@ class _RecordOverlayRecording extends StatelessWidget {
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w300,
-                color: isDark ? Colors.white : Colors.black87,
+                color: cs.onSurface,
                 letterSpacing: 2,
               ),
             ),
@@ -1308,7 +1296,7 @@ class _RecordOverlayRecording extends StatelessWidget {
               '松手结束录音',
               style: TextStyle(
                 fontSize: 13,
-                color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.5),
+                color: cs.onSurface.withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: 16),
@@ -1326,8 +1314,6 @@ class _RecordOverlayPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final isDark = cs.brightness == Brightness.dark;
-    final peerBubbleTextColor = isDark ? Colors.white : Colors.black87;
     final dur = state._recordSeconds.clamp(1, 60);
     final playing = state._previewPlaying;
 
@@ -1336,7 +1322,7 @@ class _RecordOverlayPreview extends StatelessWidget {
       height: 4,
       margin: const EdgeInsets.only(top: 10),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white12 : Colors.grey[300]!,
+        color: cs.outline.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(2),
       ),
     );
@@ -1360,7 +1346,7 @@ class _RecordOverlayPreview extends StatelessWidget {
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5),
+          color: cs.surfaceContainer,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
@@ -1369,7 +1355,7 @@ class _RecordOverlayPreview extends StatelessWidget {
             Icon(
               Icons.delete_outline,
               size: 18,
-              color: peerBubbleTextColor.withValues(alpha: 0.5),
+              color: cs.onSurface.withValues(alpha: 0.5),
             ),
             const SizedBox(width: 6),
             Text(
@@ -1377,7 +1363,7 @@ class _RecordOverlayPreview extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
-                color: peerBubbleTextColor.withValues(alpha: 0.5),
+                color: cs.onSurface.withValues(alpha: 0.5),
               ),
             ),
           ],
@@ -1424,7 +1410,7 @@ class _RecordOverlayPreview extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+        color: cs.surface,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
@@ -1449,7 +1435,7 @@ class _RecordOverlayPreview extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: peerBubbleTextColor,
+                color: cs.onSurface,
               ),
             ),
             const SizedBox(height: 12),
@@ -1458,7 +1444,7 @@ class _RecordOverlayPreview extends StatelessWidget {
               playing ? '播放中...' : '点击播放',
               style: TextStyle(
                 fontSize: 12,
-                color: peerBubbleTextColor.withValues(alpha: 0.5),
+                color: cs.onSurface.withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: 16),
