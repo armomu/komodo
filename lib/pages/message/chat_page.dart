@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:komodo/pages/message/emojis.dart';
-import 'package:komodo/pages/message/image_viewer_page.dart';
+import 'package:komodo/routes/app_routes.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:komodo/pages/music/music_player_controller.dart';
@@ -774,13 +774,12 @@ class _ChatContentState extends State<_ChatContent>
   }
 
   void _openImageViewer(BuildContext context, String imageUrl, bool isLocalImage) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ImageViewerPage(
-          imageUrl: imageUrl,
-          isLocalImage: isLocalImage,
-        ),
-      ),
+    Get.toNamed(
+      Routes.imageViewer,
+      arguments: {
+        'imageUrl': imageUrl,
+        'isLocalImage': isLocalImage,
+      },
     );
   }
 

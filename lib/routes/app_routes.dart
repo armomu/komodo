@@ -3,6 +3,7 @@ import 'package:komodo/pages/live/live_push.dart';
 import 'package:komodo/pages/live/push_demo.dart';
 import 'package:komodo/pages/music/music_player_page.dart';
 import 'package:komodo/pages/message/chat_page.dart';
+import 'package:komodo/pages/message/image_viewer_page.dart';
 import 'package:komodo/pages/design_system/design_system_page.dart';
 import '../pages/home/home_page.dart';
 import '../pages/settings/settings_page.dart';
@@ -25,6 +26,7 @@ abstract class Routes {
   static const String livePush = '/live-push';
   static const String musicPlayer = '/music-player';
   static const String chat = '/chat';
+  static const String imageViewer = '/image-viewer';
 }
 
 /// 路由配置
@@ -103,6 +105,12 @@ class AppPages {
       page: () => const ChatPage(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: Routes.imageViewer,
+      page: () => const ImageViewerPage(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 200),
     ),
   ];
 }

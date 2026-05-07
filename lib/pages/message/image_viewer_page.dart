@@ -1,20 +1,18 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// 图片查看页面
 /// 支持缩放、分享
+/// 通过 GetX 路由传参：arguments: {'imageUrl': ..., 'isLocalImage': ...}
 class ImageViewerPage extends StatelessWidget {
-  final String imageUrl;
-  final bool isLocalImage;
+  const ImageViewerPage({super.key});
 
-  const ImageViewerPage({
-    super.key,
-    required this.imageUrl,
-    this.isLocalImage = false,
-  });
+  String get imageUrl => Get.arguments['imageUrl'] as String? ?? '';
+  bool get isLocalImage => Get.arguments['isLocalImage'] as bool? ?? false;
 
   @override
   Widget build(BuildContext context) {
