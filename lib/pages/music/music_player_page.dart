@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:komodo/pages/music/audio_waveform.dart';
 import 'package:komodo/pages/music/music_player_controller.dart';
 import 'package:komodo/pages/music/playlist_bottom_sheet.dart';
+import 'package:komodo/pages/music/vinyl_record_player.dart';
 
 // 导出数据模型以便其他文件使用
 export 'package:komodo/pages/music/music_models.dart';
@@ -271,7 +273,27 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          const Text('这里是播放动画'),
+          // 黑胶唱片播放动画
+          Center(
+            child: VinylRecordPlayer(
+              size: MediaQuery.of(context).size.width * 0.50,
+            ),
+          ),
+          const SizedBox(height: 20),
+          // 音频波形可视化
+          Center(
+            child: Obx(() => AudioWaveform(
+              barCount: 5,
+              barWidth: 4,
+              barSpacing: 4,
+              barRadius: 2,
+              barColor: Colors.white.withValues(alpha: 0.6),
+              maxHeight: 20,
+              frequency: _controller.isPlaying.value ? 0.7 : 0.3,
+              isPlaying: _controller.isPlaying.value,
+            )),
+          ),
+          const SizedBox(height: 20),
           // 标题行
           Row(
             children: [
