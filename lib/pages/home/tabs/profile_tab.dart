@@ -235,15 +235,9 @@ class _ProfileTabState extends State<ProfileTab> {
           _buildTabNavigation(context, isDark),
 
           const SizedBox(height: 12),
-
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: buildDesignSystemHeader(context),
-          ),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: buildDesignSystemSectionGrid(context),
+            child: buildDesignSystemSectionGrid(context, title: false),
           ),
           const SizedBox(height: 100),
         ],

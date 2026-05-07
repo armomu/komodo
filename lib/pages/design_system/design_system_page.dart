@@ -31,102 +31,15 @@ class DesignSystemPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          buildDesignSystemHeader(context),
-          const SizedBox(height: 24),
           buildDesignSystemSectionGrid(context),
-          const SizedBox(height: 100),
+          const SizedBox(height: 40),
         ],
       ),
     );
   }
 }
 
-Widget buildDesignSystemHeader(BuildContext context) {
-  return Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.palette_outlined,
-                  size: 32,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'KOMODO 设计规范',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Material 3 组件库完整展示',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Divider(),
-          const SizedBox(height: 12),
-          _buildStatRow(context),
-        ],
-      ),
-    ),
-  );
-}
-
-Widget _buildStatRow(BuildContext context) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceAround,
-    children: [
-      _buildStatItem(context, '13', '分类'),
-      _buildStatItem(context, '40+', '组件'),
-      _buildStatItem(context, '200+', '示例'),
-    ],
-  );
-}
-
-Widget _buildStatItem(BuildContext context, String value, String label) {
-  return Column(
-    children: [
-      Text(
-        value,
-        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-      ),
-      Text(
-        label,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      ),
-    ],
-  );
-}
-
-Widget buildDesignSystemSectionGrid(BuildContext context) {
+Widget buildDesignSystemSectionGrid(BuildContext context, {bool title = true}) {
   final sections = [
     _SectionItem(
       title: '颜色系统',
@@ -217,15 +130,16 @@ Widget buildDesignSystemSectionGrid(BuildContext context) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: Text(
-          '组件分类',
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+      if (title)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Text(
+            '组件分类',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
         ),
-      ),
       GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
