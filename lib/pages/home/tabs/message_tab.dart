@@ -182,7 +182,6 @@ class MessageTabState extends State<MessageTab> {
     bool isDark,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isLast = item == _mockMessageList.last;
 
     return Column(
       children: [
@@ -195,7 +194,7 @@ class MessageTabState extends State<MessageTab> {
           },
           behavior: HitTestBehavior.opaque,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
                 // 头像 / 图标
@@ -272,15 +271,15 @@ class MessageTabState extends State<MessageTab> {
           ),
         ),
         // 分割线
-        if (!isLast)
-          Divider(
-            height: 0.5,
-            indent: 76,
-            endIndent: 16,
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.06)
-                : Colors.grey[300],
-          ),
+        // if (!isLast)
+        //   Divider(
+        //     height: 0.5,
+        //     indent: 76,
+        //     endIndent: 16,
+        //     color: isDark
+        //         ? Colors.white.withValues(alpha: 0.06)
+        //         : Colors.grey[300],
+        //   ),
       ],
     );
   }

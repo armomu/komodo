@@ -212,7 +212,7 @@ class AppTheme {
         selectedItemColor: primary,
         unselectedItemColor: gray500,
         type: BottomNavigationBarType.fixed,
-        elevation: 8,
+        elevation: 0,
         showSelectedLabels: true,
         showUnselectedLabels: true,
         selectedLabelStyle: TextStyle(
@@ -517,7 +517,7 @@ class AppTheme {
         selectedItemColor: white,
         unselectedItemColor: gray500,
         type: BottomNavigationBarType.fixed,
-        elevation: 8,
+        elevation: 0,
         showSelectedLabels: true,
         showUnselectedLabels: true,
         selectedLabelStyle: TextStyle(

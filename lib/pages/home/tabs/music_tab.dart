@@ -944,12 +944,12 @@ class _LocalRankingItem extends StatelessWidget {
             ),
           ),
           // 分割线（除了最后一个）
-          if (!isLast)
-            Container(
-              margin: const EdgeInsets.only(left: 60),
-              height: 0.5,
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-            ),
+          // if (!isLast)
+          //   Container(
+          //     margin: const EdgeInsets.only(left: 60),
+          //     height: 0.5,
+          //     color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
+          //   ),
         ],
       );
     });

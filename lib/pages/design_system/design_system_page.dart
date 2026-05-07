@@ -182,12 +182,10 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () {
-          Get.to(() => item.page, transition: Transition.cupertino);
-        },
+    return GestureDetector(
+      onTap: () => Get.to(() => item.page),
+      child: Card(
+        clipBehavior: Clip.antiAlias,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
