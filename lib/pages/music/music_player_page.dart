@@ -303,15 +303,17 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           // 黑胶唱片播放动画
-          Center(
-            child: VinylRecordPlayer(
-              size: MediaQuery.of(context).size.width * 0.50,
-            ),
-          ),
-          const SizedBox(height: 24),
+          Column(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              VinylRecordPlayer(size: MediaQuery.of(context).size.width * 0.50),
 
-          // ── Mini 歌词展示（3行，当前行居中高亮） ──
-          _buildMiniLyrics(),
+              const SizedBox(height: 24),
+
+              // ── Mini 歌词展示（3行，当前行居中高亮） ──
+              _buildMiniLyrics(),
+            ],
+          ),
 
           const SizedBox(height: 20),
           // 标题行
