@@ -272,7 +272,7 @@ class MusicPlayerController extends GetxController {
   Duration? _savedPosition;
   bool _wasPlaying = false;
 
-  /// 播放本地语音文件（录音/消息气泡），播放完成后自动恢复音乐
+  /// 播放语音文件（支持本地路径和网络 URL），播放完成后自动恢复音乐
   Future<void> playVoice(String filePath) async {
     try {
       // 1. 保存当前音乐播放状态
@@ -283,8 +283,17 @@ class MusicPlayerController extends GetxController {
       // 2. 停止当前音乐
       await _audioPlayer.stop();
 
-      // 3. 加载语音文件（不用 MediaItem，直接播文件）
-      await _audioPlayer.setFilePath(filePath);
+      // 3. 根据路径类型选择加载方式
+      final isNetwork = filePath.startsWith('http://') || filePath.startsWith('https://');
+      if (isNetwork) {
+        // 网络 URL
+        debugPrint('【VoicePlayer】加载网络音频: $filePath');
+        await _audioPlayer.setUrl(filePath);
+      } else {
+        // 本地文件
+        debugPrint('【VoicePlayer】加载本地音频: $filePath');
+        await _audioPlayer.setFilePath(filePath);
+      }
       voiceFilePath.value = filePath;
       isPlayingVoice.value = true;
 

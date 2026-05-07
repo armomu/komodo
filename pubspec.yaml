@@ -72,6 +72,12 @@ dependencies:
   # 图片选择
   image_picker: ^1.0.4
 
+  # 图片查看（缩放）
+  photo_view: ^0.15.0
+
+  # 分享功能
+  share_plus: ^10.0.0
+
   # 语音录制
   record: ^6.2.0
 

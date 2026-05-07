@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -366,7 +368,17 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   Widget _buildMiniLyrics() {
     return Obx(() {
       final lyricsList = _controller.lyrics;
-      if (lyricsList.isEmpty) return const SizedBox.shrink();
+      if (lyricsList.isEmpty) {
+        return const SizedBox(
+          width: double.infinity,
+          height: _miniLyricVisibleHeight,
+          child: Text(
+            '暂无歌词',
+            style: TextStyle(color: Colors.white70),
+            textAlign: TextAlign.center,
+          ),
+        );
+      }
 
       return SizedBox(
         height: _miniLyricVisibleHeight,

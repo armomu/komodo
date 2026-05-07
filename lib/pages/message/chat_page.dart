@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:komodo/pages/message/emojis.dart';
+import 'package:komodo/pages/message/image_viewer_page.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:komodo/pages/music/music_player_controller.dart';
 
@@ -205,9 +207,14 @@ class _ChatContentState extends State<_ChatContent>
     HapticFeedback.mediumImpact();
     try {
       if (await _recorder!.hasPermission()) {
-        final tempDir = await Directory.systemTemp.createTemp('chat_voice');
+        // 使用应用私有目录而非系统临时目录，避免文件被清理
+        final appDir = await getApplicationDocumentsDirectory();
+        final voiceDir = Directory('${appDir.path}/voice_messages');
+        if (!await voiceDir.exists()) {
+          await voiceDir.create(recursive: true);
+        }
         final filePath =
-            '${tempDir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+            '${voiceDir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
         await _recorder!.start(const RecordConfig(), path: filePath);
         debugPrint('【录音开始】path=$filePath');
         _recordSeconds = 0;
@@ -729,7 +736,7 @@ class _ChatContentState extends State<_ChatContent>
           if (!msg.isMe) _buildAvatarWidget(peerAvatar, isDark),
           if (!msg.isMe) const SizedBox(width: 10),
           GestureDetector(
-            onTap: () {},
+            onTap: () => _openImageViewer(context, msg.imageUrl!, msg.isLocalImage),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: msg.isLocalImage && msg.imageUrl != null
@@ -746,6 +753,14 @@ class _ChatContentState extends State<_ChatContent>
                       width: 180,
                       height: 240,
                       fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return SizedBox(
+                          width: 180,
+                          height: 240,
+                          child: _buildImagePlaceholder(isDark),
+                        );
+                      },
                       errorBuilder: (_, __, ___) =>
                           _buildImagePlaceholder(isDark),
                     ),
@@ -754,6 +769,17 @@ class _ChatContentState extends State<_ChatContent>
           if (msg.isMe) const SizedBox(width: 10),
           if (msg.isMe) _buildAvatarWidget(_myAvatar, isDark),
         ],
+      ),
+    );
+  }
+
+  void _openImageViewer(BuildContext context, String imageUrl, bool isLocalImage) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ImageViewerPage(
+          imageUrl: imageUrl,
+          isLocalImage: isLocalImage,
+        ),
       ),
     );
   }
