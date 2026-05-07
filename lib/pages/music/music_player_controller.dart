@@ -27,6 +27,9 @@ class MusicPlayerController extends GetxController {
   // 播放器（just_audio_background 包装 just_audio，额外处理系统媒体通知）
   late final AudioPlayer _audioPlayer;
 
+  /// 暴露 audioPlayer 供可视化组件获取 androidAudioSessionId
+  AudioPlayer get audioPlayer => _audioPlayer;
+
   // ── 可观察状态 ──────────────────────────────────────────────────────
   final RxInt currentIndex = 0.obs;
   final RxBool isPlaying = false.obs;
