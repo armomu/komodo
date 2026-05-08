@@ -81,6 +81,9 @@ dependencies:
   # 语音录制
   record: ^6.2.0
 
+  # 启动页
+  flutter_native_splash: ^2.4.6
+
   # 系统媒体通知栏/锁屏/控制中心集成
   audio_service: ^0.18.18
   just_audio_background: ^0.0.1-beta.17
@@ -92,6 +95,9 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+  # 启动页生成工具（dev 只用于生成，运行时依赖在 dependencies 里）
+  flutter_native_splash: ^2.4.6
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

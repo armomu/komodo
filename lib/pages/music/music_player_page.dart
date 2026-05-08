@@ -207,20 +207,6 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
           constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
         ),
       ],
-      // child: Column(
-      //   mainAxisSize: MainAxisSize.min,
-      //   children: [
-      //     // 第一行：返回 + 歌曲信息 + 分享
-      //     Row(
-      //       children: [
-
-      //         // 第二行：Tab 指示器（歌曲/歌词）
-      //         _buildTabIndicator(),
-
-      //       ],
-      //     ),
-      //   ],
-      // ),
     );
   }
 
@@ -231,10 +217,6 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   Widget _buildTabIndicator() {
     const titles = ['歌曲', '歌词'];
     return Expanded(
-      // decoration: BoxDecoration(
-      //   color: Colors.white.withValues(alpha: 0.1),
-      //   borderRadius: BorderRadius.circular(20),
-      // ),
       child: Row(
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.center,

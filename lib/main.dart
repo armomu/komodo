@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -10,7 +11,9 @@ import 'theme/app_theme.dart';
 import 'theme/theme_controller.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // 保持启动页直到初始化完成
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   // ── Android 13+ 通知权限（POST_NOTIFICATIONS）────────────────────────────
   // 必须在 JustAudioBackground.init 之前请求，否则前台服务通知无法显示。
@@ -46,6 +49,9 @@ void main() async {
   Get.put(ThemeController());
   // 全局音乐播放器控制器（permanent = true 防止页面销毁时被自动 delete）
   Get.put(MusicPlayerController(), permanent: true);
+
+  // 初始化完成，移除启动页
+  FlutterNativeSplash.remove();
 
   runApp(const MyApp());
 }

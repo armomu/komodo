@@ -90,21 +90,6 @@ class _VinylRecordPlayerState extends State<VinylRecordPlayer>
               ),
             ),
             _buildCoverWithNotch(coverSize, notchRadius, imageUrl),
-
-            // ====== 白色方形专辑封面（带右侧半圆缺口） ======
-            // 先画缺口处的黑色半圆背景，再叠封面
-            // Positioned(
-            //   left: recordSize,
-            //   top: (coverSize - notchRadius * 2) / 2,
-            //   child: Container(
-            //     width: notchRadius * 2,
-            //     height: notchRadius * 2,
-            //     decoration: const BoxDecoration(
-            //       shape: BoxShape.circle,
-            //       color: Colors.white,
-            //     ),
-            //   ),
-            // ),
           ],
         ),
       );
@@ -128,7 +113,6 @@ class _VinylRecordPlayerState extends State<VinylRecordPlayer>
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white, width: 0.5),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.3),

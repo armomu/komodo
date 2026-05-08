@@ -1,0 +1,17 @@
+flutter_native_splash:
+  # 背景色：纯黑
+  color: "#000000"
+
+  # 启动图（居中显示 KOMODO 文字的 PNG）
+  image: assets/splash/splash.png
+
+  # Android 12+ 专用配置
+  android_12:
+    color: "#000000"
+    image: assets/splash/splash.png
+
+  # iOS 配置
+  ios: true
+
+  # 全屏模式
+  fullscreen: true
