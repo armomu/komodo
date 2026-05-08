@@ -63,21 +63,21 @@ class _VinylRecordPlayerState extends State<VinylRecordPlayer>
     // 唱片向右偏移，露出约一半
     final recordOffset = coverSize * 0.5;
     // 封面右侧半圆缺口的半径
-    final notchRadius = coverSize * 0.03;
+    const notchRadius = 8.0;
 
     return Obx(() {
       final track = _musicController.currentTrack;
       final imageUrl = widget.coverUrl ?? track.avatarUrl;
 
       return SizedBox(
-        width: coverSize + recordOffset * 0.8,
+        width: coverSize + recordOffset * 0.9,
         height: coverSize,
         child: Stack(
           alignment: Alignment.centerLeft,
           children: [
             // ====== 黑胶唱片（底层，可旋转） ======
             Positioned(
-              left: recordOffset,
+              left: coverSize - recordOffset + 10,
               child: AnimatedBuilder(
                 animation: _rotationController,
                 builder: (context, child) {
@@ -86,12 +86,25 @@ class _VinylRecordPlayerState extends State<VinylRecordPlayer>
                     child: child,
                   );
                 },
-                child: _buildVinylRecord(recordSize, imageUrl),
+                child: _buildVinylRecord(recordSize, notchRadius, imageUrl),
               ),
             ),
+            _buildCoverWithNotch(coverSize, notchRadius, imageUrl),
 
             // ====== 白色方形专辑封面（带右侧半圆缺口） ======
-            _buildCoverWithNotch(coverSize, notchRadius, imageUrl),
+            // 先画缺口处的黑色半圆背景，再叠封面
+            // Positioned(
+            //   left: recordSize,
+            //   top: (coverSize - notchRadius * 2) / 2,
+            //   child: Container(
+            //     width: notchRadius * 2,
+            //     height: notchRadius * 2,
+            //     decoration: const BoxDecoration(
+            //       shape: BoxShape.circle,
+            //       color: Colors.white,
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       );
@@ -115,6 +128,7 @@ class _VinylRecordPlayerState extends State<VinylRecordPlayer>
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.white, width: 0.5),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.3),
@@ -143,7 +157,10 @@ class _VinylRecordPlayerState extends State<VinylRecordPlayer>
   }
 
   /// 构建黑胶唱片（含内部圆形专辑图和中心孔）
-  Widget _buildVinylRecord(double size, String imageUrl) {
+  Widget _buildVinylRecord(double size, double holeRadius, String imageUrl) {
+    // 专辑图外圆半径
+    final imageRadius = size * 0.31;
+
     return Container(
       width: size,
       height: size,
@@ -165,33 +182,47 @@ class _VinylRecordPlayerState extends State<VinylRecordPlayer>
             // 唱片沟槽纹理
             _buildGrooves(size),
 
-            // 内部圆形专辑图（占唱片大部分区域）
-            Container(
-              width: size * 0.62,
-              height: size * 0.62,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF2a2a2a), width: 3),
+            // 专辑图：用环形 Path 裁剪，中央留出孔位
+            ClipPath(
+              clipper: _DonutClipper(
+                outerRadius: imageRadius,
+                innerRadius: holeRadius * 1.2,
               ),
-              child: ClipOval(
-                child: imageUrl.isNotEmpty
-                    ? Image.network(
-                        imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _buildCenterPlaceholder(),
-                      )
-                    : _buildCenterPlaceholder(),
+              child: Container(
+                width: size,
+                height: size,
+                alignment: Alignment.center,
+                child: Container(
+                  width: imageRadius * 2,
+                  height: imageRadius * 2,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFF2a2a2a),
+                      width: 3,
+                    ),
+                  ),
+                  child: ClipOval(
+                    child: imageUrl.isNotEmpty
+                        ? Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                _buildCenterPlaceholder(),
+                          )
+                        : _buildCenterPlaceholder(),
+                  ),
+                ),
               ),
             ),
 
-            // 中心透明小圆孔（spindle hole）
+            // 中心孔：纯黑圆形（位于最上层，确保完全不透明）
             Container(
-              width: size * 0.06,
-              height: size * 0.06,
-              decoration: BoxDecoration(
+              width: holeRadius * 2,
+              height: holeRadius * 2,
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF1a1a1a),
-                border: Border.all(color: const Color(0xFF3a3a3a), width: 1),
+                color: Colors.black,
               ),
             ),
           ],
@@ -273,13 +304,13 @@ class _CoverNotchClipper extends CustomClipper<Path> {
     path.addRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(0, 0, size.width, size.height),
-        const Radius.circular(8),
+        const Radius.circular(9),
       ),
     );
 
     // 在右侧中间挖去一个半圆
     final notchPath = Path()
-      ..addOval(Rect.fromCircle(center: notchCenter, radius: notchRadius));
+      ..addOval(Rect.fromCircle(center: notchCenter, radius: notchRadius + 1));
 
     // 使用差集运算挖去缺口
     return Path.combine(PathOperation.difference, path, notchPath);
@@ -304,7 +335,7 @@ class _CoverNotchPainter extends CustomPainter {
 
     // 绘制缺口边缘的阴影效果，增加立体感
     final shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.2)
+      ..color = Colors.black12
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
 
@@ -350,4 +381,26 @@ class _GroovePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// 环形（甜甜圈）裁剪器：裁剪出两个圆之间的区域
+class _DonutClipper extends CustomClipper<Path> {
+  final double outerRadius;
+  final double innerRadius;
+
+  _DonutClipper({required this.outerRadius, required this.innerRadius});
+
+  @override
+  Path getClip(Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final outer = Path()
+      ..addOval(Rect.fromCircle(center: center, radius: outerRadius));
+    final inner = Path()
+      ..addOval(Rect.fromCircle(center: center, radius: innerRadius));
+    return Path.combine(PathOperation.difference, outer, inner);
+  }
+
+  @override
+  bool shouldReclip(covariant _DonutClipper old) =>
+      old.outerRadius != outerRadius || old.innerRadius != innerRadius;
 }
