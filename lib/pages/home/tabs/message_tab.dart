@@ -46,9 +46,12 @@ class MessageTabState extends State<MessageTab> {
       controller: _scrollController,
       slivers: [
         SliverAppBar(
-          leading: IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.menu_rounded),
+          leading: Opacity(
+            opacity: collapseProgress,
+            child: IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.menu_rounded),
+            ),
           ),
           expandedHeight: maxExtent,
           pinned: true,

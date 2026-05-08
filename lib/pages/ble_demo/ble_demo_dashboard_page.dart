@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import 'ble_demo_controller.dart';
 import 'tabs/send_data_tab.dart';
 import 'tabs/ota_upgrade_tab.dart';
 
@@ -8,16 +11,25 @@ class BleDemoDashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final ctrl = Get.find<BleDemoController>();
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          title: const TabBar(
-            dividerHeight: 0,
-            tabs: [
+          title: Text(
+            ctrl.connectedDevice.value?.platformName.isNotEmpty == true
+                ? ctrl.connectedDevice.value!.platformName
+                : '蓝牙控制台',
+          ),
+          bottom: TabBar(
+            dividerHeight: 1,
+            dividerColor: colorScheme.outlineVariant,
+            tabs: const [
               Tab(text: '发送数据'),
-              Tab(text: 'OTA升级'),
+              Tab(text: 'OTA 升级'),
             ],
           ),
         ),

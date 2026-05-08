@@ -73,7 +73,6 @@ class _SendDataTabState extends State<SendDataTab>
   Widget build(BuildContext context) {
     super.build(context);
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     return Column(
       children: [
@@ -90,11 +89,9 @@ class _SendDataTabState extends State<SendDataTab>
 
                 // ── 自定义发送 ─────────────────────────────────
                 _buildSectionTitle('自定义发送', theme),
+                const SizedBox(height: 8),
                 Card(
-                  elevation: 1,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  elevation: 0,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -102,74 +99,32 @@ class _SendDataTabState extends State<SendDataTab>
                       children: [
                         TextField(
                           controller: _descCtrl,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: '描述（可选）',
                             hintText: '如：设置费率',
-                            filled: true,
-                            fillColor: colorScheme.surface,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: colorScheme.outline,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: colorScheme.primary,
-                              ),
-                            ),
                           ),
                         ),
                         const SizedBox(height: 12),
                         TextField(
                           controller: _hexInputCtrl,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: '十六进制数据',
                             hintText: '如: AA 01 00 BB',
-                            prefixIcon: Icon(
-                              Icons.code,
-                              color: colorScheme.primary,
-                            ),
-                            filled: true,
-                            fillColor: colorScheme.surface,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: colorScheme.outline,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: colorScheme.primary,
-                              ),
-                            ),
+                            prefixIcon: Icon(Icons.code),
                           ),
                           style: const TextStyle(fontFamily: 'monospace'),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         Obx(
                           () => SizedBox(
                             width: double.infinity,
                             height: 48,
-                            child: ElevatedButton.icon(
+                            child: FilledButton.icon(
                               onPressed: ctrl.isConnected.value
                                   ? _sendCustomData
                                   : null,
-                              icon: const Icon(Icons.send),
+                              icon: const Icon(Icons.send_rounded, size: 18),
                               label: const Text('发送'),
-                              style: ElevatedButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
-                              ),
                             ),
                           ),
                         ),
@@ -191,21 +146,28 @@ class _SendDataTabState extends State<SendDataTab>
   Widget _buildInfoBanner(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
+        color: colorScheme.primaryContainer.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline, size: 18, color: colorScheme.primary),
+          Icon(
+            Icons.info_outline_rounded,
+            size: 18,
+            color: colorScheme.onPrimaryContainer,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              '发送数据示例：选择预设命令或输入自定义十六进制数据进行测试。发送的数据将显示在下方日志中。',
-              style: TextStyle(fontSize: 12, color: colorScheme.onSurface),
+              '输入自定义十六进制数据进行测试，发送和接收数据将显示在下方日志中。',
+              style: TextStyle(
+                fontSize: 12,
+                color: colorScheme.onPrimaryContainer,
+                height: 1.5,
+              ),
             ),
           ),
         ],
@@ -214,38 +176,45 @@ class _SendDataTabState extends State<SendDataTab>
   }
 
   Widget _buildSectionTitle(String title, ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: theme.colorScheme.onSurfaceVariant,
+        letterSpacing: 0.3,
       ),
     );
   }
 
   Widget _buildLogPanel() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       height: 200,
       padding: const EdgeInsets.all(12),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1E1E2E),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0D0D14) : const Color(0xFF1A1A2E),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
+              Icon(
+                Icons.terminal_rounded,
+                size: 14,
+                color: Colors.white.withValues(alpha: 0.5),
+              ),
+              const SizedBox(width: 6),
               const Text(
                 '通信日志',
                 style: TextStyle(
                   color: Colors.white70,
                   fontSize: 11,
-                  fontFamily: 'monospace',
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const Spacer(),
@@ -254,14 +223,17 @@ class _SendDataTabState extends State<SendDataTab>
                   ctrl.clearSendLogs();
                   ctrl.clearReceiveLogs();
                 },
-                child: const Text(
+                child: Text(
                   '清空',
-                  style: TextStyle(color: Colors.blue, fontSize: 11),
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    fontSize: 11,
+                  ),
                 ),
               ),
             ],
           ),
-          const Divider(color: Colors.white12, height: 12),
+          const Divider(color: Colors.white12, height: 16),
           Expanded(
             child: Obx(() {
               // 合并发送和接收日志
@@ -290,10 +262,13 @@ class _SendDataTabState extends State<SendDataTab>
               allLogs.sort((a, b) => b.time.compareTo(a.time));
 
               if (allLogs.isEmpty) {
-                return const Center(
+                return Center(
                   child: Text(
                     '暂无通信记录',
-                    style: TextStyle(color: Colors.white38, fontSize: 12),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.25),
+                      fontSize: 12,
+                    ),
                   ),
                 );
               }
@@ -312,32 +287,38 @@ class _SendDataTabState extends State<SendDataTab>
                         children: [
                           TextSpan(
                             text: '[${log.time}] ',
-                            style: const TextStyle(color: Colors.grey),
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.35),
+                            ),
                           ),
                           TextSpan(
-                            text: log.isSend ? '→ ' : '← ',
+                            text: log.isSend ? 'TX ' : 'RX ',
                             style: TextStyle(
                               color: log.isSend
-                                  ? Colors.greenAccent
-                                  : Colors.cyanAccent,
+                                  ? const Color(0xFF66BB6A)
+                                  : const Color(0xFF42A5F5),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           TextSpan(
                             text: log.message,
-                            style: const TextStyle(color: Colors.white70),
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                            ),
                           ),
                           if (log.data != null) ...[
-                            const TextSpan(
-                              text: '\n    数据: ',
-                              style: TextStyle(color: Colors.grey),
+                            TextSpan(
+                              text: '\n    ',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.2),
+                              ),
                             ),
                             TextSpan(
                               text: _formatHex(log.data!),
                               style: TextStyle(
                                 color: log.isSend
-                                    ? Colors.amberAccent
-                                    : Colors.cyanAccent,
+                                    ? const Color(0xFFFFB74D)
+                                    : const Color(0xFF4DD0E1),
                               ),
                             ),
                           ],

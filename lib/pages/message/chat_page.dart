@@ -1310,8 +1310,8 @@ class _RecordOverlayPreview extends StatelessWidget {
         decoration: BoxDecoration(color: cs.primary, shape: BoxShape.circle),
         child: Obx(
           () => ctr.isPlaying.value
-              ? const Icon(Icons.pause, color: Colors.white, size: 28)
-              : const Icon(Icons.play_arrow, color: Colors.white, size: 28),
+              ? Icon(Icons.pause, color: cs.onPrimary, size: 28)
+              : Icon(Icons.play_arrow, color: cs.onPrimary, size: 28),
         ),
       ),
     );
@@ -1354,17 +1354,17 @@ class _RecordOverlayPreview extends StatelessWidget {
           color: cs.primary,
           borderRadius: BorderRadius.circular(14),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.send, size: 18, color: Colors.white),
-            SizedBox(width: 6),
+            Icon(Icons.send, size: 18, color: cs.onPrimary),
+            const SizedBox(width: 6),
             Text(
               '发送',
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: cs.onPrimary,
               ),
             ),
           ],
@@ -1411,13 +1411,6 @@ class _RecordOverlayPreview extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           playBtn,
-          // Text(
-          //   playing ? '播放中...' : '点击播放',
-          //   style: TextStyle(
-          //     fontSize: 12,
-          //     color: cs.onSurface.withValues(alpha: 0.5),
-          //   ),
-          // ),
           const SizedBox(height: 16),
           btnRow,
           const SizedBox(height: 16),

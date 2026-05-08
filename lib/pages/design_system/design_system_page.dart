@@ -186,7 +186,6 @@ class _SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: () => Get.to(() => item.page),
-      // contentPadding: const EdgeInsets.all(0),
       leading: Container(
         width: 48,
         height: 48,

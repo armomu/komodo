@@ -237,7 +237,9 @@ class _ProfileTabState extends State<ProfileTab> {
           const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: buildDesignSystemSectionGrid(context, title: false),
+            child: Card(
+              child: buildDesignSystemSectionGrid(context, title: false),
+            ),
           ),
           const SizedBox(height: 16),
         ],
