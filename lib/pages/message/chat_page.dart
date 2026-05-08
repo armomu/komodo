@@ -485,7 +485,7 @@ class _ChatContentState extends State<_ChatContent>
               child: Container(
                 width: 16,
                 height: 16,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.red,
                   shape: BoxShape.circle,
                 ),
@@ -579,7 +579,11 @@ class _ChatContentState extends State<_ChatContent>
     );
   }
 
-  Widget _buildTextMessage(_ChatMessage msg, BuildContext context, String peerAvatar) {
+  Widget _buildTextMessage(
+    _ChatMessage msg,
+    BuildContext context,
+    String peerAvatar,
+  ) {
     final isMe = msg.isMe;
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
@@ -613,9 +617,7 @@ class _ChatContentState extends State<_ChatContent>
                 msg.content!,
                 style: TextStyle(
                   fontSize: 15,
-                  color: isMe
-                      ? colorScheme.onPrimary
-                      : colorScheme.onSurface,
+                  color: isMe ? colorScheme.onPrimary : colorScheme.onSurface,
                   height: 1.4,
                 ),
               ),
@@ -761,7 +763,11 @@ class _ChatContentState extends State<_ChatContent>
     );
   }
 
-  Widget _buildImageMessage(_ChatMessage msg, BuildContext context, String peerAvatar) {
+  Widget _buildImageMessage(
+    _ChatMessage msg,
+    BuildContext context,
+    String peerAvatar,
+  ) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
@@ -773,7 +779,8 @@ class _ChatContentState extends State<_ChatContent>
           if (!msg.isMe) _buildAvatarWidget(peerAvatar, context),
           if (!msg.isMe) const SizedBox(width: 10),
           GestureDetector(
-            onTap: () => _openImageViewer(context, msg.imageUrl!, msg.isLocalImage),
+            onTap: () =>
+                _openImageViewer(context, msg.imageUrl!, msg.isLocalImage),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: msg.isLocalImage && msg.imageUrl != null
@@ -783,7 +790,7 @@ class _ChatContentState extends State<_ChatContent>
                       height: 240,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) =>
-                        _buildImagePlaceholder(context),
+                          _buildImagePlaceholder(context),
                     )
                   : Image.network(
                       msg.imageUrl!,
@@ -799,7 +806,7 @@ class _ChatContentState extends State<_ChatContent>
                         );
                       },
                       errorBuilder: (_, __, ___) =>
-                        _buildImagePlaceholder(context),
+                          _buildImagePlaceholder(context),
                     ),
             ),
           ),
@@ -810,13 +817,14 @@ class _ChatContentState extends State<_ChatContent>
     );
   }
 
-  void _openImageViewer(BuildContext context, String imageUrl, bool isLocalImage) {
+  void _openImageViewer(
+    BuildContext context,
+    String imageUrl,
+    bool isLocalImage,
+  ) {
     Get.toNamed(
       Routes.imageViewer,
-      arguments: {
-        'imageUrl': imageUrl,
-        'isLocalImage': isLocalImage,
-      },
+      arguments: {'imageUrl': imageUrl, 'isLocalImage': isLocalImage},
     );
   }
 
@@ -896,38 +904,32 @@ class _ChatContentState extends State<_ChatContent>
   // 底部区域
   // ════════════════════════════════════════════════════════════════════════
 
-  Widget _buildBottomArea(
-    BuildContext context,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildBottomArea(BuildContext context, ColorScheme colorScheme) {
     return Container(
-    decoration: BoxDecoration(
-      color: colorScheme.surface,
-      border: Border(
-        top: BorderSide(
-          color: colorScheme.outline.withValues(alpha: 0.3),
-          width: 0.5,
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          top: BorderSide(
+            color: colorScheme.outline.withValues(alpha: 0.3),
+            width: 0.5,
+          ),
         ),
       ),
-    ),
-    child: SafeArea(
-      top: false,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildInputRow(context, colorScheme),
-          if (_showEmojiPicker) _buildEmojiPicker(context),
-          if (_showIconBar) _buildExpandedIconBar(context, colorScheme),
-        ],
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildInputRow(context, colorScheme),
+            if (_showEmojiPicker) _buildEmojiPicker(context),
+            if (_showIconBar) _buildExpandedIconBar(context, colorScheme),
+          ],
+        ),
       ),
-    ),
-  );
+    );
   }
 
-  Widget _buildInputRow(
-    BuildContext context,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildInputRow(BuildContext context, ColorScheme colorScheme) {
     final isVoiceMode = _recordState != _RecordState.idle;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -991,9 +993,7 @@ class _ChatContentState extends State<_ChatContent>
     );
   }
 
-  Widget _buildTextInputField(
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildTextInputField(ColorScheme colorScheme) {
     return Container(
       height: 40,
       decoration: BoxDecoration(
@@ -1003,14 +1003,17 @@ class _ChatContentState extends State<_ChatContent>
       child: TextField(
         controller: _textController,
         focusNode: _focusNode,
-        style: TextStyle(
-          fontSize: 14,
-          color: colorScheme.onSurface,
-        ),
+        style: TextStyle(fontSize: 14, color: colorScheme.onSurface),
         decoration: InputDecoration(
-          hintStyle: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
+          hintStyle: TextStyle(
+            fontSize: 14,
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+          ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
+          ),
           isDense: true,
         ),
         onSubmitted: _sendTextMessage,
@@ -1064,10 +1067,7 @@ class _ChatContentState extends State<_ChatContent>
     );
   }
 
-  Widget _buildExpandedIconBar(
-    BuildContext context,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildExpandedIconBar(BuildContext context, ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: BoxDecoration(
@@ -1136,9 +1136,7 @@ class _ChatContentState extends State<_ChatContent>
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: isPrimary
-                  ? null
-                  : colorScheme.surfaceContainer,
+              color: isPrimary ? null : colorScheme.surfaceContainer,
               gradient: isPrimary
                   ? const LinearGradient(
                       colors: [Color(0xFFFF6B81), Color(0xFFFF4757)],
@@ -1227,6 +1225,7 @@ class _RecordOverlayRecording extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Container(
+      margin: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: const BorderRadius.only(
@@ -1379,12 +1378,12 @@ class _RecordOverlayPreview extends StatelessWidget {
           color: cs.primary,
           borderRadius: BorderRadius.circular(14),
         ),
-        child: Row(
+        child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.send, size: 18, color: Colors.white),
-            const SizedBox(width: 6),
-            const Text(
+            SizedBox(width: 6),
+            Text(
               '发送',
               style: TextStyle(
                 fontSize: 15,
@@ -1409,12 +1408,10 @@ class _RecordOverlayPreview extends StatelessWidget {
     );
 
     return Container(
+      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
       decoration: BoxDecoration(
         color: cs.surface,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
+        borderRadius: const BorderRadius.all(Radius.circular(20)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.12),
