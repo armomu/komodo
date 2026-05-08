@@ -79,7 +79,7 @@ class _ChatMessage {
 }
 
 class _ChatContentState extends State<_ChatContent>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
@@ -89,10 +89,8 @@ class _ChatContentState extends State<_ChatContent>
   bool _showEmojiPicker = false;
   bool _showIconBar = false;
 
-  // 底部栏展开动画
-  static const double _expandedHeight = 260.0; // 统一展开高度（表情+图标栏）
-  late AnimationController _bottomBarAnimCtrl;
-  late Animation<double> _bottomBarAnim;
+  // 底部栏展开统一高度
+  static const double _expandedHeight = 260.0;
 
   _RecordState _recordState = _RecordState.idle;
 
@@ -144,17 +142,6 @@ class _ChatContentState extends State<_ChatContent>
   void initState() {
     super.initState();
     _recorder = AudioRecorder();
-
-    // 初始化底部栏动画
-    _bottomBarAnimCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 280),
-    );
-    _bottomBarAnim = CurvedAnimation(
-      parent: _bottomBarAnimCtrl,
-      curve: Curves.easeOutCubic,
-    );
-
     _focusNode.addListener(() {
       if (_focusNode.hasFocus && _showEmojiPicker) {
         setState(() => _showEmojiPicker = false);
@@ -177,6 +164,25 @@ class _ChatContentState extends State<_ChatContent>
   }
 
   @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    // 监听键盘弹出和收起
+    final bool isKeyboardVisible = View.of(context).viewInsets.bottom > 0;
+
+    if (!isKeyboardVisible && _focusNode.hasFocus) {
+      // 键盘收起时，主动让输入框失去焦点
+      _focusNode.unfocus();
+      _onKeyboardClosed();
+    }
+
+    // print('============================$isKeyboardVisible');
+  }
+
+  void _onKeyboardClosed() {
+    print('执行键盘收起后的操作');
+  }
+
+  @override
   void dispose() {
     _textController.dispose();
     _scrollController.dispose();
@@ -185,7 +191,6 @@ class _ChatContentState extends State<_ChatContent>
     _recordTimer?.cancel();
     _amplitudeSub?.cancel();
     _lisenPlaying?.dispose();
-    _bottomBarAnimCtrl.dispose();
     _removeOverlay();
     super.dispose();
   }
@@ -548,14 +553,9 @@ class _ChatContentState extends State<_ChatContent>
         behavior: HitTestBehavior.translucent,
         onTap: () => setState(() {
           HapticFeedback.lightImpact();
-          // 收起表情栏
+          // 收起表情/图标栏
           _showEmojiPicker = false;
           _showIconBar = false;
-          _bottomBarAnimCtrl.reverse();
-          // 收起图标栏
-          _showIconBar = false;
-          _showEmojiPicker = false;
-          _bottomBarAnimCtrl.reverse();
           _scrollToBottom(milliseconds: 280);
           _focusNode.unfocus();
         }),
@@ -567,8 +567,9 @@ class _ChatContentState extends State<_ChatContent>
                 padding: const EdgeInsets.only(top: 8, bottom: 8),
                 itemCount: _messages.length + 1,
                 itemBuilder: (context, index) {
-                  if (index == _messages.length)
+                  if (index == _messages.length) {
                     return const SizedBox(height: 8);
+                  }
                   return _buildChatMessage(
                     context,
                     _messages[index],
@@ -968,18 +969,17 @@ class _ChatContentState extends State<_ChatContent>
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildInputRow(context, colorScheme),
-            // 动画展开区域
-            AnimatedBuilder(
-              animation: _bottomBarAnim,
-              builder: (context, child) {
-                return SizeTransition(
-                  sizeFactor: _bottomBarAnim,
-                  axisAlignment: -1.0, // 从顶部收起
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, 0.3),
-                      end: Offset.zero,
-                    ).animate(_bottomBarAnim),
+            // 动画展开收起区域
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 280),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: SizeTransition(
+                    sizeFactor: animation,
+                    axisAlignment: -1.0,
                     child: child,
                   ),
                 );
@@ -988,7 +988,7 @@ class _ChatContentState extends State<_ChatContent>
                   ? _buildEmojiPicker(context)
                   : (_showIconBar
                         ? _buildExpandedIconBar(context, colorScheme)
-                        : const SizedBox.shrink()),
+                        : const SizedBox(key: ValueKey('empty'))),
             ),
           ],
         ),
@@ -1029,13 +1029,11 @@ class _ChatContentState extends State<_ChatContent>
                     // 收起表情栏
                     _showEmojiPicker = false;
                     _showIconBar = false;
-                    _bottomBarAnimCtrl.reverse();
                   } else {
-                    // 展开表情栏（动画）
+                    // 展开表情栏
                     _showEmojiPicker = true;
                     _showIconBar = false;
                     _focusNode.unfocus();
-                    _bottomBarAnimCtrl.forward();
                   }
                   _scrollToBottom(milliseconds: 280);
                 });
@@ -1065,13 +1063,11 @@ class _ChatContentState extends State<_ChatContent>
                     // 收起图标栏
                     _showIconBar = false;
                     _showEmojiPicker = false;
-                    _bottomBarAnimCtrl.reverse();
                   } else {
-                    // 展开图标栏（动画）
+                    // 展开图标栏
                     _showIconBar = true;
                     _showEmojiPicker = false;
                     _focusNode.unfocus();
-                    _bottomBarAnimCtrl.forward();
                   }
                   _scrollToBottom(milliseconds: 280);
                 });
@@ -1175,7 +1171,6 @@ class _ChatContentState extends State<_ChatContent>
                     _pickAndSendImage();
                     setState(() {
                       _showIconBar = false;
-                      _bottomBarAnimCtrl.reverse();
                     });
                   },
                 ),
