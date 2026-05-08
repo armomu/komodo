@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -518,7 +517,10 @@ class _ChatContentState extends State<_ChatContent>
         ),
         centerTitle: true,
         actions: [
-          IconButton(icon: const Icon(Icons.more_horiz), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.more_horiz),
+            onPressed: () => Get.toNamed(Routes.settings),
+          ),
         ],
       ),
       body: Column(
@@ -947,7 +949,7 @@ class _ChatContentState extends State<_ChatContent>
             icon: Icon(
               isVoiceMode ? Icons.keyboard_alt_outlined : Icons.mic_outlined,
               size: 26,
-              color: colorScheme.onSurfaceVariant,
+              color: colorScheme.inverseSurface,
             ),
           ),
 
@@ -973,7 +975,7 @@ class _ChatContentState extends State<_ChatContent>
                     ? Icons.keyboard_alt_outlined
                     : Icons.emoji_emotions_outlined,
                 size: 26,
-                color: colorScheme.onSurfaceVariant,
+                color: colorScheme.inverseSurface,
               ),
             ),
           Transform.translate(
@@ -995,7 +997,7 @@ class _ChatContentState extends State<_ChatContent>
                     ? Icons.arrow_drop_down_circle_outlined
                     : Icons.add_circle_outline,
                 size: 26,
-                color: colorScheme.onSurfaceVariant,
+                color: colorScheme.inverseSurface,
               ),
             ),
           ),
@@ -1015,9 +1017,13 @@ class _ChatContentState extends State<_ChatContent>
         controller: _textController,
         focusNode: _focusNode,
         style: TextStyle(fontSize: 14, color: colorScheme.onSurface),
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
+          fillColor: colorScheme.outline,
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
+          ),
           isDense: true,
         ),
         onSubmitted: _sendTextMessage,
