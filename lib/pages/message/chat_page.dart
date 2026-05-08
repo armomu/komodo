@@ -133,6 +133,7 @@ class _ChatContentState extends State<_ChatContent>
   ];
 
   final voiceCtrl = Get.put(ChatVoiceController());
+  Worker? _lisenPlaying;
 
   @override
   void initState() {
@@ -144,7 +145,7 @@ class _ChatContentState extends State<_ChatContent>
       }
     });
     // 监听语音播放完成，同步本地 UI 状态
-    ever(voiceCtrl.isPlaying, (bool playing) {
+    _lisenPlaying = ever(voiceCtrl.isPlaying, (bool playing) {
       if (!playing && mounted) {
         setState(() {
           _playingVoiceIndex = null;
@@ -167,6 +168,7 @@ class _ChatContentState extends State<_ChatContent>
     _recorder?.dispose();
     _recordTimer?.cancel();
     _amplitudeSub?.cancel();
+    _lisenPlaying?.dispose();
     _removeOverlay();
     super.dispose();
   }
@@ -936,7 +938,7 @@ class _ChatContentState extends State<_ChatContent>
   Widget _buildInputRow(BuildContext context, ColorScheme colorScheme) {
     final isVoiceMode = _recordState != _RecordState.idle;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
       child: Row(
         children: [
           IconButton(
@@ -974,24 +976,27 @@ class _ChatContentState extends State<_ChatContent>
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
-          IconButton(
-            visualDensity: VisualDensity.comfortable,
-            onPressed: () {
-              setState(() {
-                _showIconBar = !_showIconBar;
-                _showEmojiPicker = false;
-                if (_showIconBar) {
+          Transform.translate(
+            offset: Offset(isVoiceMode ? 0 : -6, 0),
+            child: IconButton(
+              visualDensity: VisualDensity.comfortable,
+              onPressed: () {
+                setState(() {
+                  _showIconBar = !_showIconBar;
                   _showEmojiPicker = false;
-                  _focusNode.unfocus();
-                }
-              });
-            },
-            icon: Icon(
-              _showIconBar
-                  ? Icons.arrow_drop_down_circle_outlined
-                  : Icons.add_circle_outline,
-              size: 26,
-              color: colorScheme.onSurfaceVariant,
+                  if (_showIconBar) {
+                    _showEmojiPicker = false;
+                    _focusNode.unfocus();
+                  }
+                });
+              },
+              icon: Icon(
+                _showIconBar
+                    ? Icons.arrow_drop_down_circle_outlined
+                    : Icons.add_circle_outline,
+                size: 26,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         ],

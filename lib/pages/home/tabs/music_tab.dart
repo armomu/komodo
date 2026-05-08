@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'package:komodo/pages/music/music_player_controller.dart';
+import 'package:komodo/pages/test/test.dart';
 import 'package:komodo/routes/app_routes.dart';
 import 'package:komodo/pages/music/music_models.dart';
 
@@ -112,12 +113,15 @@ class _MusicTabState extends State<MusicTab> {
             backgroundColor: Theme.of(context).colorScheme.surface,
             expandedHeight: 100,
             pinned: true,
-            flexibleSpace: const FlexibleSpaceBar(
-              title: Text(
-                'Komodo',
-                style: TextStyle(fontWeight: FontWeight.w600),
+            flexibleSpace: FlexibleSpaceBar(
+              title: GestureDetector(
+                onTap: () => Get.to(const TestPage()),
+                child: const Text(
+                  'Komodo',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
-              titlePadding: EdgeInsets.fromLTRB(16, 16, 3, 12),
+              titlePadding: const EdgeInsets.fromLTRB(16, 16, 3, 12),
             ),
           ),
         ];

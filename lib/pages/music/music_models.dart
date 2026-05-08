@@ -51,6 +51,15 @@ const List<PlaylistItem> localPlaylist = [
   ),
   PlaylistItem(
     id: '3',
+    title: 'SoundHelix-Song',
+    artist: '未知',
+    audioPath: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
+    lrcPath: '',
+    avatarUrl: 'https://picsum.photos/id/241/200/200',
+    accentColor: Color.fromARGB(255, 0, 222, 177),
+  ),
+  PlaylistItem(
+    id: '5',
     title: '马叫声',
     artist: '无名',
     audioPath: 'https://www.w3schools.com/html/horse.mp3',

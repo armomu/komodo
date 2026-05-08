@@ -354,10 +354,12 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
         return const SizedBox(
           width: double.infinity,
           height: _miniLyricVisibleHeight,
-          child: Text(
-            '暂无歌词',
-            style: TextStyle(color: Colors.white70),
-            textAlign: TextAlign.center,
+          child: Center(
+            child: Text(
+              '暂无歌词',
+              style: TextStyle(color: Colors.white70),
+              textAlign: TextAlign.center,
+            ),
           ),
         );
       }

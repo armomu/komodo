@@ -412,17 +412,6 @@ class _DeviceCard extends StatelessWidget {
                             color: colorScheme.onSurfaceVariant,
                           ),
                         ),
-                        // const SizedBox(width: 8),
-                        // Text(
-                        //   result.device.remoteId.str,
-                        //   style: TextStyle(
-                        //     fontSize: 11,
-                        //     color: colorScheme.outline,
-                        //     fontFamily: 'monospace',
-                        //   ),
-                        //   maxLines: 1,
-                        //   overflow: TextOverflow.ellipsis,
-                        // ),
                       ],
                     ),
                   ],
