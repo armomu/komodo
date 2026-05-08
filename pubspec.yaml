@@ -85,6 +85,10 @@ dependencies:
   audio_service: ^0.18.18
   just_audio_background: ^0.0.1-beta.17
 
+  # 聊天语音播放（独立播放器，不走 just_audio_background 单例）
+  audioplayers: ^6.1.0
+  audio_visualizer: ^1.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

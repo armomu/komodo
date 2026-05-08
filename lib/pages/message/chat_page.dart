@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,7 +9,7 @@ import 'package:komodo/pages/message/emojis.dart';
 import 'package:komodo/routes/app_routes.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
-import 'package:komodo/pages/music/music_player_controller.dart';
+import 'package:komodo/pages/message/chat_voice_controller.dart';
 
 /// 聊天详情页 — 社交私信聊天界面
 class ChatPage extends StatelessWidget {
@@ -101,13 +100,13 @@ class _ChatContentState extends State<_ChatContent>
   // 浮层
   OverlayEntry? _overlayEntry;
 
-  // 本地播放状态标记（实际播放走 MusicPlayerController 全局单例）
+  // 语音播放状态（实际播放走 ChatVoiceController）
   bool _previewPlaying = false;
   int? _playingVoiceIndex;
 
-  // 波形动画
-  final List<double> _waveHeights = List.generate(20, (i) => 0.3);
-  Timer? _waveTimer;
+  // 波形动画（真实幅度数据）
+  final List<double> _waveHeights = List.generate(20, (i) => 0.0);
+  StreamSubscription<Amplitude>? _amplitudeSub;
 
   // 图片选择
   final ImagePicker _picker = ImagePicker();
@@ -133,6 +132,8 @@ class _ChatContentState extends State<_ChatContent>
     ),
   ];
 
+  final voiceCtrl = Get.put(ChatVoiceController());
+
   @override
   void initState() {
     super.initState();
@@ -142,9 +143,8 @@ class _ChatContentState extends State<_ChatContent>
         setState(() => _showEmojiPicker = false);
       }
     });
-    // 监听全局语音播放完成，同步本地状态
-    final ctrl = Get.find<MusicPlayerController>();
-    ever(ctrl.isPlayingVoice, (bool playing) {
+    // 监听语音播放完成，同步本地 UI 状态
+    ever(voiceCtrl.isPlaying, (bool playing) {
       if (!playing && mounted) {
         setState(() {
           _previewPlaying = false;
@@ -153,6 +153,10 @@ class _ChatContentState extends State<_ChatContent>
         _overlayEntry?.markNeedsBuild();
       }
     });
+    // 初始化 ChatVoiceController（页面级别单例）
+    if (!Get.isRegistered<ChatVoiceController>()) {
+      Get.put(ChatVoiceController());
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
   }
 
@@ -163,7 +167,8 @@ class _ChatContentState extends State<_ChatContent>
     _focusNode.dispose();
     _recorder?.dispose();
     _recordTimer?.cancel();
-    _waveTimer?.cancel();
+    _amplitudeSub?.cancel();
+    _removeOverlay();
     super.dispose();
   }
 
@@ -260,7 +265,7 @@ class _ChatContentState extends State<_ChatContent>
         });
         _startWaveAnimation();
         // 停止可能正在播放的语音
-        Get.find<MusicPlayerController>().stopVoice();
+        Get.find<ChatVoiceController>().stop();
         setState(() {
           _recordState = _RecordState.recording;
           _recordedPath = filePath;
@@ -312,8 +317,7 @@ class _ChatContentState extends State<_ChatContent>
   Future<void> _sendVoiceMessage() async {
     final duration = _recordSeconds.clamp(1, 60);
     final path = _recordedPath;
-    final ctrl = Get.find<MusicPlayerController>();
-    await ctrl.stopVoice();
+    await Get.find<ChatVoiceController>().stop();
     setState(() {
       _messages.add(
         _ChatMessage(
@@ -343,7 +347,7 @@ class _ChatContentState extends State<_ChatContent>
         debugPrint('【取消录音】删除失败: $e');
       }
     }
-    Get.find<MusicPlayerController>().stopVoice();
+    Get.find<ChatVoiceController>().stop();
     setState(() {
       _recordState = _RecordState.ready;
       _recordedPath = null;
@@ -355,25 +359,42 @@ class _ChatContentState extends State<_ChatContent>
   }
 
   // ─── 波形动画 ─────────────────────────────────────────────────────────────
+  // 订阅 onAmplitudeChanged 实时获取麦克风幅度，转换为波形条高度
 
   void _startWaveAnimation() {
-    final random = Random();
-    _waveTimer = Timer.periodic(const Duration(milliseconds: 80), (_) {
-      if (!mounted) return;
-      setState(() {
-        for (int i = 0; i < _waveHeights.length; i++) {
-          _waveHeights[i] = 0.2 + random.nextDouble() * 0.8;
-        }
-      });
-      _overlayEntry?.markNeedsBuild();
-    });
+    final recorder = _recorder;
+    _amplitudeSub?.cancel();
+    if (recorder == null) return;
+    _amplitudeSub = recorder
+        .onAmplitudeChanged(const Duration(milliseconds: 100))
+        .listen((amp) {
+          if (!mounted) return;
+          // dBFS 范围通常是 -160 ~ 0，映射到 0.0 ~ 1.0
+          final normalized = _dbfsToNormalized(amp.current);
+          // 左移：移除最旧的值，插入新值
+          setState(() {
+            _waveHeights.removeAt(0);
+            _waveHeights.add(normalized);
+          });
+          _overlayEntry?.markNeedsBuild();
+        });
+  }
+
+  /// 将 dBFS 值（-160~0）归一化到 0.0~1.0
+  double _dbfsToNormalized(double dbfs) {
+    // -160 dBFS = silence, 0 dBFS = max
+    // 映射到 0.05（最小高度）~ 1.0（全高）
+    const minDb = -60.0; // 低于此视为静音
+    if (dbfs < minDb) return 0.05;
+    return ((dbfs - minDb) / (-minDb)).clamp(0.05, 1.0);
   }
 
   void _stopWaveAnimation() {
-    _waveTimer?.cancel();
+    _amplitudeSub?.cancel();
+    _amplitudeSub = null;
     setState(() {
       for (int i = 0; i < _waveHeights.length; i++) {
-        _waveHeights[i] = 0.3;
+        _waveHeights[i] = 0.0;
       }
     });
   }
@@ -404,19 +425,15 @@ class _ChatContentState extends State<_ChatContent>
       debugPrint('【预览】_recordedPath 为 null');
       return;
     }
-    final ctrl = Get.find<MusicPlayerController>();
+    final ctrl = Get.find<ChatVoiceController>();
     try {
-      // 读取全局播放器的真实状态
-      final isGlobalPlaying = ctrl.isPlayingVoice.value;
-      final globalPath = ctrl.voiceFilePath.value;
-      final isThisPlaying = isGlobalPlaying && globalPath == _recordedPath;
-
+      final isThisPlaying = ctrl.isPlayingPath(_recordedPath!);
       if (isThisPlaying) {
-        await ctrl.stopVoice();
+        await ctrl.stop();
         setState(() => _previewPlaying = false);
         debugPrint('【预览播放】已停止');
       } else {
-        await ctrl.playVoice(_recordedPath!);
+        await ctrl.play(_recordedPath!);
         setState(() => _previewPlaying = true);
         debugPrint('【预览播放】开始: $_recordedPath');
       }
@@ -432,14 +449,12 @@ class _ChatContentState extends State<_ChatContent>
     final msg = _messages[index];
     if (msg.type != _MsgType.voice) return;
 
-    final ctrl = Get.find<MusicPlayerController>();
-    final globalPath = ctrl.voiceFilePath.value;
+    final ctrl = Get.find<ChatVoiceController>();
 
     // 已经在播放这条 → 停止
     if (_playingVoiceIndex == index &&
-        ctrl.isPlayingVoice.value &&
-        globalPath == msg.voicePath) {
-      await ctrl.stopVoice();
+        ctrl.isPlayingPath(msg.voicePath ?? '')) {
+      await ctrl.stop();
       setState(() => _playingVoiceIndex = null);
       debugPrint('【消息播放】停止: index=$index');
       return;
@@ -447,10 +462,7 @@ class _ChatContentState extends State<_ChatContent>
 
     try {
       if (msg.voicePath != null) {
-        // 停止其他所有播放
-        await ctrl.stopVoice();
-        // 播放新语音
-        await ctrl.playVoice(msg.voicePath!);
+        await ctrl.play(msg.voicePath!);
         setState(() => _playingVoiceIndex = index);
         debugPrint('【消息播放】开始: index=$index path=${msg.voicePath}');
       } else {
