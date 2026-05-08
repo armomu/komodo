@@ -24,14 +24,14 @@ class GiftData {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 礼物配置列表（对应 lib/lotties/ 下的四个动画）
+// 礼物配置列表（对应 assets/lotties/ 下的四个动画）
 // ═══════════════════════════════════════════════════════════════════════════
 
 const List<GiftData> kGiftList = [
-  GiftData(name: '闭眼入', lottiePath: 'lib/lotties/闭眼入.json', iconName: '💰'),
-  GiftData(name: '潮范儿', lottiePath: 'lib/lotties/潮范儿.json', iconName: '🔥'),
-  GiftData(name: '买它', lottiePath: 'lib/lotties/买它.json', iconName: '🛒'),
-  GiftData(name: '清仓', lottiePath: 'lib/lotties/清仓.json', iconName: '💎'),
+  GiftData(name: '闭眼入', lottiePath: 'assets/lotties/闭眼入.json', iconName: '💰'),
+  GiftData(name: '潮范儿', lottiePath: 'assets/lotties/潮范儿.json', iconName: '🔥'),
+  GiftData(name: '买它', lottiePath: 'assets/lotties/买它.json', iconName: '🛒'),
+  GiftData(name: '清仓', lottiePath: 'assets/lotties/清仓.json', iconName: '💎'),
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -83,6 +83,7 @@ class _ChatContentState extends State<_ChatContent>
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
+  bool _isKeyboardVisible = false;
 
   final List<_ChatMessage> _messages = List.from(_initialMessages);
 
@@ -141,6 +142,8 @@ class _ChatContentState extends State<_ChatContent>
   @override
   void initState() {
     super.initState();
+    // 注册键盘监听
+    WidgetsBinding.instance.addObserver(this);
     _recorder = AudioRecorder();
     _focusNode.addListener(() {
       if (_focusNode.hasFocus && _showEmojiPicker) {
@@ -169,21 +172,23 @@ class _ChatContentState extends State<_ChatContent>
     // 监听键盘弹出和收起
     final bool isKeyboardVisible = View.of(context).viewInsets.bottom > 0;
 
-    if (!isKeyboardVisible && _focusNode.hasFocus) {
-      // 键盘收起时，主动让输入框失去焦点
-      _focusNode.unfocus();
-      _onKeyboardClosed();
+    if (_isKeyboardVisible != isKeyboardVisible) {
+      setState(() {
+        _isKeyboardVisible = isKeyboardVisible;
+      });
+
+      if (!isKeyboardVisible && _focusNode.hasFocus) {
+        // 键盘收起时，主动让输入框失去焦点
+        _focusNode.unfocus();
+      }
     }
 
     // print('============================$isKeyboardVisible');
   }
 
-  void _onKeyboardClosed() {
-    print('执行键盘收起后的操作');
-  }
-
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _textController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
@@ -220,9 +225,7 @@ class _ChatContentState extends State<_ChatContent>
 
   void _sendEmojiMessage(String emoji) {
     setState(() {
-      _messages.add(
-        _ChatMessage(type: _MsgType.text, isMe: true, content: emoji),
-      );
+      _textController.text = _textController.text + emoji;
     });
     _scrollToBottom();
   }
@@ -548,20 +551,20 @@ class _ChatContentState extends State<_ChatContent>
           ),
         ],
       ),
-      body: GestureDetector(
-        // 关键：设置 behavior 为 translucent，让空白区域可点击
-        behavior: HitTestBehavior.translucent,
-        onTap: () => setState(() {
-          HapticFeedback.lightImpact();
-          // 收起表情/图标栏
-          _showEmojiPicker = false;
-          _showIconBar = false;
-          _scrollToBottom(milliseconds: 280);
-          _focusNode.unfocus();
-        }),
-        child: Column(
-          children: [
-            Expanded(
+      body: Column(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              // 关键：设置 behavior 为 translucent，让空白区域可点击
+              behavior: HitTestBehavior.translucent,
+              onTap: () => setState(() {
+                HapticFeedback.lightImpact();
+                // 收起表情/图标栏
+                _showEmojiPicker = false;
+                _showIconBar = false;
+                _scrollToBottom(milliseconds: 280);
+                _focusNode.unfocus();
+              }),
               child: ListView.builder(
                 controller: _scrollController,
                 padding: const EdgeInsets.only(top: 8, bottom: 8),
@@ -579,10 +582,11 @@ class _ChatContentState extends State<_ChatContent>
                 },
               ),
             ),
-            _buildBottomArea(context, colorScheme),
-          ],
-        ),
+          ),
+          _buildBottomArea(context, colorScheme),
+        ],
       ),
+
       // bottomNavigationBar: _buildBottomArea(context, colorScheme),
     );
   }
@@ -1159,6 +1163,11 @@ class _ChatContentState extends State<_ChatContent>
         children: [
           // 图标栏内容
           Container(
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: colorScheme.outline, width: 1),
+              ),
+            ),
             padding: const EdgeInsets.all(16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -1184,7 +1193,6 @@ class _ChatContentState extends State<_ChatContent>
                   icon: Icons.card_giftcard,
                   label: '礼物',
                   colorScheme: colorScheme,
-                  isPrimary: true,
                   onTap: () {},
                 ),
                 _buildIconBarItem(
@@ -1194,8 +1202,8 @@ class _ChatContentState extends State<_ChatContent>
                   onTap: () {},
                 ),
                 _buildIconBarItem(
-                  icon: Icons.more_horiz,
-                  label: '更多',
+                  icon: Icons.kebab_dining,
+                  label: '红包',
                   colorScheme: colorScheme,
                   onTap: () {},
                 ),
@@ -1212,7 +1220,6 @@ class _ChatContentState extends State<_ChatContent>
     required String label,
     required ColorScheme colorScheme,
     required VoidCallback onTap,
-    bool isPrimary = false,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -1222,22 +1229,8 @@ class _ChatContentState extends State<_ChatContent>
           Container(
             width: 48,
             height: 48,
-            decoration: BoxDecoration(
-              color: isPrimary ? null : colorScheme.surfaceContainer,
-              gradient: isPrimary
-                  ? const LinearGradient(
-                      colors: [Color(0xFFFF6B81), Color(0xFFFF4757)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                  : null,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(
-              icon,
-              size: 24,
-              color: isPrimary ? Colors.white : colorScheme.onSurfaceVariant,
-            ),
+            decoration: BoxDecoration(color: colorScheme.surfaceContainer),
+            child: Icon(icon, size: 24, color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 4),
           Text(
@@ -1255,25 +1248,10 @@ class _ChatContentState extends State<_ChatContent>
       height: _expandedHeight,
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainer,
-        border: Border(
-          top: BorderSide(
-            color: colorScheme.outline.withValues(alpha: 0.2),
-            width: 0.5,
-          ),
-        ),
+        border: Border(top: BorderSide(color: colorScheme.outline, width: 1)),
       ),
       child: Column(
         children: [
-          // 顶部拖动指示条
-          Container(
-            margin: const EdgeInsets.only(top: 8),
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: colorScheme.outline.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
           // 表情网格
           Expanded(
             child: GridView.builder(

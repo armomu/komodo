@@ -119,7 +119,7 @@ flutter:
 
   # Lottie 动画资源
   assets:
-    - lib/lotties/
+    - assets/lotties/
     - sounds/
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -148,7 +148,7 @@ flutter:
   fonts:
     - family: AlimamaAgile
       fonts:
-        - asset: lib/fonts/alimama agile/AlimamaAgileVF-Thin.ttf
+        - asset: assets/alimama agile/AlimamaAgileVF-Thin.ttf
 
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
