@@ -541,9 +541,10 @@ class _ChatContentState extends State<_ChatContent>
               },
             ),
           ),
-          _buildBottomArea(context, colorScheme),
+          // _buildBottomArea(context, colorScheme),
         ],
       ),
+      bottomNavigationBar: _buildBottomArea(context, colorScheme),
     );
   }
 
