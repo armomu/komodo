@@ -34,35 +34,38 @@ class ImageViewerPage extends StatelessWidget {
           ),
         ],
       ),
-      body:
-          // 图片查看器
-          PhotoView(
-            imageProvider: isLocalImage
-                ? FileImage(File(imageUrl))
-                : NetworkImage(imageUrl) as ImageProvider,
-            minScale: PhotoViewComputedScale.contained,
-            maxScale: PhotoViewComputedScale.covered * 3,
-            backgroundDecoration: const BoxDecoration(color: Colors.black),
-            loadingBuilder: (context, event) => Center(
-              child: CircularProgressIndicator(
-                value: event == null
-                    ? null
-                    : event.cumulativeBytesLoaded /
-                          (event.expectedTotalBytes ?? 1),
-                color: Colors.white,
-              ),
-            ),
-            errorBuilder: (context, error, stackTrace) => const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.broken_image, size: 64, color: Colors.white38),
-                  SizedBox(height: 16),
-                  Text('图片加载失败', style: TextStyle(color: Colors.white54)),
-                ],
-              ),
+      body: GestureDetector(
+        // 关键：设置 behavior 为 translucent，让空白区域可点击
+        behavior: HitTestBehavior.translucent,
+        onTap: () => Navigator.of(context).pop(),
+        child: PhotoView(
+          imageProvider: isLocalImage
+              ? FileImage(File(imageUrl))
+              : NetworkImage(imageUrl) as ImageProvider,
+          minScale: PhotoViewComputedScale.contained,
+          maxScale: PhotoViewComputedScale.covered * 3,
+          backgroundDecoration: const BoxDecoration(color: Colors.black),
+          loadingBuilder: (context, event) => Center(
+            child: CircularProgressIndicator(
+              value: event == null
+                  ? null
+                  : event.cumulativeBytesLoaded /
+                        (event.expectedTotalBytes ?? 1),
+              color: Colors.white,
             ),
           ),
+          errorBuilder: (context, error, stackTrace) => const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.broken_image, size: 64, color: Colors.white38),
+                SizedBox(height: 16),
+                Text('图片加载失败', style: TextStyle(color: Colors.white54)),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 

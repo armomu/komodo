@@ -88,6 +88,12 @@ class _ChatContentState extends State<_ChatContent>
 
   bool _showEmojiPicker = false;
   bool _showIconBar = false;
+
+  // 底部栏展开动画
+  static const double _expandedHeight = 260.0; // 统一展开高度（表情+图标栏）
+  late AnimationController _bottomBarAnimCtrl;
+  late Animation<double> _bottomBarAnim;
+
   _RecordState _recordState = _RecordState.idle;
 
   // 录音
@@ -138,6 +144,17 @@ class _ChatContentState extends State<_ChatContent>
   void initState() {
     super.initState();
     _recorder = AudioRecorder();
+
+    // 初始化底部栏动画
+    _bottomBarAnimCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 280),
+    );
+    _bottomBarAnim = CurvedAnimation(
+      parent: _bottomBarAnimCtrl,
+      curve: Curves.easeOutCubic,
+    );
+
     _focusNode.addListener(() {
       if (_focusNode.hasFocus && _showEmojiPicker) {
         setState(() => _showEmojiPicker = false);
@@ -168,11 +185,13 @@ class _ChatContentState extends State<_ChatContent>
     _recordTimer?.cancel();
     _amplitudeSub?.cancel();
     _lisenPlaying?.dispose();
+    _bottomBarAnimCtrl.dispose();
     _removeOverlay();
     super.dispose();
   }
 
-  void _scrollToBottom() {
+  void _scrollToBottom({int milliseconds = 60}) async {
+    await Future.delayed(Duration(milliseconds: milliseconds));
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
@@ -239,6 +258,7 @@ class _ChatContentState extends State<_ChatContent>
       } else {
         _recordState = _RecordState.idle;
       }
+      _scrollToBottom();
     });
   }
 
@@ -523,28 +543,46 @@ class _ChatContentState extends State<_ChatContent>
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.only(top: 8, bottom: 8),
-              itemCount: _messages.length + 1,
-              itemBuilder: (context, index) {
-                if (index == _messages.length) return const SizedBox(height: 8);
-                return _buildChatMessage(
-                  context,
-                  _messages[index],
-                  index,
-                  widget.peerAvatar,
-                );
-              },
+      body: GestureDetector(
+        // 关键：设置 behavior 为 translucent，让空白区域可点击
+        behavior: HitTestBehavior.translucent,
+        onTap: () => setState(() {
+          HapticFeedback.lightImpact();
+          // 收起表情栏
+          _showEmojiPicker = false;
+          _showIconBar = false;
+          _bottomBarAnimCtrl.reverse();
+          // 收起图标栏
+          _showIconBar = false;
+          _showEmojiPicker = false;
+          _bottomBarAnimCtrl.reverse();
+          _scrollToBottom(milliseconds: 280);
+          _focusNode.unfocus();
+        }),
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.only(top: 8, bottom: 8),
+                itemCount: _messages.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == _messages.length)
+                    return const SizedBox(height: 8);
+                  return _buildChatMessage(
+                    context,
+                    _messages[index],
+                    index,
+                    widget.peerAvatar,
+                  );
+                },
+              ),
             ),
-          ),
-          // _buildBottomArea(context, colorScheme),
-        ],
+            _buildBottomArea(context, colorScheme),
+          ],
+        ),
       ),
-      bottomNavigationBar: _buildBottomArea(context, colorScheme),
+      // bottomNavigationBar: _buildBottomArea(context, colorScheme),
     );
   }
 
@@ -920,7 +958,7 @@ class _ChatContentState extends State<_ChatContent>
         border: Border(
           top: BorderSide(
             color: colorScheme.outline.withValues(alpha: 0.3),
-            width: 0.5,
+            width: 1,
           ),
         ),
       ),
@@ -930,8 +968,28 @@ class _ChatContentState extends State<_ChatContent>
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildInputRow(context, colorScheme),
-            if (_showEmojiPicker) _buildEmojiPicker(context),
-            if (_showIconBar) _buildExpandedIconBar(context, colorScheme),
+            // 动画展开区域
+            AnimatedBuilder(
+              animation: _bottomBarAnim,
+              builder: (context, child) {
+                return SizeTransition(
+                  sizeFactor: _bottomBarAnim,
+                  axisAlignment: -1.0, // 从顶部收起
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 0.3),
+                      end: Offset.zero,
+                    ).animate(_bottomBarAnim),
+                    child: child,
+                  ),
+                );
+              },
+              child: _showEmojiPicker
+                  ? _buildEmojiPicker(context)
+                  : (_showIconBar
+                        ? _buildExpandedIconBar(context, colorScheme)
+                        : const SizedBox.shrink()),
+            ),
           ],
         ),
       ),
@@ -965,18 +1023,35 @@ class _ChatContentState extends State<_ChatContent>
             IconButton(
               visualDensity: VisualDensity.comfortable,
               onPressed: () {
+                HapticFeedback.lightImpact();
                 setState(() {
-                  _showIconBar = false;
-                  _showEmojiPicker = !_showEmojiPicker;
-                  if (_showEmojiPicker) _focusNode.unfocus();
+                  if (_showEmojiPicker) {
+                    // 收起表情栏
+                    _showEmojiPicker = false;
+                    _showIconBar = false;
+                    _bottomBarAnimCtrl.reverse();
+                  } else {
+                    // 展开表情栏（动画）
+                    _showEmojiPicker = true;
+                    _showIconBar = false;
+                    _focusNode.unfocus();
+                    _bottomBarAnimCtrl.forward();
+                  }
+                  _scrollToBottom(milliseconds: 280);
                 });
               },
-              icon: Icon(
-                _showEmojiPicker
-                    ? Icons.keyboard_alt_outlined
-                    : Icons.emoji_emotions_outlined,
-                size: 26,
-                color: colorScheme.inverseSurface,
+              icon: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: Icon(
+                  _showEmojiPicker
+                      ? Icons.keyboard_alt_outlined
+                      : Icons.emoji_emotions_outlined,
+                  key: ValueKey(_showEmojiPicker),
+                  size: 26,
+                  color: _showEmojiPicker
+                      ? colorScheme.primary
+                      : colorScheme.inverseSurface,
+                ),
               ),
             ),
           Transform.translate(
@@ -984,21 +1059,35 @@ class _ChatContentState extends State<_ChatContent>
             child: IconButton(
               visualDensity: VisualDensity.comfortable,
               onPressed: () {
+                HapticFeedback.lightImpact();
                 setState(() {
-                  _showIconBar = !_showIconBar;
-                  _showEmojiPicker = false;
                   if (_showIconBar) {
+                    // 收起图标栏
+                    _showIconBar = false;
+                    _showEmojiPicker = false;
+                    _bottomBarAnimCtrl.reverse();
+                  } else {
+                    // 展开图标栏（动画）
+                    _showIconBar = true;
                     _showEmojiPicker = false;
                     _focusNode.unfocus();
+                    _bottomBarAnimCtrl.forward();
                   }
+                  _scrollToBottom(milliseconds: 280);
                 });
               },
-              icon: Icon(
-                _showIconBar
-                    ? Icons.arrow_drop_down_circle_outlined
-                    : Icons.add_circle_outline,
-                size: 26,
-                color: colorScheme.inverseSurface,
+              icon: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: Icon(
+                  _showIconBar
+                      ? Icons.arrow_drop_down_circle
+                      : Icons.add_circle_outline,
+                  key: ValueKey(_showIconBar),
+                  size: 26,
+                  color: _showIconBar
+                      ? colorScheme.primary
+                      : colorScheme.inverseSurface,
+                ),
               ),
             ),
           ),
@@ -1057,51 +1146,66 @@ class _ChatContentState extends State<_ChatContent>
 
   Widget _buildExpandedIconBar(BuildContext context, ColorScheme colorScheme) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      height: _expandedHeight,
       decoration: BoxDecoration(
+        color: colorScheme.surfaceContainer,
         border: Border(
           top: BorderSide(
-            color: colorScheme.outline.withValues(alpha: 0.3),
+            color: colorScheme.outline.withValues(alpha: 0.2),
             width: 0.5,
           ),
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          _buildIconBarItem(
-            icon: Icons.image_outlined,
-            label: '图片',
-            colorScheme: colorScheme,
-            onTap: () {
-              _pickAndSendImage();
-              setState(() => _showIconBar = false);
-            },
-          ),
-          _buildIconBarItem(
-            icon: Icons.camera_alt_outlined,
-            label: '拍照',
-            colorScheme: colorScheme,
-            onTap: () {},
-          ),
-          _buildIconBarItem(
-            icon: Icons.card_giftcard,
-            label: '礼物',
-            colorScheme: colorScheme,
-            isPrimary: true,
-            onTap: () {},
-          ),
-          _buildIconBarItem(
-            icon: Icons.location_on_outlined,
-            label: '位置',
-            colorScheme: colorScheme,
-            onTap: () {},
-          ),
-          _buildIconBarItem(
-            icon: Icons.more_horiz,
-            label: '更多',
-            colorScheme: colorScheme,
-            onTap: () {},
+          // 图标栏内容
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildIconBarItem(
+                  icon: Icons.image_outlined,
+                  label: '图片',
+                  colorScheme: colorScheme,
+                  onTap: () {
+                    _pickAndSendImage();
+                    setState(() {
+                      _showIconBar = false;
+                      _bottomBarAnimCtrl.reverse();
+                    });
+                  },
+                ),
+                _buildIconBarItem(
+                  icon: Icons.camera_alt_outlined,
+                  label: '拍照',
+                  colorScheme: colorScheme,
+                  onTap: () {},
+                ),
+                _buildIconBarItem(
+                  icon: Icons.card_giftcard,
+                  label: '礼物',
+                  colorScheme: colorScheme,
+                  isPrimary: true,
+                  onTap: () {},
+                ),
+                _buildIconBarItem(
+                  icon: Icons.location_on_outlined,
+                  label: '位置',
+                  colorScheme: colorScheme,
+                  onTap: () {},
+                ),
+                _buildIconBarItem(
+                  icon: Icons.more_horiz,
+                  label: '更多',
+                  colorScheme: colorScheme,
+                  onTap: () {},
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -1153,28 +1257,57 @@ class _ChatContentState extends State<_ChatContent>
   Widget _buildEmojiPicker(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      height: 220,
-      padding: const EdgeInsets.all(12),
-      color: colorScheme.surfaceContainer,
-      child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 8,
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
-          childAspectRatio: 1,
-        ),
-        itemCount: EmojiList.length,
-        itemBuilder: (context, index) => GestureDetector(
-          onTap: () => _sendEmojiMessage(EmojiList[index]),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: colorScheme.surfaceContainer,
-            ),
-            alignment: Alignment.center,
-            child: Text(EmojiList[index], style: const TextStyle(fontSize: 24)),
+      height: _expandedHeight,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainer,
+        border: Border(
+          top: BorderSide(
+            color: colorScheme.outline.withValues(alpha: 0.2),
+            width: 0.5,
           ),
         ),
+      ),
+      child: Column(
+        children: [
+          // 顶部拖动指示条
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+              color: colorScheme.outline.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // 表情网格
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.all(12),
+              physics: const BouncingScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 8,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                childAspectRatio: 1,
+              ),
+              itemCount: EmojiList.length,
+              itemBuilder: (context, index) => GestureDetector(
+                onTap: () => _sendEmojiMessage(EmojiList[index]),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: colorScheme.surface,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    EmojiList[index],
+                    style: const TextStyle(fontSize: 24),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
