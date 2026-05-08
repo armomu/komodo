@@ -101,7 +101,7 @@ class _ChatContentState extends State<_ChatContent>
   OverlayEntry? _overlayEntry;
 
   // 语音播放状态（实际播放走 ChatVoiceController）
-  bool _previewPlaying = false;
+  // bool _previewPlaying = false;
   int? _playingVoiceIndex;
 
   // 波形动画（真实幅度数据）
@@ -147,7 +147,6 @@ class _ChatContentState extends State<_ChatContent>
     ever(voiceCtrl.isPlaying, (bool playing) {
       if (!playing && mounted) {
         setState(() {
-          _previewPlaying = false;
           _playingVoiceIndex = null;
         });
         _overlayEntry?.markNeedsBuild();
@@ -269,7 +268,6 @@ class _ChatContentState extends State<_ChatContent>
         setState(() {
           _recordState = _RecordState.recording;
           _recordedPath = filePath;
-          _previewPlaying = false;
         });
         _showRecordingOverlay();
       } else {
@@ -317,7 +315,7 @@ class _ChatContentState extends State<_ChatContent>
   Future<void> _sendVoiceMessage() async {
     final duration = _recordSeconds.clamp(1, 60);
     final path = _recordedPath;
-    await Get.find<ChatVoiceController>().stop();
+    await voiceCtrl.stop();
     setState(() {
       _messages.add(
         _ChatMessage(
@@ -330,7 +328,6 @@ class _ChatContentState extends State<_ChatContent>
       _recordState = _RecordState.ready;
       _recordedPath = null;
       _recordSeconds = 0;
-      _previewPlaying = false;
     });
     _removeOverlay();
     _scrollToBottom();
@@ -347,12 +344,11 @@ class _ChatContentState extends State<_ChatContent>
         debugPrint('【取消录音】删除失败: $e');
       }
     }
-    Get.find<ChatVoiceController>().stop();
+    voiceCtrl.stop();
     setState(() {
       _recordState = _RecordState.ready;
       _recordedPath = null;
       _recordSeconds = 0;
-      _previewPlaying = false;
     });
     _removeOverlay();
     HapticFeedback.lightImpact();
@@ -425,21 +421,17 @@ class _ChatContentState extends State<_ChatContent>
       debugPrint('【预览】_recordedPath 为 null');
       return;
     }
-    final ctrl = Get.find<ChatVoiceController>();
     try {
-      final isThisPlaying = ctrl.isPlayingPath(_recordedPath!);
+      final isThisPlaying = voiceCtrl.isPlayingPath(_recordedPath!);
       if (isThisPlaying) {
-        await ctrl.stop();
-        setState(() => _previewPlaying = false);
+        await voiceCtrl.stop();
         debugPrint('【预览播放】已停止');
       } else {
-        await ctrl.play(_recordedPath!);
-        setState(() => _previewPlaying = true);
+        await voiceCtrl.play(_recordedPath!);
         debugPrint('【预览播放】开始: $_recordedPath');
       }
     } catch (e) {
       debugPrint('【预览播放失败】$e');
-      setState(() => _previewPlaying = false);
     }
   }
 
@@ -964,11 +956,12 @@ class _ChatContentState extends State<_ChatContent>
                 : _buildTextInputField(colorScheme),
           ),
           const SizedBox(width: 2),
-          if (!isVoiceMode)
+          if (!isVoiceMode && _recordState == _RecordState.idle)
             IconButton(
               visualDensity: VisualDensity.comfortable,
               onPressed: () {
                 setState(() {
+                  _showIconBar = false;
                   _showEmojiPicker = !_showEmojiPicker;
                   if (_showEmojiPicker) _focusNode.unfocus();
                 });
@@ -986,6 +979,7 @@ class _ChatContentState extends State<_ChatContent>
             onPressed: () {
               setState(() {
                 _showIconBar = !_showIconBar;
+                _showEmojiPicker = false;
                 if (_showIconBar) {
                   _showEmojiPicker = false;
                   _focusNode.unfocus();
@@ -1006,26 +1000,19 @@ class _ChatContentState extends State<_ChatContent>
   }
 
   Widget _buildTextInputField(ColorScheme colorScheme) {
-    return Container(
+    return SizedBox(
       height: 40,
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(18),
-      ),
+      // decoration: BoxDecoration(
+      //   color: colorScheme.outline,
+      //   borderRadius: BorderRadius.circular(18),
+      // ),
       child: TextField(
         controller: _textController,
         focusNode: _focusNode,
         style: TextStyle(fontSize: 14, color: colorScheme.onSurface),
-        decoration: InputDecoration(
-          hintStyle: TextStyle(
-            fontSize: 14,
-            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-          ),
+        decoration: const InputDecoration(
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 8,
-          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           isDense: true,
         ),
         onSubmitted: _sendTextMessage,
@@ -1041,38 +1028,15 @@ class _ChatContentState extends State<_ChatContent>
         duration: const Duration(milliseconds: 150),
         height: 40,
         decoration: BoxDecoration(
-          color: _recordState == _RecordState.recording
-              ? colorScheme.primary.withValues(alpha: 0.15)
-              : colorScheme.surfaceContainer,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: _recordState == _RecordState.recording
-                ? colorScheme.primary.withValues(alpha: 0.4)
-                : Colors.transparent,
-            width: 1.5,
-          ),
+          color: colorScheme.outline,
+          borderRadius: BorderRadius.circular(10),
         ),
-        child: Row(
+        child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.mic,
-              size: 16,
-              color: _recordState == _RecordState.recording
-                  ? colorScheme.primary
-                  : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              '长按录音',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: _recordState == _RecordState.recording
-                    ? colorScheme.primary
-                    : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-              ),
-            ),
+            Icon(Icons.mic, size: 16),
+            SizedBox(width: 6),
+            Text('长按录音'),
           ],
         ),
       ),
@@ -1326,7 +1290,7 @@ class _RecordOverlayPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final dur = state._recordSeconds.clamp(1, 60);
-    final playing = state._previewPlaying;
+    final ctr = Get.find<ChatVoiceController>();
 
     final handleBar = Container(
       width: 36,
@@ -1344,10 +1308,10 @@ class _RecordOverlayPreview extends StatelessWidget {
         width: 56,
         height: 56,
         decoration: BoxDecoration(color: cs.primary, shape: BoxShape.circle),
-        child: Icon(
-          playing ? Icons.pause : Icons.play_arrow,
-          color: Colors.white,
-          size: 28,
+        child: Obx(
+          () => ctr.isPlaying.value
+              ? const Icon(Icons.pause, color: Colors.white, size: 28)
+              : const Icon(Icons.play_arrow, color: Colors.white, size: 28),
         ),
       ),
     );
@@ -1432,35 +1396,32 @@ class _RecordOverlayPreview extends StatelessWidget {
           ),
         ],
       ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            handleBar,
-            const SizedBox(height: 12),
-            Text(
-              '录音 ${_fmtDur(dur)}',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: cs.onSurface,
-              ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          handleBar,
+          const SizedBox(height: 12),
+          Text(
+            '录音 ${_fmtDur(dur)}',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: cs.onSurface,
             ),
-            const SizedBox(height: 12),
-            playBtn,
-            Text(
-              playing ? '播放中...' : '点击播放',
-              style: TextStyle(
-                fontSize: 12,
-                color: cs.onSurface.withValues(alpha: 0.5),
-              ),
-            ),
-            const SizedBox(height: 16),
-            btnRow,
-            const SizedBox(height: 16),
-          ],
-        ),
+          ),
+          const SizedBox(height: 12),
+          playBtn,
+          // Text(
+          //   playing ? '播放中...' : '点击播放',
+          //   style: TextStyle(
+          //     fontSize: 12,
+          //     color: cs.onSurface.withValues(alpha: 0.5),
+          //   ),
+          // ),
+          const SizedBox(height: 16),
+          btnRow,
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }
