@@ -16,7 +16,7 @@ class DialogsSection extends StatelessWidget {
         actions: const [SwitchThemeWidget()],
       ),
       body: const SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(0),
         child: Column(
           children: [
             _AlertDialogDemo(),
@@ -540,6 +540,7 @@ class _DialogCategory extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: const EdgeInsets.all(0),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

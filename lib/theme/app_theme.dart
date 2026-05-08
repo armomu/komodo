@@ -123,7 +123,7 @@ class AppTheme {
         iconColor: gray800,
         titleTextStyle: TextStyle(
           fontSize: 16,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
           color: gray900,
         ),
         subtitleTextStyle: TextStyle(fontSize: 13, color: gray600),

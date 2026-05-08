@@ -15,21 +15,21 @@ class PlaylistBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.6,
+        maxHeight: MediaQuery.of(context).size.height * 0.4,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // 顶部拖动条
-          Container(
-            margin: const EdgeInsets.only(top: 8, bottom: 8),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
+          // Container(
+          //   margin: const EdgeInsets.only(top: 8, bottom: 8),
+          //   width: 40,
+          //   height: 4,
+          //   decoration: BoxDecoration(
+          //     color: Colors.white.withValues(alpha: 0.3),
+          //     borderRadius: BorderRadius.circular(2),
+          //   ),
+          // ),
 
           // 标题栏
           Padding(

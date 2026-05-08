@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:komodo/components/switch_theme.dart';
+import 'package:komodo/pages/ble_demo/ble_demo_page.dart';
+import 'package:komodo/pages/lifecycle/lifecycle_demo_page.dart';
 import 'sections/colors_section.dart';
 import 'sections/typography_section.dart';
 import 'sections/spacing_radius_section.dart';
@@ -41,6 +43,20 @@ class DesignSystemPage extends StatelessWidget {
 
 Widget buildDesignSystemSectionGrid(BuildContext context, {bool title = true}) {
   final sections = [
+    _SectionItem(
+      title: '路由演示',
+      subtitle: '路由、生命周期演示',
+      icon: Icons.route_rounded,
+      color: const Color.fromARGB(79, 0, 174, 255),
+      page: const LifecycleDemoPage(),
+    ),
+    _SectionItem(
+      title: '蓝牙通信',
+      subtitle: '蓝牙连接设备',
+      icon: Icons.bluetooth_connected,
+      color: const Color.fromARGB(216, 153, 212, 43),
+      page: const BleDemoPage(),
+    ),
     _SectionItem(
       title: '颜色系统',
       subtitle: '基础色板、灰色阶梯、语义色、ColorScheme',
@@ -140,21 +156,7 @@ Widget buildDesignSystemSectionGrid(BuildContext context, {bool title = true}) {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
-      GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 1.1,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-        ),
-        itemCount: sections.length,
-        itemBuilder: (context, index) {
-          final section = sections[index];
-          return _SectionCard(item: section);
-        },
-      ),
+      ...sections.map((section) => _SectionCard(item: section)),
     ],
   );
 }
@@ -182,57 +184,69 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return ListTile(
       onTap: () => Get.to(() => item.page),
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: item.color.withAlpha(30),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(item.icon, color: item.color, size: 24),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                item.title,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-              Expanded(
-                child: Text(
-                  item.subtitle,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 12,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ],
-              ),
-            ],
-          ),
+      // contentPadding: const EdgeInsets.all(0),
+      leading: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: item.color.withAlpha(30),
+          borderRadius: BorderRadius.circular(10),
         ),
+        child: Icon(item.icon, color: item.color, size: 24),
       ),
+      title: Text(item.title),
+      subtitle: Container(
+        padding: const EdgeInsets.only(top: 4),
+        child: Text(item.subtitle),
+      ),
+      trailing: const Icon(Icons.chevron_right),
     );
+    // CircleAvatar(
+    //     backgroundColor: item.color.withAlpha(30),
+    //     child: Icon(item.icon, color: item.color),
+    //   )
+    // return GestureDetector(
+    //   onTap: () => Get.to(() => item.page),
+    //   child: Card(
+    //     clipBehavior: Clip.antiAlias,
+    //     child: Padding(
+    //       padding: const EdgeInsets.all(16),
+    //       child: Column(
+    //         crossAxisAlignment: CrossAxisAlignment.start,
+    //         mainAxisSize: MainAxisSize.min,
+    //         children: [
+    //           Container(
+    //             padding: const EdgeInsets.all(10),
+    //             decoration: BoxDecoration(
+    //               color: item.color.withAlpha(30),
+    //               borderRadius: BorderRadius.circular(10),
+    //             ),
+    //             child: Icon(item.icon, color: item.color, size: 24),
+    //           ),
+    //           const SizedBox(height: 12),
+    //           Text(
+    //             item.title,
+    //             style: Theme.of(
+    //               context,
+    //             ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+    //             maxLines: 1,
+    //             overflow: TextOverflow.ellipsis,
+    //           ),
+    //           const SizedBox(height: 4),
+    //           Text(
+    //             item.subtitle,
+    //             style: Theme.of(context).textTheme.bodySmall?.copyWith(
+    //               color: Theme.of(context).colorScheme.onSurfaceVariant,
+    //             ),
+    //             maxLines: 2,
+    //             overflow: TextOverflow.ellipsis,
+    //           ),
+    //         ],
+    //       ),
+    //     ),
+    //   ),
+    // );
   }
 }

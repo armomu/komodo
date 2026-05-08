@@ -41,43 +41,38 @@ class SpacingRadiusSection extends StatelessWidget {
       (64, '5xl'),
     ];
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.straighten,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '间距规范',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+            Icon(
+              Icons.straighten,
+              color: Theme.of(context).colorScheme.primary,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(width: 8),
             Text(
-              '基于 8px 基准网格系统，确保元素间距一致',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+              '间距规范',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 16),
-            ...spacingValues.map((item) => _SpacingPreview(item.$1, item.$2)),
-            const SizedBox(height: 16),
-            _SpacingCode(),
           ],
         ),
-      ),
+        const SizedBox(height: 8),
+        Text(
+          '基于 8px 基准网格系统，确保元素间距一致',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Divider(),
+        const SizedBox(height: 16),
+        ...spacingValues.map((item) => _SpacingPreview(item.$1, item.$2)),
+        const SizedBox(height: 16),
+        _SpacingCode(),
+      ],
     );
   }
 
@@ -94,49 +89,44 @@ class SpacingRadiusSection extends StatelessWidget {
       (32, 'full', '圆形元素'),
     ];
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.rounded_corner,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '圆角规范',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+            Icon(
+              Icons.rounded_corner,
+              color: Theme.of(context).colorScheme.primary,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(width: 8),
             Text(
-              '圆角大小根据元素类型和使用场景选择',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+              '圆角规范',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 16,
-              runSpacing: 20,
-              children: radiusValues
-                  .map((item) => _RadiusPreview(item.$1, item.$2, item.$3))
-                  .toList(),
-            ),
-            const SizedBox(height: 16),
-            _RadiusCode(),
           ],
         ),
-      ),
+        const SizedBox(height: 8),
+        Text(
+          '圆角大小根据元素类型和使用场景选择',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Divider(),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 16,
+          runSpacing: 20,
+          children: radiusValues
+              .map((item) => _RadiusPreview(item.$1, item.$2, item.$3))
+              .toList(),
+        ),
+        const SizedBox(height: 16),
+        _RadiusCode(),
+      ],
     );
   }
 }

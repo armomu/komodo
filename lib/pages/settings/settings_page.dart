@@ -24,6 +24,14 @@ class SettingsPage extends StatelessWidget {
       body: ListView(
         children: [
           // 主题设置
+          _buildSectionHeader('通知'),
+          ListTile(
+            leading: const Icon(Icons.notifications_outlined),
+            title: const Text('通知'),
+            subtitle: const Text('接收通知'),
+            trailing: Switch(value: true, onChanged: (value) {}),
+          ),
+          // 主题设置
           _buildSectionHeader('外观设置'),
           Obx(
             () => Column(
@@ -98,98 +106,6 @@ class SettingsPage extends StatelessWidget {
                       child: const Text('确定'),
                     ),
                   ],
-                ),
-              );
-            },
-          ),
-
-          // 设计规范
-          ListTile(
-            leading: const Icon(Icons.palette_outlined),
-            title: const Text('设计规范'),
-            subtitle: const Text('颜色、字体、间距、组件规范'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Get.toNamed(Routes.designSystem),
-          ),
-
-          const Divider(),
-
-          // 路由演示
-          ListTile(
-            leading: const Icon(Icons.route),
-            title: const Text('路由演示'),
-            subtitle: const Text('跳转到生命周期详情页'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Get.toNamed(Routes.lifecycleDemo),
-          ),
-
-          // Snackbar 演示
-          ListTile(
-            leading: const Icon(Icons.bluetooth),
-            title: const Text('蓝牙通信'),
-            subtitle: const Text('跳转到蓝牙通信详情页'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Get.toNamed(Routes.bleDemo),
-          ),
-
-          // Dialog 演示
-          ListTile(
-            leading: const Icon(Icons.live_tv),
-            title: const Text('直播演示'),
-            subtitle: const Text('rtmp stream推流'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Get.toNamed(Routes.live);
-            },
-          ),
-
-          // BottomSheet 演示
-          ListTile(
-            leading: const Icon(Icons.vertical_align_bottom),
-            title: const Text('BottomSheet 演示'),
-            subtitle: const Text('显示 GetX BottomSheet'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Get.bottomSheet(
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: context.theme.scaffoldBackgroundColor,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(20),
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        '选择操作',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      ListTile(
-                        leading: const Icon(Icons.share),
-                        title: const Text('分享'),
-                        onTap: () => Get.back(),
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.copy),
-                        title: const Text('复制链接'),
-                        onTap: () => Get.back(),
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.delete, color: Colors.red),
-                        title: const Text(
-                          '删除',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                        onTap: () => Get.back(),
-                      ),
-                    ],
-                  ),
                 ),
               );
             },

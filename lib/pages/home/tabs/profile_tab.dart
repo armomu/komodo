@@ -178,7 +178,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 Expanded(child: Container()),
                 SizedBox(
                   child: ElevatedButton(
-                    onPressed: () => Get.toNamed(Routes.livePush),
+                    onPressed: () => Get.toNamed(Routes.livePushDemo),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.onSurface,
                       foregroundColor: Colors.white,
@@ -360,7 +360,7 @@ class _ProfileTabState extends State<ProfileTab> {
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
           color: Theme.of(context).scaffoldBackgroundColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -368,15 +368,6 @@ class _ProfileTabState extends State<ProfileTab> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
             ..._tabs.map(
               (tab) => ListTile(
                 title: Text(tab),
