@@ -7,6 +7,7 @@ import 'package:komodo/pages/message/image_viewer_page.dart';
 import 'package:komodo/pages/design_system/design_system_page.dart';
 import 'package:komodo/pages/database_demo/database_demo_page.dart';
 import 'package:komodo/pages/cache_browser/cache_browser_page.dart';
+import 'package:komodo/pages/login/login_page.dart';
 import '../pages/home/home_page.dart';
 import '../pages/settings/settings_page.dart';
 import '../pages/lifecycle/lifecycle_detail_page.dart';
@@ -17,6 +18,7 @@ import 'route_middleware.dart';
 
 /// 路由名称常量
 abstract class Routes {
+  static const String login = '/login';
   static const String home = '/';
   static const String settings = '/settings';
   static const String designSystem = '/design-system';
@@ -38,6 +40,12 @@ class AppPages {
   static const String initial = Routes.home;
 
   static final List<GetPage> routes = [
+    GetPage(
+      name: Routes.login,
+      page: () => const LoginPage(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
     GetPage(
       name: Routes.home,
       page: () => const HomePage(),

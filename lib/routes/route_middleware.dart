@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// 路由中间件示例 - 可用于登录验证、权限检查等
+/// 路由中间件
+/// 当前不自动重定向，允许用户自由浏览。
+/// 登录入口由各页面自行控制（如点击头像跳转到 /login）。
 class AuthMiddleware extends GetMiddleware {
   @override
   RouteSettings? redirect(String? route) {
-    // 示例：检查是否需要登录
-    // final isLoggedIn = Get.find<AuthController>().isLoggedIn;
-    // if (!isLoggedIn && route != Routes.login) {
-    //   return const RouteSettings(name: Routes.login);
-    // }
+    // 不自动拦截，用户在需要时主动触发登录
     return null;
   }
 

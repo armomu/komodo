@@ -5,7 +5,9 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'controllers/user_controller.dart';
 import 'pages/music/music_player_controller.dart';
+import 'services/api_service.dart';
 import 'database/chat_database.dart';
 import 'routes/app_routes.dart';
 import 'theme/app_theme.dart';
@@ -46,6 +48,10 @@ void main() async {
   await GetStorage.init();
 
   // ── 注入全局控制器 ────────────────────────────────────────────────────────
+  // API 服务（需在控制器之前注入）
+  Get.put(ApiService());
+  // 用户状态控制器
+  Get.put(UserController());
   // 主题控制器
   Get.put(ThemeController());
   // 全局音乐播放器控制器（permanent = true 防止页面销毁时被自动 delete）

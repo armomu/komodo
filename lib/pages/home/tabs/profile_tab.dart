@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:komodo/components/switch_theme.dart';
+import 'package:komodo/controllers/user_controller.dart';
 import 'package:komodo/pages/design_system/design_system_page.dart';
 import 'package:komodo/routes/app_routes.dart';
 
@@ -42,55 +43,62 @@ class _ProfileTabState extends State<ProfileTab> {
       ),
       body: ListView(
         children: [
-          // Avatar with plus badge
+          // Avatar with plus badge — 点击跳转到登录页
           Row(
             children: [
-              Container(
-                margin: const EdgeInsets.only(left: 16),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 4),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withAlpha(20),
-                            blurRadius: 5,
-                            offset: const Offset(0, 0),
-                          ),
-                        ],
-                        image: const DecorationImage(
-                          image: NetworkImage(
-                            'https://picsum.photos/seed/mv2/100/100',
-                          ),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    // Plus badge
-                    Positioned(
-                      bottom: 0,
-                      right: -4,
-                      child: Container(
-                        width: 32,
-                        height: 32,
+              GestureDetector(
+                onTap: () {
+                  if (!Get.find<UserController>().isLoggedIn) {
+                    Get.toNamed(Routes.login);
+                  }
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(left: 16),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        width: 100,
+                        height: 100,
                         decoration: BoxDecoration(
-                          color: colorScheme.onSurface,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
-                        ),
-                        child: Icon(
-                          Icons.add,
-                          size: 18,
-                          color: colorScheme.surface,
+                          border: Border.all(color: Colors.white, width: 4),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(20),
+                              blurRadius: 5,
+                              offset: const Offset(0, 0),
+                            ),
+                          ],
+                          image: const DecorationImage(
+                            image: NetworkImage(
+                              'https://picsum.photos/seed/mv2/100/100',
+                            ),
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                      // Plus badge
+                      Positioned(
+                        bottom: 0,
+                        right: -4,
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: colorScheme.onSurface,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 3),
+                          ),
+                          child: Icon(
+                            Icons.add,
+                            size: 18,
+                            color: colorScheme.surface,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               Column(
