@@ -1,12 +1,9 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:audio_visualizer/audio_visualizer.dart';
 import 'package:audio_visualizer/utils.dart';
-import 'package:audio_visualizer/visualizers/audio_spectrum.dart';
 import 'package:audio_visualizer/visualizers/visualizers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:record/record.dart';
 
 class TestPage extends StatefulWidget {
@@ -107,11 +104,6 @@ class _TestPage extends State<TestPage> {
                   ),
                   ElevatedButton(
                     onPressed: () async {
-                      // final path = await downloadFile(
-                      //   "https://files.testfile.org/anime.mp3",
-                      //   "anime.mp3",
-                      // );
-                      // audioPlayer.setDataSource("file://$path");
                     },
                     child: const Text('File'),
                   ),
@@ -267,25 +259,3 @@ class _TestPage extends State<TestPage> {
     );
   }
 }
-
-// Future<String> downloadFile(String url, String filename) async {
-//   // Make HTTP request with streaming
-//   final response =
-//       await http.Client().send(http.Request('GET', Uri.parse(url)));
-
-//   if (response.statusCode != 200) {
-//     throw Exception('Failed to download file: ${response.statusCode}');
-//   }
-//   final directory = await getTemporaryDirectory();
-//   final filePath = '${directory.path}/$filename';
-//   final file = File(filePath);
-
-//   // Create file and write chunks
-//   final sink = file.openWrite();
-//   await response.stream.forEach((chunk) {
-//     sink.add(chunk);
-//   });
-
-//   await sink.close();
-//   return filePath;
-// }

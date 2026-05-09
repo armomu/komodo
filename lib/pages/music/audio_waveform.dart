@@ -69,7 +69,7 @@ class _AudioWaveformState extends State<AudioWaveform>
   late Animation<double> _frequencyAnimation;
   final math.Random _random = math.Random();
   StreamSubscription? _visualizerSubscription;
-  List<double> _realWaveData = [];
+  final List<double> _realWaveData = [];
 
   @override
   void initState() {

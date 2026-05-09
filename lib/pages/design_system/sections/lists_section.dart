@@ -259,31 +259,31 @@ class _RadioListTileDemoState extends State<_RadioListTileDemo> {
         margin: EdgeInsets.zero,
         child: Column(
           children: [
-            RadioListTile<int>(
-              value: 0,
+            RadioGroup<int>(
               groupValue: _selectedOption,
-              onChanged: (v) => setState(() => _selectedOption = v),
-              title: const Text('标准模式'),
-              subtitle: const Text('默认显示设置'),
-              secondary: const Icon(Icons.grid_view),
-            ),
-            const Divider(height: 1, indent: 56),
-            RadioListTile<int>(
-              value: 1,
-              groupValue: _selectedOption,
-              onChanged: (v) => setState(() => _selectedOption = v),
-              title: const Text('紧凑模式'),
-              subtitle: const Text('显示更多内容'),
-              secondary: const Icon(Icons.view_list),
-            ),
-            const Divider(height: 1, indent: 56),
-            RadioListTile<int>(
-              value: 2,
-              groupValue: _selectedOption,
-              onChanged: (v) => setState(() => _selectedOption = v),
-              title: const Text('列表模式'),
-              subtitle: const Text('显示详细信息'),
-              secondary: const Icon(Icons.view_agenda),
+              onChanged: (int? v) => setState(() => _selectedOption = v),
+              child: const Column(
+                children: [
+                  RadioListTile<int>(
+                    value: 0,
+                    title: Text('标准模式'),
+                    subtitle: Text('默认显示设置'),
+                    secondary: Icon(Icons.grid_view),
+                  ),
+                  RadioListTile<int>(
+                    value: 1,
+                    title: Text('紧凑模式'),
+                    subtitle: Text('显示更多内容'),
+                    secondary: Icon(Icons.view_list),
+                  ),
+                  RadioListTile<int>(
+                    value: 2,
+                    title: Text('列表模式'),
+                    subtitle: Text('显示详细信息'),
+                    secondary: Icon(Icons.view_agenda),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

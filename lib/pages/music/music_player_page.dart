@@ -286,12 +286,12 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
           ),
           const SizedBox(height: 12),
           // 标签
-          Wrap(
+          const Wrap(
             spacing: 8,
             children: [
-              const MusicTag(label: 'SQ'),
-              const MusicTag(label: 'MV'),
-              const MusicTag(label: '视频'),
+              MusicTag(label: 'SQ'),
+              MusicTag(label: 'MV'),
+              MusicTag(label: '视频'),
             ],
           ),
         ],
@@ -320,15 +320,15 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   Widget _buildFunctionBar() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 28),
-      child: Row(
+      child: const Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const MusicFunctionButton(icon: Icons.graphic_eq, label: '音效'),
-          const MusicFunctionButton(icon: Icons.tune, label: '定时'),
-          const MusicFunctionButton(icon: Icons.download_for_offline_outlined, label: '下载'),
-          const MusicFunctionButton(icon: Icons.chat_bubble_outline_rounded, label: '评论'),
-          const MusicFunctionButton(icon: Icons.live_tv, label: '直播'),
-          const MusicFunctionButton(icon: Icons.more_vert, label: '更多'),
+        children: <Widget>[
+          MusicFunctionButton(icon: Icons.graphic_eq, label: '音效'),
+          MusicFunctionButton(icon: Icons.tune, label: '定时'),
+          MusicFunctionButton(icon: Icons.download_for_offline_outlined, label: '下载'),
+          MusicFunctionButton(icon: Icons.chat_bubble_outline_rounded, label: '评论'),
+          MusicFunctionButton(icon: Icons.live_tv, label: '直播'),
+          MusicFunctionButton(icon: Icons.more_vert, label: '更多'),
         ],
       ),
     );

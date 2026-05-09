@@ -38,7 +38,7 @@ class ChatImageBubble extends StatelessWidget {
                       width: 180,
                       height: 240,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _ImagePlaceholder())
+                      errorBuilder: (_, __, ___) => const _ImagePlaceholder())
                   : Image.network(imageUrl,
                       width: 180,
                       height: 240,

@@ -255,31 +255,31 @@ class _RadioDemoState extends State<_RadioDemo> {
       description: '单选按钮',
       child: Column(
         children: [
-          RadioListTile<int>(
-            value: 0,
+          RadioGroup<int>(
             groupValue: _radioValue,
-            onChanged: (v) => setState(() => _radioValue = v),
-            title: const Text('选项 A'),
-            subtitle: const Text('描述文本 A'),
-          ),
-          RadioListTile<int>(
-            value: 1,
-            groupValue: _radioValue,
-            onChanged: (v) => setState(() => _radioValue = v),
-            title: const Text('选项 B'),
-            subtitle: const Text('描述文本 B'),
-          ),
-          RadioListTile<int>(
-            value: 2,
-            groupValue: _radioValue,
-            onChanged: (v) => setState(() => _radioValue = v),
-            title: const Text('选项 C'),
-            subtitle: const Text('描述文本 C'),
+            onChanged: (int? v) => setState(() => _radioValue = v),
+            child: const Column(
+              children: [
+                RadioListTile<int>(
+                  value: 0,
+                  title: Text('选项 A'),
+                  subtitle: Text('描述文本 A'),
+                ),
+                RadioListTile<int>(
+                  value: 1,
+                  title: Text('选项 B'),
+                  subtitle: Text('描述文本 B'),
+                ),
+                RadioListTile<int>(
+                  value: 2,
+                  title: Text('选项 C'),
+                  subtitle: Text('描述文本 C'),
+                ),
+              ],
+            ),
           ),
           RadioListTile<int>(
             value: 3,
-            groupValue: null,
-            onChanged: null,
             title: Text(
               '禁用状态',
               style: TextStyle(

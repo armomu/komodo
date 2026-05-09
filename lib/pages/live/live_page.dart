@@ -285,9 +285,11 @@ class _LivePageState extends State<LivePage>
   }
 
   void _showUrlInputDialog() {
+    if (!mounted) return;
     final urlController = TextEditingController(
       text: _playUrl ?? 'http://192.168.1.38:8085/live/stream.m3u8',
     );
+    // ignore: use_build_context_synchronously
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -332,6 +334,7 @@ class _LivePageState extends State<LivePage>
   void _showGiftSheet() {
     GiftBottomSheet.show(context, (gift) {
       Future.delayed(const Duration(milliseconds: 100), () {
+        if (!mounted) return;
         LottieOverlayManager.playGiftAnimation(context, gift);
       });
     });

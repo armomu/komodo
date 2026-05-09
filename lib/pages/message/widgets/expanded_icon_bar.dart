@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 /// 图标扩展栏（图片/拍照/礼物/位置/红包）
 class ExpandedIconBar extends StatelessWidget {

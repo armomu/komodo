@@ -564,9 +564,7 @@ class _VideoPageState extends State<VideoPage> {
           onTap: _showShareBottomSheet,
           child: Column(
             children: [
-              Transform(
-                alignment: Alignment.center,
-                transform: Matrix4.identity()..scale(-1.0, 1.0, 1.0),
+              Transform.flip(flipX: true,
                 child: const Icon(Icons.reply, color: Colors.white, size: 34),
               ),
               const SizedBox(height: 4),
@@ -596,11 +594,8 @@ class _VideoPageState extends State<VideoPage> {
       onTap: () {},
       child: Column(
         children: [
-          Transform(
-            alignment: Alignment.center,
-            transform: flipHorizontal
-                ? (Matrix4.identity()..scale(-1.0, 1.0, 1.0))
-                : Matrix4.identity(),
+          Transform.flip(
+            flipX: flipHorizontal,
             child: Icon(icon, color: color, size: 34),
           ),
           const SizedBox(height: 4),
