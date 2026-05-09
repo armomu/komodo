@@ -6,6 +6,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'pages/music/music_player_controller.dart';
+import 'database/chat_database.dart';
 import 'routes/app_routes.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_controller.dart';
@@ -49,6 +50,12 @@ void main() async {
   Get.put(ThemeController());
   // 全局音乐播放器控制器（permanent = true 防止页面销毁时被自动 delete）
   Get.put(MusicPlayerController(), permanent: true);
+  // 聊天数据库（GetxService，全局单例）
+  await Get.putAsync<ChatDatabase>(() async {
+    final db = ChatDatabase();
+    await db.init();
+    return db;
+  });
 
   // 初始化完成，移除启动页
   FlutterNativeSplash.remove();

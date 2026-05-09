@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:komodo/pages/message/emojis.dart';
 import 'package:komodo/routes/app_routes.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:komodo/pages/message/chat_voice_controller.dart';
+import 'package:komodo/database/chat_database.dart';
 import 'models/chat_models.dart';
 import 'widgets/chat_timestamp.dart';
 import 'widgets/chat_text_bubble.dart';
@@ -53,7 +53,8 @@ class _ChatContentState extends State<_ChatContent>
   final FocusNode _focusNode = FocusNode();
   bool _isKeyboardVisible = false;
 
-  final List<ChatMessage> _messages = List.from(_initialMessages);
+  final List<ChatMessage> _messages = [];
+  int? _conversationId;
 
   bool _showEmojiPicker = false;
   bool _showIconBar = false;
@@ -78,26 +79,24 @@ class _ChatContentState extends State<_ChatContent>
 
   static const String _myAvatar = 'https://picsum.photos/seed/myavatar/100/100';
 
-  static const List<ChatMessage> _initialMessages = [
-    ChatMessage(type: ChatMsgType.timestamp, time: '19:01'),
-    ChatMessage(type: ChatMsgType.text, isMe: false, content: '嗨，你好呀～很高兴认识你 😊'),
-    ChatMessage(type: ChatMsgType.voice, isMe: false, duration: 11),
-    ChatMessage(
-      type: ChatMsgType.image,
-      isMe: false,
-      imageUrl: 'https://picsum.photos/seed/chatimg1/400/600',
-    ),
-    ChatMessage(type: ChatMsgType.text, isMe: false, content: '回复了一条信息'),
-    ChatMessage(type: ChatMsgType.text, isMe: true, content: '你好呀～'),
-    ChatMessage(
-      type: ChatMsgType.voice,
-      voicePath: 'https://www.w3schools.com/html/horse.mp3',
-      isMe: true,
-      duration: 5,
-    ),
-  ];
-
   final voiceCtrl = Get.put(ChatVoiceController());
+
+  Future<void> _initConversation() async {
+    final db = ChatDatabase.to;
+    final (convId, _) = await db.getOrCreateConversation(
+        widget.peerName, widget.peerAvatar);
+    _conversationId = convId;
+    final msgs = await db.getMessages(convId);
+    if (mounted) {
+      setState(() => _messages.addAll(msgs));
+    }
+  }
+
+  Future<void> _saveMessageToDb(ChatMessage msg) async {
+    if (_conversationId != null) {
+      await ChatDatabase.to.insertMessage(_conversationId!, msg);
+    }
+  }
   Worker? _lisenPlaying;
 
   @override
@@ -105,6 +104,7 @@ class _ChatContentState extends State<_ChatContent>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _recorder = AudioRecorder();
+    _initConversation();
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
         // 聚焦时：收起表情/图标栏、滚到底部
@@ -169,12 +169,10 @@ class _ChatContentState extends State<_ChatContent>
   void _sendTextMessage(String text) {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return;
-    setState(() {
-      _messages.add(
-          ChatMessage(type: ChatMsgType.text, isMe: true, content: trimmed));
-    });
+    final msg = ChatMessage(type: ChatMsgType.text, isMe: true, content: trimmed);
+    setState(() => _messages.add(msg));
+    _saveMessageToDb(msg);
     _textController.clear();
-    // 发送后保持输入框焦点，继续输入
     _focusNode.requestFocus();
     _scrollToBottom();
   }
@@ -187,13 +185,13 @@ class _ChatContentState extends State<_ChatContent>
   }
 
   void _sendImageMessage(String imagePath) {
-    setState(() {
-      _messages.add(ChatMessage(
-          type: ChatMsgType.image,
-          isMe: true,
-          imageUrl: imagePath,
-          isLocalImage: true));
-    });
+    final msg = ChatMessage(
+        type: ChatMsgType.image,
+        isMe: true,
+        imageUrl: imagePath,
+        isLocalImage: true);
+    setState(() => _messages.add(msg));
+    _saveMessageToDb(msg);
     _scrollToBottom();
   }
 
@@ -289,16 +287,18 @@ class _ChatContentState extends State<_ChatContent>
     final duration = _recordSeconds.clamp(1, 60);
     final path = _recordedPath;
     await voiceCtrl.stop();
+    final msg = ChatMessage(
+        type: ChatMsgType.voice,
+        isMe: true,
+        duration: duration,
+        voicePath: path);
     setState(() {
-      _messages.add(ChatMessage(
-          type: ChatMsgType.voice,
-          isMe: true,
-          duration: duration,
-          voicePath: path));
+      _messages.add(msg);
       _recordState = ChatRecordState.ready;
       _recordedPath = null;
       _recordSeconds = 0;
     });
+    _saveMessageToDb(msg);
     _removeOverlay();
     _scrollToBottom();
     HapticFeedback.lightImpact();

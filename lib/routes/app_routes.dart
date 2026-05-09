@@ -5,6 +5,7 @@ import 'package:komodo/pages/music/music_player_page.dart';
 import 'package:komodo/pages/message/chat_page.dart';
 import 'package:komodo/pages/message/image_viewer_page.dart';
 import 'package:komodo/pages/design_system/design_system_page.dart';
+import 'package:komodo/pages/database_demo/database_demo_page.dart';
 import '../pages/home/home_page.dart';
 import '../pages/settings/settings_page.dart';
 import '../pages/lifecycle/lifecycle_detail_page.dart';
@@ -27,6 +28,7 @@ abstract class Routes {
   static const String musicPlayer = '/music-player';
   static const String chat = '/chat';
   static const String imageViewer = '/image-viewer';
+  static const String databaseDemo = '/database-demo';
 }
 
 /// 路由配置
@@ -112,6 +114,12 @@ class AppPages {
       transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 200),
     ),
+    GetPage(
+      name: Routes.databaseDemo,
+      page: () => const DatabaseDemoPage(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
   ];
 }
 
@@ -119,7 +127,5 @@ class AppPages {
 class HomeBinding extends Bindings {
   @override
   void dependencies() {
-    // 这里可以注入 Home 页面需要的 Controller
-    // Get.lazyPut<HomeController>(() => HomeController());
   }
 }

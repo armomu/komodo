@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:komodo/database/chat_database.dart';
 import 'models/message_models.dart';
 import 'widgets/message_list_item.dart';
 
@@ -14,6 +15,8 @@ class MessageTabState extends State<MessageTab> {
   final ScrollController _scrollController = ScrollController();
   double _scrollOffset = 0.0;
 
+  List<MessageItem> _conversations = [];
+
   @override
   void initState() {
     super.initState();
@@ -22,6 +25,7 @@ class MessageTabState extends State<MessageTab> {
         _scrollOffset = _scrollController.position.pixels;
       });
     });
+    _loadConversations();
   }
 
   @override
@@ -30,79 +34,11 @@ class MessageTabState extends State<MessageTab> {
     super.dispose();
   }
 
-  static const List<MessageItem> _mockMessageList = [
-    MessageItem(
-      type: MessageType.private,
-      title: 'Sarah Miller',
-      subtitle: '这首歌太好听了！你听过吗？',
-      time: '昨天',
-      avatarUrl: 'https://picsum.photos/seed/user1/100/100',
-      unread: 2,
-    ),
-    MessageItem(
-      type: MessageType.private,
-      title: 'John Doe',
-      subtitle: '周末一起去看演唱会吧',
-      time: '4-28',
-      avatarUrl: 'https://picsum.photos/seed/user2/100/100',
-    ),
-    MessageItem(
-      type: MessageType.private,
-      title: 'Emma Wilson',
-      subtitle: '分享了一首歌给你 🎵',
-      time: '4-25',
-      avatarUrl: 'https://picsum.photos/seed/user3/100/100',
-    ),
-    MessageItem(
-      type: MessageType.private,
-      title: 'Mike Chen',
-      subtitle: '[图片]',
-      time: '4-20',
-      avatarUrl: 'https://picsum.photos/seed/user4/100/100',
-    ),
-    MessageItem(
-      type: MessageType.private,
-      title: 'Lisa Park',
-      subtitle: '在吗？有个事想问你',
-      time: '4-15',
-      avatarUrl: 'https://picsum.photos/seed/user5/100/100',
-    ),
-    MessageItem(
-      type: MessageType.private,
-      title: 'Alex Turner',
-      subtitle: '好的，没问题',
-      time: '4-10',
-      avatarUrl: 'https://picsum.photos/seed/user6/100/100',
-    ),
-    MessageItem(
-      type: MessageType.private,
-      title: 'Lisa Park',
-      subtitle: '在吗？有个事想问你',
-      time: '4-15',
-      avatarUrl: 'https://picsum.photos/seed/user7/100/100',
-    ),
-    MessageItem(
-      type: MessageType.private,
-      title: 'Lucy',
-      subtitle: '你今天吃啥？',
-      time: '4-18',
-      avatarUrl: 'https://picsum.photos/seed/user8/100/100',
-    ),
-    MessageItem(
-      type: MessageType.private,
-      title: 'Lily',
-      subtitle: '你今天吃啥？',
-      time: '4-18',
-      avatarUrl: 'https://picsum.photos/seed/user9/100/100',
-    ),
-    MessageItem(
-      type: MessageType.private,
-      title: 'Lucy',
-      subtitle: '你今天吃啥？',
-      time: '4-18',
-      avatarUrl: 'https://picsum.photos/seed/user10/100/100',
-    ),
-  ];
+  Future<void> _loadConversations() async {
+    final db = ChatDatabase.to;
+    final list = await db.getConversations();
+    if (mounted) setState(() => _conversations = list);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -139,10 +75,10 @@ class MessageTabState extends State<MessageTab> {
         SliverList(
           delegate: SliverChildBuilderDelegate(
             (BuildContext context, int index) => MessageListItem(
-              item: _mockMessageList[index],
+              item: _conversations[index],
               isDark: isDark,
             ),
-            childCount: _mockMessageList.length,
+            childCount: _conversations.length,
           ),
         ),
       ],

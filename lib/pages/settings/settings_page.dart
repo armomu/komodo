@@ -23,7 +23,7 @@ class SettingsPage extends StatelessWidget {
       ),
       body: ListView(
         children: [
-          // 主题设置
+          // 通知
           _buildSectionHeader('通知'),
           ListTile(
             leading: const Icon(Icons.notifications_outlined),
@@ -74,6 +74,18 @@ class SettingsPage extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+
+          const Divider(),
+
+          // 开发工具
+          _buildSectionHeader('开发工具'),
+          ListTile(
+            leading: const Icon(Icons.storage),
+            title: const Text('本地数据库'),
+            subtitle: const Text('浏览和操作 SQLite 聊天数据'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Get.toNamed(Routes.databaseDemo),
           ),
 
           const Divider(),
