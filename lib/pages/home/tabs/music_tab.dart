@@ -1,12 +1,9 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'package:komodo/pages/music/music_player_controller.dart';
 import 'package:komodo/pages/music/music_models.dart';
 import 'package:komodo/pages/test/test.dart';
-import 'package:komodo/routes/app_routes.dart';
 import 'models/carousel_data.dart';
 import 'widgets/main_card_content.dart';
 import 'widgets/slang_card_item.dart';
