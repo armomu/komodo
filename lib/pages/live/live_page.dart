@@ -4,16 +4,9 @@ import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 import 'gift_lottie_overlay.dart';
 
-// ═══════════════════════════════════════════════════════════════════════════
-// 直播间页面（纯 UI 展示版）
-// 布局参考：抖音直播间全屏沉浸式设计
-//
-// 保留区域：
-//   - 顶部：主播信息（左）+ 观众信息+关闭（右）
-//   - 左下：聊天弹幕区（带半透明黑色背景）
-//   - 底部：输入框(60%宽)+表情、购物车、礼物、分享
-// 暂不实现：视频播放、弹幕逻辑、礼物动画
-// ═══════════════════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════════════════════
+// 直播间页面（含飞行弹幕）
+// ═════════════════════════════════════════════════════════════════════════
 
 class LivePage extends StatefulWidget {
   const LivePage({super.key});
@@ -27,15 +20,26 @@ class _LivePageState extends State<LivePage>
   late VideoPlayerController _controller = VideoPlayerController.networkUrl(
     Uri.parse('https://www.youtube.com/watch?v=_lvYy_YXZxQ'),
   );
-  // ── 状态 ──────────────────────────────────────────────────────────────────
+
   final TextEditingController _chatController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  // 模拟弹幕数据
+  // 飞行弹幕 Widget 列表 —— 每条弹幕是独立 StatefulWidget，飞出后自动销毁
+  final List<Widget> _flyingWidgets = [];
+  int _danmakuIdCounter = 0;
+
+  // 弹幕轨道系统 —— 防止弹幕堆叠遮挡
+  static const int _trackCount = 5; // 5 条轨道
+  static const List<double> _trackPercents = [0.12, 0.20, 0.28, 0.36, 0.44]; // 各轨道位置
+
+  /// 弹幕飞行轨迹记录：id + 飞行时间窗口 + 所在轨道
+  final List<_DanmakuTrack> _danmakuTracks = [];
+
+  // 左下角聊天弹幕数据
   final List<_DanmakuItem> _danmakuList = [
     const _DanmakuItem(
       '公告',
-      '直播间严禁黄赌毒，巴拉巴拉爱神的箭拉克斯基的卢卡斯角度来看直播间严禁黄赌毒，巴拉巴拉爱神的箭拉克斯基的卢卡斯角度来看',
+      '直播间严禁黄赌毒，共建绿色健康网络环境',
       Colors.white,
     ),
     const _DanmakuItem('西二旗华仔', '画质清晰，点赞！', Color(0xFF9C27B0)),
@@ -43,9 +47,7 @@ class _LivePageState extends State<LivePage>
     const _DanmakuItem('北漂小王', '求关注求关注', Color(0xFF00BCD4)),
   ];
 
-  // 是否显示输入模式
   bool _showInput = false;
-  // 播放地址
   String? _playUrl;
 
   void _initVlcPlayer(String url) {
@@ -53,29 +55,38 @@ class _LivePageState extends State<LivePage>
     _playUrl = url;
     _controller = VideoPlayerController.networkUrl(Uri.parse(url))
       ..initialize().then((_) {
-        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
         setState(() {});
         _controller.play();
       });
   }
 
-  // ════════════════════════════════════════════════════════════════════════
-  // 生命周期
-  // ════════════════════════════════════════════════════════════════════════
-
   @override
   void initState() {
     super.initState();
-    // _initVlcPlayer() 不再在initState中调用，改为点击头像后输入URL再播放
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,
-      overlays: [SystemUiOverlay.top], // 只显示顶部
+      overlays: [SystemUiOverlay.top],
     );
+    // 进入直播间后，依次播放默认聊天信息的飞行弹幕
+    _playInitialDanmaku();
+  }
+
+  /// 进入直播间时，依次触发默认聊天信息的飞行弹幕
+  void _playInitialDanmaku() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      for (int i = 0; i < _danmakuList.length; i++) {
+        final item = _danmakuList[i];
+        Future.delayed(Duration(milliseconds: 300 + i * 250), () {
+          if (mounted) {
+            _addFlyingDanmaku('${item.username}：${item.content}', item.color);
+          }
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
-    // ignore: unnecessary_null_comparison
     if (_controller != null) {
       _controller.dispose();
     }
@@ -83,10 +94,6 @@ class _LivePageState extends State<LivePage>
     _scrollController.dispose();
     super.dispose();
   }
-
-  // ════════════════════════════════════════════════════════════════════════
-  // 构建
-  // ════════════════════════════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
@@ -96,37 +103,24 @@ class _LivePageState extends State<LivePage>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // ── 1. 背景：视频区域（全屏） ─────────────────────────────────
           _buildVideoArea(),
-          // _buildVideoBackground(),
-
-          // ── 2. 顶部渐变遮罩 ───────────────────────────────────────────
           _buildTopGradient(),
-
-          // ── 3. 顶部区域 ─────────────────────────────────────────────
           _buildTopBar(),
-
-          // ── 4. 底部操作栏 ───────────────────────────────────────────
           Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomBar()),
-
-          // ── 5. 左下：聊天弹幕区 ─────────────────────────────────────
           if (!_showInput) _buildDanmakuArea(),
+          // 飞行弹幕层
+          ..._flyingWidgets,
         ],
       ),
     );
   }
 
-  // ════════════════════════════════════════════════════════════════════════
-  // 区域构建
-  // ════════════════════════════════════════════════════════════════════════
-
   Widget _buildVideoArea() {
-    // 如果控制器未初始化，显示占位界面
     if (_playUrl == null || !_controller.value.isInitialized) {
       return _buildVideoPlaceholder();
     }
     return GestureDetector(
-      onTap: () async {},
+      onTap: () {},
       child: Center(
         child: AspectRatio(
           aspectRatio: _controller.value.aspectRatio,
@@ -136,7 +130,6 @@ class _LivePageState extends State<LivePage>
     );
   }
 
-  /// 视频区域占位界面（未输入播放地址时显示）
   Widget _buildVideoPlaceholder() {
     return Container(
       color: Colors.black,
@@ -146,24 +139,16 @@ class _LivePageState extends State<LivePage>
           children: [
             Icon(Icons.tap_and_play, size: 64, color: Colors.white24),
             SizedBox(height: 16),
-            Text(
-              '还没有输入源',
-              style: TextStyle(color: Colors.white70, fontSize: 16),
-            ),
+            Text('还没有输入源', style: TextStyle(color: Colors.white70, fontSize: 16)),
           ],
         ),
       ),
     );
   }
 
-  // 视频加载占位
-
-  /// 顶部渐变遮罩
   Widget _buildTopGradient() {
     return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
+      top: 0, left: 0, right: 0,
       child: Container(
         height: 120,
         decoration: const BoxDecoration(
@@ -177,7 +162,6 @@ class _LivePageState extends State<LivePage>
     );
   }
 
-  /// 顶部栏：左上主播信息 + 右上观众+关闭
   Widget _buildTopBar() {
     return SafeArea(
       child: Padding(
@@ -195,13 +179,11 @@ class _LivePageState extends State<LivePage>
     );
   }
 
-  /// 主播信息区域（尺寸已调小）
   Widget _buildAnchorInfo() {
     return Row(
       children: [
-        // 主播头像（小尺寸）- 点击输入播放地址
         GestureDetector(
-          onTap: () => _showUrlInputDialog(),
+          onTap: _showUrlInputDialog,
           child: Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
@@ -215,8 +197,6 @@ class _LivePageState extends State<LivePage>
           ),
         ),
         const SizedBox(width: 8),
-
-        // 名称 + 粉丝数
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -244,7 +224,6 @@ class _LivePageState extends State<LivePage>
           ],
         ),
         const SizedBox(width: 8),
-        // 关注按钮（小尺寸红色胶囊）
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
@@ -253,87 +232,56 @@ class _LivePageState extends State<LivePage>
           ),
           child: const Text(
             '关注',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
           ),
         ),
       ],
     );
   }
 
-  /// 观众信息区域（头像重叠更紧密）
   Widget _buildViewerInfo() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        // 观众头像列表（重叠样式，间距更小）
         SizedBox(
-          width: 54,
-          height: 28,
+          width: 54, height: 28,
           child: Stack(
             children: [
               for (int i = 0; i < 3; i++)
                 Positioned(
                   left: i * 12.0,
                   child: Container(
-                    width: 28,
-                    height: 28,
+                    width: 28, height: 28,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: [
-                        Colors.purple[200],
-                        Colors.teal[200],
-                        Colors.orange[200],
-                      ][i],
+                      color: [Colors.purple[200], Colors.teal[200], Colors.orange[200]][i],
                       border: Border.all(color: Colors.white, width: 1.5),
                     ),
-                    child: Icon(
-                      Icons.person,
-                      size: 14,
-                      color: Colors.grey[700],
-                    ),
+                    child: Icon(Icons.person, size: 14, color: Colors.grey[700]),
                   ),
                 ),
             ],
           ),
         ),
         const SizedBox(width: 2),
-
-        // 在线人数
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             color: Colors.black38,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Text(
-            '8888',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          child: const Text('8888',
+            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
         ),
         const SizedBox(width: 2),
-
-        // 关闭按钮
         GestureDetector(
           onTap: () {
-            // 恢复默认系统UI模式（显示导航栏）
             SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
             Navigator.of(context).pop();
           },
           child: Container(
-            width: 32,
-            height: 32,
-            decoration: const BoxDecoration(
-              color: Colors.black38,
-              shape: BoxShape.circle,
-            ),
+            width: 32, height: 32,
+            decoration: const BoxDecoration(color: Colors.black38, shape: BoxShape.circle),
             child: const Icon(Icons.close, color: Colors.white, size: 18),
           ),
         ),
@@ -341,15 +289,12 @@ class _LivePageState extends State<LivePage>
     );
   }
 
-  /// 聊天弹幕区（左下角，每条带半透明黑色背景）
   Widget _buildDanmakuArea() {
     final maxWidth = MediaQuery.of(context).size.width * 0.80;
     return Positioned(
-      left: 8,
-      bottom: 82,
+      left: 8, bottom: 82,
       child: SizedBox(
-        width: maxWidth,
-        height: 200,
+        width: maxWidth, height: 200,
         child: ListView.builder(
           controller: _scrollController,
           itemCount: _danmakuList.length,
@@ -358,7 +303,6 @@ class _LivePageState extends State<LivePage>
             return Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: ConstrainedBox(
-                // Row 先测量文字自然宽度，再限制不超过 maxWidth
                 constraints: BoxConstraints(maxWidth: maxWidth),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -366,36 +310,22 @@ class _LivePageState extends State<LivePage>
                   children: [
                     Flexible(
                       child: Container(
-                        padding: const EdgeInsets.only(
-                          left: 8,
-                          right: 8,
-                          top: 4,
-                          bottom: 6,
-                        ),
+                        padding: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 6),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.45),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: '${item.username}：',
-                                style: TextStyle(
-                                  color: item.color,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              TextSpan(
-                                text: item.content,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
+                          text: TextSpan(children: [
+                            TextSpan(
+                              text: '${item.username}：',
+                              style: TextStyle(color: item.color, fontSize: 13, fontWeight: FontWeight.w600),
+                            ),
+                            TextSpan(
+                              text: item.content,
+                              style: const TextStyle(color: Colors.white, fontSize: 13),
+                            ),
+                          ]),
                         ),
                       ),
                     ),
@@ -409,24 +339,18 @@ class _LivePageState extends State<LivePage>
     );
   }
 
-  /// 底部操作栏
   Widget _buildBottomBar() {
-    if (_showInput) {
-      return _buildInputMode();
-    }
+    if (_showInput) return _buildInputMode();
     return _buildActionBar();
   }
 
-  /// 普通模式底部操作栏
   Widget _buildActionBar() {
-    // 沉浸模式下系统导航栏隐藏，使用固定安全间距
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     final safePadding = bottomPadding > 0 ? bottomPadding : 16.0;
     return Container(
       padding: EdgeInsets.fromLTRB(16, 0, 16, safePadding + 8),
       child: Row(
         children: [
-          // ── 输入框（60%宽）+ 表情 ─────────────────────────────────
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -440,91 +364,34 @@ class _LivePageState extends State<LivePage>
                   Expanded(
                     child: GestureDetector(
                       onTap: () => setState(() => _showInput = true),
-                      child: const Text(
-                        '说点什么…',
-                        style: TextStyle(color: Colors.white70, fontSize: 13),
-                      ),
+                      child: const Text('说点什么…',
+                        style: TextStyle(color: Colors.white70, fontSize: 13)),
                     ),
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () => _showToast('表情面板（待实现）'),
-                    child: const Icon(
-                      Icons.emoji_emotions_outlined,
-                      color: Colors.white70,
-                      size: 22,
-                    ),
+                    child: const Icon(Icons.emoji_emotions_outlined, color: Colors.white70, size: 22),
                   ),
                 ],
               ),
             ),
           ),
-
           const SizedBox(width: 8),
-
-          // 购物车
-          _buildBottomBtn(
-            icon: Icons.shopping_cart_outlined,
-            onTap: () => _showToast('购物车'),
-          ),
-
+          _buildBottomBtn(icon: Icons.shopping_cart_outlined, onTap: () => _showToast('购物车')),
           const SizedBox(width: 8),
-
-          // 礼物
           _buildBottomBtn(
             icon: Icons.card_giftcard,
             color: Colors.orange[300]!,
-            onTap: () => _showGiftSheet(),
+            onTap: _showGiftSheet,
           ),
-
           const SizedBox(width: 8),
-
-          // 分享
-          _buildBottomBtn(
-            icon: Icons.share_outlined,
-            onTap: () {
-              Get.bottomSheet(
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: context.theme.scaffoldBackgroundColor,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(20),
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ListTile(
-                        leading: const Icon(Icons.share),
-                        title: const Text('分享'),
-                        onTap: () => Get.back(),
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.copy),
-                        title: const Text('观看直播'),
-                        onTap: () => Get.back(),
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.delete, color: Colors.red),
-                        title: const Text(
-                          '开启直播',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                        onTap: () => Get.back(),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
+          _buildBottomBtn(icon: Icons.share_outlined, onTap: _showShareSheet),
         ],
       ),
     );
   }
 
-  /// 输入模式底部栏
   Widget _buildInputMode() {
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
     final safePadding = MediaQuery.of(context).padding.bottom;
@@ -538,7 +405,6 @@ class _LivePageState extends State<LivePage>
       ),
       child: Row(
         children: [
-          // 文本输入框
           Expanded(
             child: TextField(
               controller: _chatController,
@@ -550,10 +416,7 @@ class _LivePageState extends State<LivePage>
                 filled: true,
                 fillColor: const Color(0xFF3A3A3A),
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide.none,
@@ -563,37 +426,21 @@ class _LivePageState extends State<LivePage>
             ),
           ),
           const SizedBox(width: 8),
-
-          // 发送按钮
           GestureDetector(
             onTap: _sendMessage,
             child: Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
-              ),
+              width: 36, height: 36,
+              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
               child: const Icon(Icons.send, color: Colors.white, size: 18),
             ),
           ),
           const SizedBox(width: 6),
-
-          // 收起键盘
           GestureDetector(
             onTap: () => setState(() => _showInput = false),
             child: Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                color: Color(0xFF3A3A3A),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.keyboard_arrow_down,
-                color: Colors.white70,
-                size: 22,
-              ),
+              width: 36, height: 36,
+              decoration: const BoxDecoration(color: Color(0xFF3A3A3A), shape: BoxShape.circle),
+              child: const Icon(Icons.keyboard_arrow_down, color: Colors.white70, size: 22),
             ),
           ),
         ],
@@ -601,7 +448,6 @@ class _LivePageState extends State<LivePage>
     );
   }
 
-  /// 底部单个操作按钮
   Widget _buildBottomBtn({
     required IconData icon,
     Color color = Colors.white,
@@ -610,8 +456,7 @@ class _LivePageState extends State<LivePage>
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 44,
-        height: 44,
+        width: 44, height: 44,
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.12),
           shape: BoxShape.circle,
@@ -621,9 +466,9 @@ class _LivePageState extends State<LivePage>
     );
   }
 
-  // ════════════════════════════════════════════════════════════════════════
-  // 交互方法（纯 UI 占位）
-  // ════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════
+  // 交互方法
+  // ═══════════════════════════════════════════════════════════════
 
   void _sendMessage() {
     final text = _chatController.text.trim();
@@ -632,6 +477,7 @@ class _LivePageState extends State<LivePage>
       _danmakuList.add(_DanmakuItem('我', text, Colors.red));
       _chatController.clear();
       _showInput = false;
+      _addFlyingDanmaku(text, Colors.red);
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -642,6 +488,74 @@ class _LivePageState extends State<LivePage>
         );
       }
     });
+  }
+
+  /// 添加一条飞行弹幕 —— 创建独立 Widget 加入列表，飞出后自动移除
+  void _addFlyingDanmaku(String text, Color color) {
+    final id = _danmakuIdCounter++;
+    final now = DateTime.now();
+    final endTime = now.add(const Duration(milliseconds: 4000));
+
+    // 找到第一个在此时刻空闲的轨道
+    int trackIndex = _findFreeTrack(now);
+
+    // 记录轨迹信息，用于碰撞检测
+    final track = _DanmakuTrack(
+      id: id,
+      startTime: now,
+      endTime: endTime,
+      topPercent: _trackPercents[trackIndex],
+    );
+    _danmakuTracks.add(track);
+
+    final key = ValueKey(id);
+    setState(() {
+      _flyingWidgets.add(
+        _FlyingDanmakuItem(
+          key: key,
+          text: text,
+          color: color,
+          topPercent: _trackPercents[trackIndex],
+          onComplete: () {
+            // 清理轨迹记录和 Widget
+            _danmakuTracks.removeWhere((t) => t.id == id);
+            setState(() {
+              _flyingWidgets.removeWhere((w) {
+                if (w is _FlyingDanmakuItem) {
+                  return (w.key as ValueKey?)?.value == id;
+                }
+                return false;
+              });
+            });
+          },
+        ),
+      );
+      // 最多保留 8 条，防止叠加太多
+      if (_flyingWidgets.length > 8) {
+        final oldest = _flyingWidgets.removeAt(0);
+        if (oldest is _FlyingDanmakuItem) {
+          final oldestId = (oldest.key as ValueKey?)?.value;
+          if (oldestId != null) {
+            _danmakuTracks.removeWhere((t) => t.id == oldestId);
+          }
+        }
+      }
+    });
+  }
+
+  /// 找到第一个在指定时刻空闲的轨道索引
+  int _findFreeTrack(DateTime time) {
+    for (int i = 0; i < _trackCount; i++) {
+      final trackPercent = _trackPercents[i];
+      bool isOccupied = _danmakuTracks.any((t) =>
+        (t.topPercent - trackPercent).abs() < 0.01 &&
+        time.isAfter(t.startTime) &&
+        time.isBefore(t.endTime)
+      );
+      if (!isOccupied) return i;
+    }
+    // 所有轨道都被占用，返回时间最早的轨道
+    return 0;
   }
 
   void _showToast(String msg) {
@@ -656,12 +570,10 @@ class _LivePageState extends State<LivePage>
     );
   }
 
-  /// 显示输入播放地址的对话框
   void _showUrlInputDialog() {
-    final TextEditingController urlController = TextEditingController(
+    final urlController = TextEditingController(
       text: _playUrl ?? 'http://192.168.1.38:8085/live/stream.m3u8',
     );
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -703,26 +615,156 @@ class _LivePageState extends State<LivePage>
     );
   }
 
-  /// 显示礼物选择面板
   void _showGiftSheet() {
     GiftBottomSheet.show(context, (gift) {
-      // 关闭 bottomSheet 后播放动画
-      // 延迟一点确保 bottomSheet 已经关闭
       Future.delayed(const Duration(milliseconds: 100), () {
         LottieOverlayManager.playGiftAnimation(context, gift);
       });
     });
   }
+
+  void _showShareSheet() {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: context.theme.scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.share),
+              title: const Text('分享'),
+              onTap: () => Get.back(),
+            ),
+            ListTile(
+              leading: const Icon(Icons.copy),
+              title: const Text('复制链接'),
+              onTap: () => Get.back(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // 数据模型
-// ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 
 class _DanmakuItem {
   final String username;
   final String content;
   final Color color;
-
   const _DanmakuItem(this.username, this.content, this.color);
+}
+
+/// 弹幕飞行轨迹记录，用于轨道碰撞检测
+class _DanmakuTrack {
+  final int id;
+  final DateTime startTime;
+  final DateTime endTime;
+  final double topPercent;
+
+  const _DanmakuTrack({
+    required this.id,
+    required this.startTime,
+    required this.endTime,
+    required this.topPercent,
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 飞行弹幕 Widget —— 每条独立管理动画，飞出屏幕即销毁
+// ═══════════════════════════════════════════════════════════════
+
+class _FlyingDanmakuItem extends StatefulWidget {
+  final String text;
+  final Color color;
+  final double topPercent;
+  final VoidCallback onComplete;
+
+  const _FlyingDanmakuItem({
+    required this.text,
+    required this.color,
+    required this.topPercent,
+    required this.onComplete,
+    super.key,
+  });
+
+  @override
+  State<_FlyingDanmakuItem> createState() => _FlyingDanmakuItemState();
+}
+
+class _FlyingDanmakuItemState extends State<_FlyingDanmakuItem>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 4000),
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          widget.onComplete();
+        }
+      });
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, _) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        // 用 SlideTransition 思路：通过 left 定位
+        final textWidth = _estimateTextWidth();
+        final totalDistance = screenWidth + textWidth;
+        final currentX = screenWidth - _ctrl.value * totalDistance;
+
+        return Positioned(
+          left: currentX,
+          top: widget.topPercent * MediaQuery.of(context).size.height,
+          child: _buildContent(),
+        );
+      },
+    );
+  }
+
+  double _estimateTextWidth() {
+    const charWidth = 14.0;
+    return (widget.text.length * charWidth + 24).clamp(60, 300);
+  }
+
+  Widget _buildContent() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white24, width: 0.5),
+      ),
+      child: Text(
+        widget.text,
+        style: TextStyle(
+          color: widget.color,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          shadows: const [Shadow(color: Colors.black54, blurRadius: 4)],
+        ),
+      ),
+    );
+  }
 }
