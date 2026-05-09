@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:komodo/components/app_bottom_sheet.dart';
 import 'package:video_player/video_player.dart';
 import 'gift_lottie_overlay.dart';
 import 'models/danmaku_item.dart';
@@ -328,28 +329,21 @@ class _LivePageState extends State<LivePage>
   }
 
   void _showShareSheet() {
-    Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: context.theme.scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.share),
-              title: const Text('分享'),
-              onTap: () => Get.back(),
-            ),
-            ListTile(
-              leading: const Icon(Icons.copy),
-              title: const Text('复制链接'),
-              onTap: () => Get.back(),
-            ),
-          ],
-        ),
+    AppBottomSheet.show(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.share),
+            title: const Text('分享'),
+            onTap: () => Get.back(),
+          ),
+          ListTile(
+            leading: const Icon(Icons.copy),
+            title: const Text('复制链接'),
+            onTap: () => Get.back(),
+          ),
+        ],
       ),
     );
   }

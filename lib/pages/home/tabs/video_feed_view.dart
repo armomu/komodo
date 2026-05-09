@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:komodo/components/app_bottom_sheet.dart';
 import 'package:video_player/video_player.dart';
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -729,92 +730,81 @@ class _VideoPageState extends State<VideoPage> {
         likes: 37,
       ),
     ];
-
-    Get.bottomSheet(
-      SafeArea(
-        child: Container(
-          height: MediaQuery.of(context).size.height * 0.5,
-          decoration: const BoxDecoration(
-            color: Color(0xFF1A1A1A),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: Column(
-            children: [
-              // 顶部把手
-              Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[600],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-
-              // 标题栏
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${widget.data.comments} 条评论',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+    AppBottomSheet.show(
+      child: SizedBox(
+        height: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 标题栏
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${widget.data.comments} 条评论',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.close,
-                        color: Colors.white70,
-                        size: 20,
-                      ),
-                      onPressed: () => Get.back(),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-              ),
-
-              const Divider(color: Colors.white12, height: 1),
-
-              // 评论列表
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: comments.length,
-                  separatorBuilder: (context, index) => const Divider(
-                    color: Colors.white10,
-                    height: 1,
-                    indent: 72,
                   ),
-                  itemBuilder: (context, index) {
-                    final comment = comments[index];
-                    return _buildCommentItem(comment);
-                  },
-                ),
+                ],
               ),
-              const Divider(color: Colors.white12, height: 1),
-              // 评论输入框
-              _buildCommentInput(),
-            ],
-          ),
+            ),
+
+            // 评论列表
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: comments.length,
+                separatorBuilder: (context, index) =>
+                    const Divider(height: 1, indent: 72),
+                itemBuilder: (context, index) {
+                  final comment = comments[index];
+                  return _buildCommentItem(comment);
+                },
+              ),
+            ),
+            const Divider(height: 1),
+            // 评论输入框
+            _buildCommentInput(),
+          ],
         ),
       ),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      enterBottomSheetDuration: const Duration(milliseconds: 300),
-      exitBottomSheetDuration: const Duration(milliseconds: 200),
     );
+    // Get.bottomSheet(
+    //   SafeArea(
+    //     child: Container(
+    //       height: MediaQuery.of(context).size.height * 0.5,
+    //       decoration: const BoxDecoration(
+    //         color: Color(0xFF1A1A1A),
+    //         borderRadius: BorderRadius.only(
+    //           topLeft: Radius.circular(20),
+    //           topRight: Radius.circular(20),
+    //         ),
+    //       ),
+    //       child: Column(
+    //         children: [
+    //           // 顶部把手
+    //           Container(
+    //             margin: const EdgeInsets.only(top: 12),
+    //             width: 40,
+    //             height: 4,
+    //             decoration: BoxDecoration(
+    //               color: Colors.grey[600],
+    //               borderRadius: BorderRadius.circular(2),
+    //             ),
+    //           ),
+    //         ],
+    //       ),
+    //     ),
+    //   ),
+    //   isScrollControlled: true,
+    //   backgroundColor: Colors.transparent,
+    //   enterBottomSheetDuration: const Duration(milliseconds: 300),
+    //   exitBottomSheetDuration: const Duration(milliseconds: 200),
+    // );
   }
 
   Widget _buildCommentItem(_CommentItem comment) {
@@ -823,11 +813,7 @@ class _VideoPageState extends State<VideoPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: Colors.grey[800],
-            child: Icon(comment.avatar, color: Colors.white70, size: 20),
-          ),
+          CircleAvatar(radius: 18, child: Icon(comment.avatar, size: 20)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -836,16 +822,12 @@ class _VideoPageState extends State<VideoPage> {
                 Text(
                   comment.username,
                   style: const TextStyle(
-                    color: Colors.white70,
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  comment.content,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                ),
+                Text(comment.content, style: const TextStyle(fontSize: 14)),
                 const SizedBox(height: 6),
                 Row(
                   children: [
@@ -854,10 +836,7 @@ class _VideoPageState extends State<VideoPage> {
                       style: const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                     const SizedBox(width: 16),
-                    const Text(
-                      '回复',
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
+                    const Text('回复', style: TextStyle(fontSize: 12)),
                   ],
                 ),
               ],
@@ -866,16 +845,9 @@ class _VideoPageState extends State<VideoPage> {
           const SizedBox(width: 8),
           Column(
             children: [
-              const Icon(
-                Icons.favorite_border,
-                color: Colors.white70,
-                size: 16,
-              ),
+              const Icon(Icons.favorite_border, size: 16),
               const SizedBox(height: 2),
-              Text(
-                '${comment.likes}',
-                style: const TextStyle(color: Colors.grey, fontSize: 11),
-              ),
+              Text('${comment.likes}', style: const TextStyle(fontSize: 11)),
             ],
           ),
         ],
@@ -892,47 +864,51 @@ class _VideoPageState extends State<VideoPage> {
         top: 8,
         bottom: MediaQuery.of(context).padding.bottom + 8,
       ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1A1A1A),
-        border: Border(top: BorderSide(color: Colors.white10)),
-      ),
+      // decoration: const BoxDecoration(
+      //   color: Color(0xFF1A1A1A),
+      //   border: Border(top: BorderSide()),
+      // ),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
-          color: Colors.grey[900],
+          // color: Colors.grey[900],
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
           children: [
             Expanded(
-              child: TextField(
-                controller: controller,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-                decoration: const InputDecoration(
-                  hintText: '说点什么...',
-                  hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                  border: InputBorder.none,
-                  fillColor: Colors.transparent,
-                  contentPadding: EdgeInsets.symmetric(vertical: 10),
+              child: SizedBox(
+                height: 36,
+                child: TextField(
+                  controller: controller,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    hintText: '说点什么...',
+                    hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                    border: InputBorder.none,
+                    fillColor: Colors.transparent,
+                    contentPadding: EdgeInsets.symmetric(vertical: 10),
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 8),
             IconButton(
-              icon: const Icon(Icons.image, color: Colors.white70),
+              icon: const Icon(Icons.image),
               onPressed: () {},
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
             ),
             IconButton(
-              icon: const Icon(Icons.alternate_email, color: Colors.white70),
+              icon: const Icon(Icons.alternate_email),
               onPressed: () {},
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
             ),
             // 微笑图标按钮
             IconButton(
-              icon: const Icon(Icons.mood, color: Colors.white70),
+              icon: const Icon(Icons.mood),
               onPressed: () {},
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
@@ -966,81 +942,51 @@ class _VideoPageState extends State<VideoPage> {
       const _ShareItem(icon: Icons.report, label: '举报', color: Colors.red),
     ];
 
-    Get.bottomSheet(
-      SafeArea(
-        child: Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFF1A1A1A),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
+    AppBottomSheet.show(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 分享图标网格
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                childAspectRatio: 0.9,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+              ),
+              itemCount: shareItems.length,
+              itemBuilder: (context, index) {
+                final item = shareItems[index];
+                return _buildShareItem(item);
+              },
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 顶部把手
-              Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[600],
-                  borderRadius: BorderRadius.circular(2),
+
+          const SizedBox(height: 24),
+
+          // 取消按钮
+          GestureDetector(
+            onTap: () => Get.back(),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: Colors.white10)),
+              ),
+              child: const Center(
+                child: Text(
+                  '取消',
+                  style: TextStyle(color: Colors.white70, fontSize: 16),
                 ),
               ),
-
-              const SizedBox(height: 20),
-
-              // 分享图标网格
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    childAspectRatio: 0.9,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                  ),
-                  itemCount: shareItems.length,
-                  itemBuilder: (context, index) {
-                    final item = shareItems[index];
-                    return _buildShareItem(item);
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // 取消按钮
-              GestureDetector(
-                onTap: () => Get.back(),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  decoration: const BoxDecoration(
-                    border: Border(top: BorderSide(color: Colors.white10)),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      '取消',
-                      style: TextStyle(color: Colors.white70, fontSize: 16),
-                    ),
-                  ),
-                ),
-              ),
-
-              SizedBox(height: MediaQuery.of(context).padding.bottom),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      enterBottomSheetDuration: const Duration(milliseconds: 300),
-      exitBottomSheetDuration: const Duration(milliseconds: 200),
     );
   }
 

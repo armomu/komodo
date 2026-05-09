@@ -20,17 +20,6 @@ class PlaylistBottomSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 顶部拖动条
-          // Container(
-          //   margin: const EdgeInsets.only(top: 8, bottom: 8),
-          //   width: 40,
-          //   height: 4,
-          //   decoration: BoxDecoration(
-          //     color: Colors.white.withValues(alpha: 0.3),
-          //     borderRadius: BorderRadius.circular(2),
-          //   ),
-          // ),
-
           // 标题栏
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
