@@ -391,13 +391,14 @@ class AppTheme {
         onInverseSurface: gray900,
         inversePrimary: gray700,
       ),
-      scaffoldBackgroundColor: const Color(0xFF121212),
+      scaffoldBackgroundColor: black,
+      // scaffoldBackgroundColor: const Color(0xFF121212),
 
       // AppBar
       appBarTheme: const AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 1,
-        backgroundColor: Color(0xFF121212),
+        backgroundColor: black,
         surfaceTintColor: Colors.transparent,
         foregroundColor: gray100,
         titleTextStyle: TextStyle(

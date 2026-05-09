@@ -594,6 +594,7 @@ class _ChatContentState extends State<_ChatContent>
                   _showIconBar = false;
                   _focusNode.unfocus();
                 }
+                _recordState = ChatRecordState.idle;
               }),
               onToggleIconBar: () => setState(() {
                 if (_showIconBar) {
@@ -604,6 +605,7 @@ class _ChatContentState extends State<_ChatContent>
                   _showEmojiPicker = false;
                   _focusNode.unfocus();
                 }
+                _recordState = ChatRecordState.idle;
               }),
               onScrollToBottom: () => _scrollToBottom(milliseconds: 280),
               onSendTextMessage: _sendTextMessage,

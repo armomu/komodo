@@ -44,7 +44,8 @@ class ChatInputBar extends StatelessWidget {
     final isVoiceMode = recordState != ChatRecordState.idle;
     final isKeyboardActive = focusNode.hasFocus;
     final hasText = textController.text.isNotEmpty;
-    final showSendButton = isKeyboardActive || hasText;
+    final showSendButton =
+        (isKeyboardActive || hasText) && recordState == ChatRecordState.idle;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
@@ -54,11 +55,20 @@ class ChatInputBar extends StatelessWidget {
           IconButton(
             visualDensity: VisualDensity.comfortable,
             onPressed: onToggleVoiceMode,
-            icon: Icon(
-              isVoiceMode ? Icons.keyboard_alt_outlined : Icons.mic_outlined,
-              size: 26,
-              color: colorScheme.inverseSurface,
-            ),
+            icon: isVoiceMode
+                ? Transform.rotate(
+                    angle: 45 * 3.1415926 / 180, // 1弧度 ≈ 57.3度，45度 = π/4
+                    child: Icon(
+                      Icons.add_circle_outline,
+                      size: 26,
+                      color: colorScheme.inverseSurface,
+                    ),
+                  )
+                : Icon(
+                    Icons.multitrack_audio,
+                    size: 26,
+                    color: colorScheme.inverseSurface,
+                  ),
           ),
           const SizedBox(width: 2),
 
@@ -79,11 +89,9 @@ class ChatInputBar extends StatelessWidget {
           ),
           const SizedBox(width: 2),
 
-          // ③ 右侧按钮组
-          if (!isVoiceMode && recordState == ChatRecordState.idle)
-            showSendButton
-                ? _buildSendButton(context)
-                : _buildIdleButtons(context),
+          showSendButton
+              ? _buildSendButton(context)
+              : _buildIdleButtons(context),
         ],
       ),
     );
@@ -143,16 +151,20 @@ class ChatInputBar extends StatelessWidget {
           },
           icon: AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
-            child: Icon(
-              showEmojiPicker
-                  ? Icons.keyboard_alt_outlined
-                  : Icons.emoji_emotions_outlined,
-              key: ValueKey(showEmojiPicker),
-              size: 26,
-              color: showEmojiPicker
-                  ? colorScheme.primary
-                  : colorScheme.inverseSurface,
-            ),
+            child: showEmojiPicker
+                ? Transform.rotate(
+                    angle: 45 * 3.1415926 / 180, // 1弧度 ≈ 57.3度，45度 = π/4
+                    child: Icon(
+                      Icons.add_circle_outline,
+                      size: 26,
+                      color: colorScheme.inverseSurface,
+                    ),
+                  )
+                : Icon(
+                    Icons.emoji_emotions_outlined,
+                    key: ValueKey(showEmojiPicker),
+                    size: 26,
+                  ),
           ),
         ),
         Transform.translate(
@@ -166,16 +178,20 @@ class ChatInputBar extends StatelessWidget {
             },
             icon: AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
-              child: Icon(
-                showIconBar
-                    ? Icons.arrow_drop_down_circle
-                    : Icons.add_circle_outline,
-                key: ValueKey(showIconBar),
-                size: 26,
-                color: showIconBar
-                    ? colorScheme.primary
-                    : colorScheme.inverseSurface,
-              ),
+              child: showIconBar
+                  ? Transform.rotate(
+                      angle: 45 * 3.1415926 / 180, // 1弧度 ≈ 57.3度，45度 = π/4
+                      child: Icon(
+                        Icons.add_circle_outline,
+                        size: 26,
+                        color: colorScheme.inverseSurface,
+                      ),
+                    )
+                  : Icon(
+                      Icons.add_circle_outline,
+                      key: ValueKey(showIconBar),
+                      size: 26,
+                    ),
             ),
           ),
         ),
@@ -209,8 +225,10 @@ class _ChatTextInputField extends StatelessWidget {
         decoration: InputDecoration(
           fillColor: colorScheme.outline,
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
+          ),
           isDense: true,
         ),
         onSubmitted: onSubmitted,
@@ -246,7 +264,7 @@ class _VoiceRecordBar extends StatelessWidget {
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.mic, size: 16),
+            Icon(Icons.multitrack_audio, size: 16),
             SizedBox(width: 6),
             Text('长按录音'),
           ],
