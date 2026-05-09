@@ -84,7 +84,9 @@ class _ChatContentState extends State<_ChatContent>
   Future<void> _initConversation() async {
     final db = ChatDatabase.to;
     final (convId, _) = await db.getOrCreateConversation(
-        widget.peerName, widget.peerAvatar);
+      widget.peerName,
+      widget.peerAvatar,
+    );
     _conversationId = convId;
     final msgs = await db.getMessages(convId);
     if (mounted) {
@@ -97,6 +99,7 @@ class _ChatContentState extends State<_ChatContent>
       await ChatDatabase.to.insertMessage(_conversationId!, msg);
     }
   }
+
   Worker? _lisenPlaying;
 
   @override
@@ -169,11 +172,14 @@ class _ChatContentState extends State<_ChatContent>
   void _sendTextMessage(String text) {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return;
-    final msg = ChatMessage(type: ChatMsgType.text, isMe: true, content: trimmed);
+    final msg = ChatMessage(
+      type: ChatMsgType.text,
+      isMe: true,
+      content: trimmed,
+    );
     setState(() => _messages.add(msg));
     _saveMessageToDb(msg);
     _textController.clear();
-    _focusNode.requestFocus();
     _scrollToBottom();
   }
 
@@ -186,10 +192,11 @@ class _ChatContentState extends State<_ChatContent>
 
   void _sendImageMessage(String imagePath) {
     final msg = ChatMessage(
-        type: ChatMsgType.image,
-        isMe: true,
-        imageUrl: imagePath,
-        isLocalImage: true);
+      type: ChatMsgType.image,
+      isMe: true,
+      imageUrl: imagePath,
+      isLocalImage: true,
+    );
     setState(() => _messages.add(msg));
     _saveMessageToDb(msg);
     _scrollToBottom();
@@ -288,10 +295,11 @@ class _ChatContentState extends State<_ChatContent>
     final path = _recordedPath;
     await voiceCtrl.stop();
     final msg = ChatMessage(
-        type: ChatMsgType.voice,
-        isMe: true,
-        duration: duration,
-        voicePath: path);
+      type: ChatMsgType.voice,
+      isMe: true,
+      duration: duration,
+      voicePath: path,
+    );
     setState(() {
       _messages.add(msg);
       _recordState = ChatRecordState.ready;
@@ -331,14 +339,14 @@ class _ChatContentState extends State<_ChatContent>
     _amplitudeSub = recorder
         .onAmplitudeChanged(const Duration(milliseconds: 100))
         .listen((amp) {
-      if (!mounted) return;
-      final normalized = _dbfsToNormalized(amp.current);
-      setState(() {
-        _waveHeights.removeAt(0);
-        _waveHeights.add(normalized);
-      });
-      _overlayEntry?.markNeedsBuild();
-    });
+          if (!mounted) return;
+          final normalized = _dbfsToNormalized(amp.current);
+          setState(() {
+            _waveHeights.removeAt(0);
+            _waveHeights.add(normalized);
+          });
+          _overlayEntry?.markNeedsBuild();
+        });
   }
 
   double _dbfsToNormalized(double dbfs) {
@@ -383,8 +391,7 @@ class _ChatContentState extends State<_ChatContent>
 
   void _showPermissionTip() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-          content: Text('请授予麦克风权限'), duration: Duration(seconds: 2)),
+      const SnackBar(content: Text('请授予麦克风权限'), duration: Duration(seconds: 2)),
     );
   }
 
@@ -405,7 +412,8 @@ class _ChatContentState extends State<_ChatContent>
     final msg = _messages[index];
     if (msg.type != ChatMsgType.voice) return;
     final ctrl = Get.find<ChatVoiceController>();
-    if (_playingVoiceIndex == index && ctrl.isPlayingPath(msg.voicePath ?? '')) {
+    if (_playingVoiceIndex == index &&
+        ctrl.isPlayingPath(msg.voicePath ?? '')) {
       await ctrl.stop();
       setState(() => _playingVoiceIndex = null);
       return;
@@ -445,22 +453,30 @@ class _ChatContentState extends State<_ChatContent>
                 width: 16,
                 height: 16,
                 decoration: const BoxDecoration(
-                    color: Colors.red, shape: BoxShape.circle),
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
                 alignment: Alignment.center,
-                child: const Text('2',
-                    style: TextStyle(
-                        fontSize: 9,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700)),
+                child: const Text(
+                  '2',
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
             ),
           ],
         ),
-        title: Text(widget.peerName,
-            style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onSurface)),
+        title: Text(
+          widget.peerName,
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface,
+          ),
+        ),
         centerTitle: true,
         actions: [
           IconButton(
@@ -524,10 +540,13 @@ class _ChatContentState extends State<_ChatContent>
           isLocalImage: msg.isLocalImage,
           isMe: msg.isMe,
           avatarUrl: msg.isMe ? _myAvatar : widget.peerAvatar,
-          onTap: () => Get.toNamed(Routes.imageViewer, arguments: {
-            'imageUrl': msg.imageUrl,
-            'isLocalImage': msg.isLocalImage,
-          }),
+          onTap: () => Get.toNamed(
+            Routes.imageViewer,
+            arguments: {
+              'imageUrl': msg.imageUrl,
+              'isLocalImage': msg.isLocalImage,
+            },
+          ),
         );
       case ChatMsgType.gift:
         return ChatGiftBubble(
@@ -548,7 +567,9 @@ class _ChatContentState extends State<_ChatContent>
         color: colorScheme.surface,
         border: Border(
           top: BorderSide(
-              color: colorScheme.outline.withValues(alpha: 0.3), width: 1),
+            color: colorScheme.outline.withValues(alpha: 0.3),
+            width: 1,
+          ),
         ),
       ),
       child: SafeArea(
@@ -565,25 +586,25 @@ class _ChatContentState extends State<_ChatContent>
               focusNode: _focusNode,
               onToggleVoiceMode: _toggleVoiceMode,
               onToggleEmoji: () => setState(() {
-                    if (_showEmojiPicker) {
-                      _showEmojiPicker = false;
-                      _showIconBar = false;
-                    } else {
-                      _showEmojiPicker = true;
-                      _showIconBar = false;
-                      _focusNode.unfocus();
-                    }
-                  }),
+                if (_showEmojiPicker) {
+                  _showEmojiPicker = false;
+                  _showIconBar = false;
+                } else {
+                  _showEmojiPicker = true;
+                  _showIconBar = false;
+                  _focusNode.unfocus();
+                }
+              }),
               onToggleIconBar: () => setState(() {
-                    if (_showIconBar) {
-                      _showIconBar = false;
-                      _showEmojiPicker = false;
-                    } else {
-                      _showIconBar = true;
-                      _showEmojiPicker = false;
-                      _focusNode.unfocus();
-                    }
-                  }),
+                if (_showIconBar) {
+                  _showIconBar = false;
+                  _showEmojiPicker = false;
+                } else {
+                  _showIconBar = true;
+                  _showEmojiPicker = false;
+                  _focusNode.unfocus();
+                }
+              }),
               onScrollToBottom: () => _scrollToBottom(milliseconds: 280),
               onSendTextMessage: _sendTextMessage,
               onStartRecording: (_) => _startRecording(),
@@ -596,7 +617,10 @@ class _ChatContentState extends State<_ChatContent>
               transitionBuilder: (child, animation) => FadeTransition(
                 opacity: animation,
                 child: SizeTransition(
-                    sizeFactor: animation, axisAlignment: -1.0, child: child),
+                  sizeFactor: animation,
+                  axisAlignment: -1.0,
+                  child: child,
+                ),
               ),
               child: _showEmojiPicker
                   ? EmojiPickerWidget(
@@ -605,16 +629,16 @@ class _ChatContentState extends State<_ChatContent>
                       onEmojiSelected: _sendEmojiMessage,
                     )
                   : (_showIconBar
-                      ? ExpandedIconBar(
-                          key: const ValueKey('icons'),
-                          colorScheme: colorScheme,
-                          height: _expandedHeight,
-                          onImageTap: () {
-                            _pickAndSendImage();
-                            setState(() => _showIconBar = false);
-                          },
-                        )
-                      : const SizedBox(key: ValueKey('empty'))),
+                        ? ExpandedIconBar(
+                            key: const ValueKey('icons'),
+                            colorScheme: colorScheme,
+                            height: _expandedHeight,
+                            onImageTap: () {
+                              _pickAndSendImage();
+                              setState(() => _showIconBar = false);
+                            },
+                          )
+                        : const SizedBox(key: ValueKey('empty'))),
             ),
           ],
         ),

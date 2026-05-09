@@ -60,7 +60,8 @@ class ChatDatabase extends GetxService {
 
     // 首次启动时填充种子数据
     final count = Sqflite.firstIntValue(
-        await _db!.rawQuery('SELECT COUNT(*) FROM $tableConversations'));
+      await _db!.rawQuery('SELECT COUNT(*) FROM $tableConversations'),
+    );
     if (count == 0) {
       await _seedDefaultData();
     }
@@ -78,34 +79,66 @@ class ChatDatabase extends GetxService {
 
     for (final (name, avatar) in conversations) {
       final convId = await _insertConversation(
-          name, avatar, '你好呀～', '昨天', name == 'Sarah Miller' ? 2 : 0);
+        name,
+        avatar,
+        '你好呀～',
+        '昨天',
+        name == 'Sarah Miller' ? 2 : 0,
+      );
       if (name == 'Sarah Miller') {
         // 初始聊天记录
-        await _insertMessage(convId, ChatMsgType.timestamp, false,
-            time: '19:01');
-        await _insertMessage(convId, ChatMsgType.text, false,
-            content: '嗨，你好呀～很高兴认识你 😊');
-        await _insertMessage(convId, ChatMsgType.voice, false, duration: 11);
         await _insertMessage(
-            convId,
-            ChatMsgType.image,
-            false,
-            imageUrl:
-                'https://picsum.photos/seed/chatimg1/400/600');
+          convId,
+          ChatMsgType.timestamp,
+          false,
+          time: '19:01',
+        );
         await _insertMessage(
-            convId, ChatMsgType.text, false, content: '回复了一条信息');
+          convId,
+          ChatMsgType.text,
+          false,
+          content: '嗨，你好呀～很高兴认识你 😊',
+        );
+        await _insertMessage(
+          convId,
+          ChatMsgType.voice,
+          false,
+          voicePath: 'https://www.w3schools.com/html/horse.mp3',
+          duration: 11,
+        );
+        await _insertMessage(
+          convId,
+          ChatMsgType.image,
+          false,
+          imageUrl: 'https://picsum.photos/seed/chatimg1/400/600',
+        );
+        await _insertMessage(
+          convId,
+          ChatMsgType.text,
+          false,
+          content: '回复了一条信息',
+        );
         await _insertMessage(convId, ChatMsgType.text, true, content: '你好呀～');
         await _insertMessage(
-            convId, ChatMsgType.voice, true, voicePath: '', duration: 5);
+          convId,
+          ChatMsgType.voice,
+          true,
+          voicePath: 'https://www.w3schools.com/html/horse.mp3',
+          duration: 5,
+        );
       }
     }
   }
 
   // ── 会话 CRUD ──────────────────────────────────────────────────────
 
-  Future<int> _insertConversation(String peerName, String peerAvatar,
-      String? lastMessage, String? lastTime,
-      [int unread = 0]) async {
+  Future<int> _insertConversation(
+    String peerName,
+    String peerAvatar,
+    String? lastMessage,
+    String? lastTime, [
+    int unread = 0,
+  ]) async {
     return await db.insert(tableConversations, {
       'peer_name': peerName,
       'peer_avatar': peerAvatar,
@@ -118,32 +151,41 @@ class ChatDatabase extends GetxService {
   Future<List<MessageItem>> getConversations() async {
     final rows = await db.query(tableConversations, orderBy: 'id ASC');
     return rows
-        .map((r) => MessageItem(
-              type: MessageType.private,
-              title: r['peer_name'] as String,
-              subtitle: r['last_message'] as String? ?? '',
-              time: r['last_time'] as String? ?? '',
-              avatarUrl: r['peer_avatar'] as String,
-              unread: r['unread_count'] as int? ?? 0,
-            ))
+        .map(
+          (r) => MessageItem(
+            type: MessageType.private,
+            title: r['peer_name'] as String,
+            subtitle: r['last_message'] as String? ?? '',
+            time: r['last_time'] as String? ?? '',
+            avatarUrl: r['peer_avatar'] as String,
+            unread: r['unread_count'] as int? ?? 0,
+          ),
+        )
         .toList();
   }
 
   /// 获取或创建会话，返回 (id, isNew)
   Future<(int, bool)> getOrCreateConversation(
-      String peerName, String peerAvatar) async {
-    final rows = await db.query(tableConversations,
-        where: 'peer_name = ?', whereArgs: [peerName]);
+    String peerName,
+    String peerAvatar,
+  ) async {
+    final rows = await db.query(
+      tableConversations,
+      where: 'peer_name = ?',
+      whereArgs: [peerName],
+    );
     if (rows.isNotEmpty) {
       return (rows.first['id'] as int, false);
     }
-    final id =
-        await _insertConversation(peerName, peerAvatar, null, null, 0);
+    final id = await _insertConversation(peerName, peerAvatar, null, null, 0);
     return (id, true);
   }
 
   Future<void> updateConversationLastMessage(
-      int conversationId, String lastMessage, String lastTime) async {
+    int conversationId,
+    String lastMessage,
+    String lastTime,
+  ) async {
     await db.update(
       tableConversations,
       {'last_message': lastMessage, 'last_time': lastTime},
@@ -153,7 +195,9 @@ class ChatDatabase extends GetxService {
   }
 
   Future<void> updateConversationUnread(
-      int conversationId, int unreadCount) async {
+    int conversationId,
+    int unreadCount,
+  ) async {
     await db.update(
       tableConversations,
       {'unread_count': unreadCount},
@@ -164,15 +208,19 @@ class ChatDatabase extends GetxService {
 
   // ── 消息 CRUD ──────────────────────────────────────────────────────
 
-  Future<int> _insertMessage(int conversationId, ChatMsgType type, bool isMe,
-      {String? content,
-      String? imageUrl,
-      bool? isLocalImage,
-      int? duration,
-      String? voicePath,
-      String? giftEmoji,
-      String? giftLabel,
-      String? time}) async {
+  Future<int> _insertMessage(
+    int conversationId,
+    ChatMsgType type,
+    bool isMe, {
+    String? content,
+    String? imageUrl,
+    bool? isLocalImage,
+    int? duration,
+    String? voicePath,
+    String? giftEmoji,
+    String? giftLabel,
+    String? time,
+  }) async {
     return await db.insert(tableMessages, {
       'conversation_id': conversationId,
       'type': type.name,
@@ -206,14 +254,17 @@ class ChatDatabase extends GetxService {
   }
 
   Future<List<ChatMessage>> getMessages(int conversationId) async {
-    final rows = await db.query(tableMessages,
-        where: 'conversation_id = ?',
-        whereArgs: [conversationId],
-        orderBy: 'id ASC');
+    final rows = await db.query(
+      tableMessages,
+      where: 'conversation_id = ?',
+      whereArgs: [conversationId],
+      orderBy: 'id ASC',
+    );
     return rows.map((r) {
       final type = ChatMsgType.values.firstWhere(
-          (e) => e.name == r['type'],
-          orElse: () => ChatMsgType.text);
+        (e) => e.name == r['type'],
+        orElse: () => ChatMsgType.text,
+      );
       return ChatMessage(
         type: type,
         isMe: r['is_me'] == 1,
@@ -240,8 +291,12 @@ class ChatDatabase extends GetxService {
 
   Future<List<String>> getTableNames() async {
     final rows = await db.rawQuery(
-        "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name");
-    return rows.map((r) => r['name'] as String).where((n) => n != 'android_metadata').toList();
+      "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
+    );
+    return rows
+        .map((r) => r['name'] as String)
+        .where((n) => n != 'android_metadata')
+        .toList();
   }
 
   Future<List<Map<String, dynamic>>> queryTable(String tableName) async {
