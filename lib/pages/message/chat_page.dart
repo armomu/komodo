@@ -106,8 +106,15 @@ class _ChatContentState extends State<_ChatContent>
     WidgetsBinding.instance.addObserver(this);
     _recorder = AudioRecorder();
     _focusNode.addListener(() {
-      if (_focusNode.hasFocus && _showEmojiPicker) {
-        setState(() => _showEmojiPicker = false);
+      if (_focusNode.hasFocus) {
+        // 聚焦时：收起表情/图标栏、滚到底部
+        if (_showEmojiPicker || _showIconBar) {
+          setState(() {
+            _showEmojiPicker = false;
+            _showIconBar = false;
+          });
+        }
+        _scrollToBottom(milliseconds: 280);
       }
     });
     _lisenPlaying = ever(voiceCtrl.isPlaying, (bool playing) {
@@ -167,6 +174,8 @@ class _ChatContentState extends State<_ChatContent>
           ChatMessage(type: ChatMsgType.text, isMe: true, content: trimmed));
     });
     _textController.clear();
+    // 发送后保持输入框焦点，继续输入
+    _focusNode.requestFocus();
     _scrollToBottom();
   }
 

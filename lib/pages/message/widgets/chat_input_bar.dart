@@ -3,6 +3,10 @@ import 'package:flutter/services.dart';
 import '../models/chat_models.dart';
 
 /// 聊天输入栏（语音/文字切换 + 输入框 + 表情/功能按钮）
+///
+/// 交互行为：
+/// - 输入框聚焦或有文字时：右侧加号变为发送按钮
+/// - 输入框无焦点且无文字时：右侧显示表情 + 加号按钮
 class ChatInputBar extends StatelessWidget {
   final ChatRecordState recordState;
   final bool showEmojiPicker;
@@ -38,10 +42,15 @@ class ChatInputBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isVoiceMode = recordState != ChatRecordState.idle;
+    final isKeyboardActive = focusNode.hasFocus;
+    final hasText = textController.text.isNotEmpty;
+    final showSendButton = isKeyboardActive || hasText;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
       child: Row(
         children: [
+          // ① 语音/键盘切换
           IconButton(
             visualDensity: VisualDensity.comfortable,
             onPressed: onToggleVoiceMode,
@@ -52,6 +61,8 @@ class ChatInputBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 2),
+
+          // ② 输入框 / 录音条
           Expanded(
             child: isVoiceMode
                 ? _VoiceRecordBar(
@@ -67,54 +78,108 @@ class ChatInputBar extends StatelessWidget {
                   ),
           ),
           const SizedBox(width: 2),
+
+          // ③ 右侧按钮组
           if (!isVoiceMode && recordState == ChatRecordState.idle)
-            IconButton(
-              visualDensity: VisualDensity.comfortable,
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                onToggleEmoji();
-                onScrollToBottom();
-              },
-              icon: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: Icon(
-                  showEmojiPicker
-                      ? Icons.keyboard_alt_outlined
-                      : Icons.emoji_emotions_outlined,
-                  key: ValueKey(showEmojiPicker),
-                  size: 26,
-                  color: showEmojiPicker
-                      ? colorScheme.primary
-                      : colorScheme.inverseSurface,
-                ),
-              ),
+            showSendButton
+                ? _buildSendButton(context)
+                : _buildIdleButtons(context),
+        ],
+      ),
+    );
+  }
+
+  /// 输入框聚焦/有文字时：发送按钮
+  Widget _buildSendButton(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 仍保留表情按钮
+        IconButton(
+          visualDensity: VisualDensity.comfortable,
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            onToggleEmoji();
+            onScrollToBottom();
+          },
+          icon: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: Icon(
+              showEmojiPicker
+                  ? Icons.keyboard_alt_outlined
+                  : Icons.emoji_emotions_outlined,
+              key: ValueKey(showEmojiPicker),
+              size: 26,
+              color: showEmojiPicker
+                  ? colorScheme.primary
+                  : colorScheme.inverseSurface,
             ),
-          Transform.translate(
-            offset: Offset(isVoiceMode ? 0 : -6, 0),
-            child: IconButton(
-              visualDensity: VisualDensity.comfortable,
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                onToggleIconBar();
-                onScrollToBottom();
-              },
-              icon: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: Icon(
-                  showIconBar
-                      ? Icons.arrow_drop_down_circle
-                      : Icons.add_circle_outline,
-                  key: ValueKey(showIconBar),
-                  size: 26,
-                  color: showIconBar
-                      ? colorScheme.primary
-                      : colorScheme.inverseSurface,
-                ),
+          ),
+        ),
+        // 发送按钮（替换加号）
+        IconButton(
+          visualDensity: VisualDensity.comfortable,
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            onSendTextMessage(textController.text);
+          },
+          icon: Icon(Icons.send_rounded, size: 22, color: colorScheme.primary),
+        ),
+      ],
+    );
+  }
+
+  /// 空闲状态：表情按钮 + 加号按钮
+  Widget _buildIdleButtons(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          visualDensity: VisualDensity.comfortable,
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            onToggleEmoji();
+            onScrollToBottom();
+          },
+          icon: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: Icon(
+              showEmojiPicker
+                  ? Icons.keyboard_alt_outlined
+                  : Icons.emoji_emotions_outlined,
+              key: ValueKey(showEmojiPicker),
+              size: 26,
+              color: showEmojiPicker
+                  ? colorScheme.primary
+                  : colorScheme.inverseSurface,
+            ),
+          ),
+        ),
+        Transform.translate(
+          offset: const Offset(-6, 0),
+          child: IconButton(
+            visualDensity: VisualDensity.comfortable,
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              onToggleIconBar();
+              onScrollToBottom();
+            },
+            icon: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                showIconBar
+                    ? Icons.arrow_drop_down_circle
+                    : Icons.add_circle_outline,
+                key: ValueKey(showIconBar),
+                size: 26,
+                color: showIconBar
+                    ? colorScheme.primary
+                    : colorScheme.inverseSurface,
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -144,10 +209,8 @@ class _ChatTextInputField extends StatelessWidget {
         decoration: InputDecoration(
           fillColor: colorScheme.outline,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 8,
-          ),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           isDense: true,
         ),
         onSubmitted: onSubmitted,

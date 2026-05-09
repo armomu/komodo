@@ -41,7 +41,7 @@ class DesignSystemPage extends StatelessWidget {
   }
 }
 
-Widget buildDesignSystemSectionGrid(BuildContext context, {bool title = true}) {
+Widget buildDesignSystemSectionGrid(BuildContext context) {
   final sections = [
     _SectionItem(
       title: '路由演示',
@@ -143,21 +143,11 @@ Widget buildDesignSystemSectionGrid(BuildContext context, {bool title = true}) {
     ),
   ];
 
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      if (title)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Text(
-            '组件分类',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
-        ),
-      ...sections.map((section) => _SectionCard(item: section)),
-    ],
+  return Card(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [...sections.map((section) => _SectionCard(item: section))],
+    ),
   );
 }
 
