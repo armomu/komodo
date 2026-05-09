@@ -16,6 +16,9 @@ import 'widgets/chat_voice_bubble.dart';
 import 'widgets/chat_image_bubble.dart';
 import 'widgets/chat_gift_bubble.dart';
 import 'widgets/record_overlay.dart';
+import 'widgets/chat_input_bar.dart';
+import 'widgets/expanded_icon_bar.dart';
+import 'widgets/emoji_picker_widget.dart';
 
 /// 聊天详情页 — 社交私信聊天界面
 class ChatPage extends StatelessWidget {
@@ -477,8 +480,7 @@ class _ChatContentState extends State<_ChatContent>
                   if (index == _messages.length) {
                     return const SizedBox(height: 8);
                   }
-                  return _buildChatMessage(
-                      context, _messages[index], index);
+                  return _buildChatMessage(context, _messages[index], index);
                 },
               ),
             ),
@@ -545,7 +547,39 @@ class _ChatContentState extends State<_ChatContent>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildInputRow(context, colorScheme),
+            ChatInputBar(
+              recordState: _recordState,
+              showEmojiPicker: _showEmojiPicker,
+              showIconBar: _showIconBar,
+              colorScheme: colorScheme,
+              textController: _textController,
+              focusNode: _focusNode,
+              onToggleVoiceMode: _toggleVoiceMode,
+              onToggleEmoji: () => setState(() {
+                    if (_showEmojiPicker) {
+                      _showEmojiPicker = false;
+                      _showIconBar = false;
+                    } else {
+                      _showEmojiPicker = true;
+                      _showIconBar = false;
+                      _focusNode.unfocus();
+                    }
+                  }),
+              onToggleIconBar: () => setState(() {
+                    if (_showIconBar) {
+                      _showIconBar = false;
+                      _showEmojiPicker = false;
+                    } else {
+                      _showIconBar = true;
+                      _showEmojiPicker = false;
+                      _focusNode.unfocus();
+                    }
+                  }),
+              onScrollToBottom: () => _scrollToBottom(milliseconds: 280),
+              onSendTextMessage: _sendTextMessage,
+              onStartRecording: (_) => _startRecording(),
+              onStopRecording: (_) => _stopRecording(),
+            ),
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 280),
               switchInCurve: Curves.easeOutCubic,
@@ -556,273 +590,25 @@ class _ChatContentState extends State<_ChatContent>
                     sizeFactor: animation, axisAlignment: -1.0, child: child),
               ),
               child: _showEmojiPicker
-                  ? _buildEmojiPicker(context)
+                  ? EmojiPickerWidget(
+                      key: const ValueKey('emoji'),
+                      height: _expandedHeight,
+                      onEmojiSelected: _sendEmojiMessage,
+                    )
                   : (_showIconBar
-                      ? _buildExpandedIconBar(context, colorScheme)
+                      ? ExpandedIconBar(
+                          key: const ValueKey('icons'),
+                          colorScheme: colorScheme,
+                          height: _expandedHeight,
+                          onImageTap: () {
+                            _pickAndSendImage();
+                            setState(() => _showIconBar = false);
+                          },
+                        )
                       : const SizedBox(key: ValueKey('empty'))),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildInputRow(BuildContext context, ColorScheme colorScheme) {
-    final isVoiceMode = _recordState != ChatRecordState.idle;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-      child: Row(
-        children: [
-          IconButton(
-            visualDensity: VisualDensity.comfortable,
-            onPressed: _toggleVoiceMode,
-            icon: Icon(
-              isVoiceMode ? Icons.keyboard_alt_outlined : Icons.mic_outlined,
-              size: 26,
-              color: colorScheme.inverseSurface,
-            ),
-          ),
-          const SizedBox(width: 2),
-          Expanded(
-            child: isVoiceMode
-                ? _buildVoiceRecordBar(colorScheme)
-                : _buildTextInputField(colorScheme),
-          ),
-          const SizedBox(width: 2),
-          if (!isVoiceMode && _recordState == ChatRecordState.idle)
-            IconButton(
-              visualDensity: VisualDensity.comfortable,
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                setState(() {
-                  if (_showEmojiPicker) {
-                    _showEmojiPicker = false;
-                    _showIconBar = false;
-                  } else {
-                    _showEmojiPicker = true;
-                    _showIconBar = false;
-                    _focusNode.unfocus();
-                  }
-                  _scrollToBottom(milliseconds: 280);
-                });
-              },
-              icon: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: Icon(
-                  _showEmojiPicker
-                      ? Icons.keyboard_alt_outlined
-                      : Icons.emoji_emotions_outlined,
-                  key: ValueKey(_showEmojiPicker),
-                  size: 26,
-                  color: _showEmojiPicker
-                      ? colorScheme.primary
-                      : colorScheme.inverseSurface,
-                ),
-              ),
-            ),
-          Transform.translate(
-            offset: Offset(isVoiceMode ? 0 : -6, 0),
-            child: IconButton(
-              visualDensity: VisualDensity.comfortable,
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                setState(() {
-                  if (_showIconBar) {
-                    _showIconBar = false;
-                    _showEmojiPicker = false;
-                  } else {
-                    _showIconBar = true;
-                    _showEmojiPicker = false;
-                    _focusNode.unfocus();
-                  }
-                  _scrollToBottom(milliseconds: 280);
-                });
-              },
-              icon: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: Icon(
-                  _showIconBar
-                      ? Icons.arrow_drop_down_circle
-                      : Icons.add_circle_outline,
-                  key: ValueKey(_showIconBar),
-                  size: 26,
-                  color: _showIconBar
-                      ? colorScheme.primary
-                      : colorScheme.inverseSurface,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTextInputField(ColorScheme colorScheme) {
-    return SizedBox(
-      height: 40,
-      child: TextField(
-        controller: _textController,
-        focusNode: _focusNode,
-        style: TextStyle(fontSize: 14, color: colorScheme.onSurface),
-        decoration: InputDecoration(
-          fillColor: colorScheme.outline,
-          border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          isDense: true,
-        ),
-        onSubmitted: _sendTextMessage,
-      ),
-    );
-  }
-
-  Widget _buildVoiceRecordBar(ColorScheme colorScheme) {
-    return GestureDetector(
-      onLongPressStart: (_) => _startRecording(),
-      onLongPressEnd: (_) => _stopRecording(),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        height: 40,
-        decoration: BoxDecoration(
-          color: colorScheme.outline,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.mic, size: 16),
-            SizedBox(width: 6),
-            Text('长按录音'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildExpandedIconBar(BuildContext context, ColorScheme colorScheme) {
-    return Container(
-      height: _expandedHeight,
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainer,
-        border: Border(
-          top: BorderSide(
-              color: colorScheme.outline.withValues(alpha: 0.2), width: 0.5),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-                border:
-                    Border(top: BorderSide(color: colorScheme.outline, width: 1))),
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildIconBarItem(
-                    icon: Icons.image_outlined,
-                    label: '图片',
-                    colorScheme: colorScheme,
-                    onTap: () {
-                      _pickAndSendImage();
-                      setState(() => _showIconBar = false);
-                    }),
-                _buildIconBarItem(
-                    icon: Icons.camera_alt_outlined,
-                    label: '拍照',
-                    colorScheme: colorScheme,
-                    onTap: () {}),
-                _buildIconBarItem(
-                    icon: Icons.card_giftcard,
-                    label: '礼物',
-                    colorScheme: colorScheme,
-                    onTap: () {}),
-                _buildIconBarItem(
-                    icon: Icons.location_on_outlined,
-                    label: '位置',
-                    colorScheme: colorScheme,
-                    onTap: () {}),
-                _buildIconBarItem(
-                    icon: Icons.kebab_dining,
-                    label: '红包',
-                    colorScheme: colorScheme,
-                    onTap: () {}),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildIconBarItem({
-    required IconData icon,
-    required String label,
-    required ColorScheme colorScheme,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration:
-                BoxDecoration(color: colorScheme.surfaceContainer),
-            child: Icon(icon, size: 24, color: colorScheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 4),
-          Text(label,
-              style: TextStyle(
-                  fontSize: 11, color: colorScheme.onSurfaceVariant)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmojiPicker(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      height: _expandedHeight,
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainer,
-        border:
-            Border(top: BorderSide(color: colorScheme.outline, width: 1)),
-      ),
-      child: Column(
-        children: [
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(12),
-              physics: const BouncingScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 8,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                childAspectRatio: 1,
-              ),
-              itemCount: EmojiList.length,
-              itemBuilder: (context, index) => GestureDetector(
-                onTap: () => _sendEmojiMessage(EmojiList[index]),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: colorScheme.surface,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(EmojiList[index],
-                      style: const TextStyle(fontSize: 24)),
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
