@@ -69,6 +69,12 @@ class _CacheBrowserPageState extends State<CacheBrowserPage> {
         directory: Directory('${appDir.path}/voice_messages'),
       ),
       _CacheGroup(
+        title: '图片缓存',
+        subtitle: '聊天发送的图片文件',
+        icon: Icons.image,
+        directory: Directory('${appDir.path}/image_cache'),
+      ),
+      _CacheGroup(
         title: '临时目录',
         subtitle: '系统临时文件缓存',
         icon: Icons.timer,
@@ -104,8 +110,9 @@ class _CacheBrowserPageState extends State<CacheBrowserPage> {
     } catch (e) {
       setState(() => _loading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('加载失败: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('加载失败: $e')));
       }
     }
   }
@@ -116,8 +123,9 @@ class _CacheBrowserPageState extends State<CacheBrowserPage> {
       _loadAllCache();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('删除失败: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('删除失败: $e')));
       }
     }
   }
@@ -131,8 +139,9 @@ class _CacheBrowserPageState extends State<CacheBrowserPage> {
       _loadAllCache();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('批量删除失败: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('批量删除失败: $e')));
       }
     }
   }
@@ -142,9 +151,14 @@ class _CacheBrowserPageState extends State<CacheBrowserPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('确认清空'),
-        content: Text('删除「${group.title}」全部 ${group.files.length} 个文件（${_formatSize(group.totalSize)}）？'),
+        content: Text(
+          '删除「${group.title}」全部 ${group.files.length} 个文件（${_formatSize(group.totalSize)}）？',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('取消'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('确认', style: TextStyle(color: Colors.red)),
@@ -160,8 +174,9 @@ class _CacheBrowserPageState extends State<CacheBrowserPage> {
       _loadAllCache();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('清空失败: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('清空失败: $e')));
       }
     }
   }
@@ -173,9 +188,14 @@ class _CacheBrowserPageState extends State<CacheBrowserPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('确认清空全部'),
-        content: Text('删除所有目录下共 $filesCount 个缓存文件（${_formatSize(_grandTotal)}），确定吗？'),
+        content: Text(
+          '删除所有目录下共 $filesCount 个缓存文件（${_formatSize(_grandTotal)}），确定吗？',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('取消'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('确认', style: TextStyle(color: Colors.red)),
@@ -193,8 +213,9 @@ class _CacheBrowserPageState extends State<CacheBrowserPage> {
       _loadAllCache();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('清空失败: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('清空失败: $e')));
       }
     }
   }
@@ -218,48 +239,51 @@ class _CacheBrowserPageState extends State<CacheBrowserPage> {
               tooltip: '清空全部缓存',
               onPressed: _clearAll,
             ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadAllCache,
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadAllCache),
         ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _grandTotal == 0
-              ? const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.inbox_outlined, size: 64, color: Colors.grey),
-                      SizedBox(height: 16),
-                      Text('暂无缓存文件', style: TextStyle(color: Colors.grey, fontSize: 16)),
-                    ],
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.inbox_outlined, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    '暂无缓存文件',
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
                   ),
-                )
-              : ListView.builder(
-                  itemCount: _groups.length,
-                  itemBuilder: (context, index) {
-                    final group = _groups[index];
-                    if (group.files.isEmpty) return const SizedBox.shrink();
-                    return _CacheGroupTile(
-                      group: group,
-                      selected: _selected,
-                      onDeleteFile: _deleteFile,
-                      onClearGroup: () => _clearGroup(group),
-                      onToggleSelect: (path, value) {
-                        setState(() {
-                          if (value) {
-                            _selected.add(path);
-                          } else {
-                            _selected.remove(path);
-                          }
-                        });
-                      },
-                      theme: theme,
-                    );
-                  },
-                ),
+                ],
+              ),
+            )
+          : SafeArea(
+              bottom: true,
+              child: ListView.builder(
+                itemCount: _groups.length,
+                itemBuilder: (context, index) {
+                  final group = _groups[index];
+                  if (group.files.isEmpty) return const SizedBox.shrink();
+                  return _CacheGroupTile(
+                    group: group,
+                    selected: _selected,
+                    onDeleteFile: _deleteFile,
+                    onClearGroup: () => _clearGroup(group),
+                    onToggleSelect: (path, value) {
+                      setState(() {
+                        if (value) {
+                          _selected.add(path);
+                        } else {
+                          _selected.remove(path);
+                        }
+                      });
+                    },
+                    theme: theme,
+                  );
+                },
+              ),
+            ),
     );
   }
 }
@@ -288,12 +312,20 @@ class _CacheGroupTile extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: ExpansionTile(
         leading: Icon(group.icon),
-        title: Text(group.title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text('${group.files.length} 个文件 · ${_formatSize(group.totalSize)}'),
+        title: Text(
+          group.title,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          '${group.files.length} 个文件 · ${_formatSize(group.totalSize)}',
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(_formatSize(group.totalSize), style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+            Text(
+              _formatSize(group.totalSize),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
             const SizedBox(width: 4),
             IconButton(
               icon: const Icon(Icons.delete_outline, size: 20),
@@ -311,13 +343,23 @@ class _CacheGroupTile extends StatelessWidget {
           return ListTile(
             dense: true,
             selected: isSelected,
-            selectedTileColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+            selectedTileColor: theme.colorScheme.primaryContainer.withValues(
+              alpha: 0.3,
+            ),
             leading: Checkbox(
               value: isSelected,
               onChanged: (v) => onToggleSelect(file.path, v ?? false),
             ),
-            title: Text(name, style: const TextStyle(fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
-            subtitle: Text('${_formatSize(stat.size)}  ·  ${_formatDate(stat.modified)}', style: const TextStyle(fontSize: 11)),
+            title: Text(
+              name,
+              style: const TextStyle(fontSize: 13),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              '${_formatSize(stat.size)}  ·  ${_formatDate(stat.modified)}',
+              style: const TextStyle(fontSize: 11),
+            ),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline, size: 20),
               onPressed: () => onDeleteFile(file),

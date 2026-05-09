@@ -205,7 +205,19 @@ class _ChatContentState extends State<_ChatContent>
   Future<void> _pickAndSendImage() async {
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-      if (image != null) _sendImageMessage(image.path);
+      if (image != null) {
+        // 将选取的图片复制到 app 缓存目录，确保可管理
+        final appDir = await getApplicationDocumentsDirectory();
+        final cacheDir = Directory('${appDir.path}/image_cache');
+        if (!await cacheDir.exists()) {
+          await cacheDir.create(recursive: true);
+        }
+        final ext = image.path.split('.').last;
+        final destPath =
+            '${cacheDir.path}/img_${DateTime.now().millisecondsSinceEpoch}.$ext';
+        await File(image.path).copy(destPath);
+        _sendImageMessage(destPath);
+      }
     } catch (e) {
       debugPrint('图片选择失败: $e');
     }
