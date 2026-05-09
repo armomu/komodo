@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:komodo/pages/music/music_models.dart';
 import 'package:komodo/pages/music/music_player_controller.dart';
 import 'package:komodo/pages/music/playlist_bottom_sheet.dart';
+import 'package:komodo/pages/music/widgets/mini_player_cover.dart';
 import 'package:komodo/routes/app_routes.dart';
 
 /// 音乐播放浮层 (Mini Player Bar)
@@ -25,8 +26,6 @@ class MiniPlayerBar extends StatelessWidget {
     final controller = Get.find<MusicPlayerController>();
 
     return Obx(() {
-      // 条件1：必须已真实播放过（用户点过播放按钮）
-      // 条件2：只在音乐 Tab（index=0）才显示浮层
       if (!controller.hasStartedPlaying.value || currentTabIndex != 0) {
         return const SizedBox.shrink();
       }
@@ -58,16 +57,12 @@ class MiniPlayerBar extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               child: Container(
                 height: 50,
-                padding: const EdgeInsets.symmetric(
-                  // horizontal: 12,
-                  // vertical: 8,
-                ),
+                padding: const EdgeInsets.symmetric(),
                 child: Row(
                   children: [
                     // 左侧：正方形封面 + 右侧滑出小CD圆
-                    _buildCoverWithCD(track),
+                    MiniPlayerCover(track: track),
                     const SizedBox(width: 12),
-
                     // 中间：歌名 + 歌手
                     Expanded(
                       child: Column(
@@ -97,15 +92,12 @@ class MiniPlayerBar extends StatelessWidget {
                         ],
                       ),
                     ),
-
                     // 右侧按钮区
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // 播放/暂停按钮
                         _buildPlayPauseButton(controller),
                         const SizedBox(width: 8),
-                        // 播放列表按钮
                         _buildPlaylistButton(controller),
                       ],
                     ),
@@ -121,72 +113,6 @@ class MiniPlayerBar extends StatelessWidget {
         ),
       );
     });
-  }
-
-  /// 正方形封面 + 右侧滑出小CD圆
-  ///
-  /// 布局：正方形圆角封面在左，小圆形CD（与封面同图）从右侧
-  /// 边缘露出约1/3，产生CD从唱片套中滑出的视觉效果。
-  Widget _buildCoverWithCD(PlaylistItem track) {
-    return SizedBox(
-      width: 64,
-      height: 50,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // 小圆形 CD（右侧滑出）
-          Positioned(
-            right: 0,
-            top: 1,
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 54, 54, 93),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.12),
-                  width: 1,
-                ),
-              ),
-              clipBehavior: Clip.antiAlias,
-            ),
-          ),
-          // 正方形圆角封面（主体）
-          Positioned(
-            left: 1,
-            top: 1,
-            child: Container(
-              width: 49,
-              height: 49,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Image.network(
-                track.avatarUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: const Color(0xFF2A2A3E),
-                  child: const Icon(
-                    Icons.music_note,
-                    color: Colors.white38,
-                    size: 18,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   /// 播放/暂停按钮

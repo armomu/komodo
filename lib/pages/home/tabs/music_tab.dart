@@ -4,9 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'package:komodo/pages/music/music_player_controller.dart';
+import 'package:komodo/pages/music/music_models.dart';
 import 'package:komodo/pages/test/test.dart';
 import 'package:komodo/routes/app_routes.dart';
-import 'package:komodo/pages/music/music_models.dart';
+import 'models/carousel_data.dart';
+import 'widgets/main_card_content.dart';
+import 'widgets/slang_card_item.dart';
+import 'widgets/local_ranking_item.dart';
 
 /// 发现页 — 深色主题，堆叠轮播卡片设计（基于 card_swiper）
 class MusicTab extends StatefulWidget {
@@ -24,8 +28,8 @@ class _MusicTabState extends State<MusicTab> {
   // 模拟数据 — 正方形专辑封面图
   // ════════════════════════════════════════════════════════════════════════
 
-  static const List<_CarouselCardData> _carouselCards = [
-    _CarouselCardData(
+  static const List<CarouselCardData> _carouselCards = [
+    CarouselCardData(
       imageUrl: 'https://picsum.photos/seed/mv1/600/600',
       tag: 'MV',
       currentIndex: 1,
@@ -38,7 +42,7 @@ class _MusicTabState extends State<MusicTab> {
       accentColor: Color(0xFFCCFF00),
       stackColors: [Color(0xFF9B59B6), Color(0xFFCCFF00), Color(0xFFE74C3C)],
     ),
-    _CarouselCardData(
+    CarouselCardData(
       imageUrl: 'https://picsum.photos/seed/mv2/600/600',
       tag: 'MV',
       currentIndex: 2,
@@ -51,7 +55,7 @@ class _MusicTabState extends State<MusicTab> {
       accentColor: Color(0xFF9B59B6),
       stackColors: [Color(0xFF3498DB), Color(0xFF9B59B6), Color(0xFFF39C12)],
     ),
-    _CarouselCardData(
+    CarouselCardData(
       imageUrl: 'https://picsum.photos/seed/mv3/600/600',
       tag: 'MV',
       currentIndex: 3,
@@ -64,7 +68,7 @@ class _MusicTabState extends State<MusicTab> {
       accentColor: Color(0xFFE74C3C),
       stackColors: [Color(0xFFCCFF00), Color(0xFFE74C3C), Color(0xFF2ECC71)],
     ),
-    _CarouselCardData(
+    CarouselCardData(
       imageUrl: 'https://picsum.photos/seed/mv4/600/600',
       tag: 'MV',
       currentIndex: 4,
@@ -77,7 +81,7 @@ class _MusicTabState extends State<MusicTab> {
       accentColor: Color(0xFF3498DB),
       stackColors: [Color(0xFFE74C3C), Color(0xFF3498DB), Color(0xFF9B59B6)],
     ),
-    _CarouselCardData(
+    CarouselCardData(
       imageUrl: 'https://picsum.photos/seed/mv5/600/600',
       tag: 'MV',
       currentIndex: 5,
@@ -89,6 +93,49 @@ class _MusicTabState extends State<MusicTab> {
       title: 'Ariana Grande · Yes, And?',
       accentColor: Color(0xFFF39C12),
       stackColors: [Color(0xFF9B59B6), Color(0xFFF39C12), Color(0xFFCCFF00)],
+    ),
+  ];
+
+  static const List<SlangCardData> _slangCards = [
+    SlangCardData(
+      songName: 'Narcissism',
+      artist: 'SUNMI(이선미)',
+      lyrics: '当愚昧成为主流，清醒就是犯罪。',
+      avatarUrl: 'https://picsum.photos/id/237/200/200',
+      bgBlurUrl: 'https://picsum.photos/seed/music/72/72',
+      accentColor: Color(0xFF32CD32),
+    ),
+    SlangCardData(
+      songName: 'Pink Venom',
+      artist: 'BLACKPINK',
+      lyrics: 'This that pink venom, get \'em get \'em get \'em',
+      avatarUrl: 'https://picsum.photos/id/238/200/200',
+      bgBlurUrl: 'https://picsum.photos/seed/music2/72/72',
+      accentColor: Color.fromARGB(255, 30, 176, 50),
+    ),
+    SlangCardData(
+      songName: 'Die With A Smile',
+      artist: 'Bruno Mars',
+      lyrics: 'If the world was ending, I\'d wanna be next to you.',
+      avatarUrl: 'https://picsum.photos/id/239/200/200',
+      bgBlurUrl: 'https://picsum.photos/seed/music3/72/72',
+      accentColor: Color(0xFFE74C3C),
+    ),
+    SlangCardData(
+      songName: 'Fortnight',
+      artist: 'Taylor Swift',
+      lyrics: 'And for a fortnight there, we were forever.',
+      avatarUrl: 'https://picsum.photos/id/240/200/200',
+      bgBlurUrl: 'https://picsum.photos/seed/music4/72/72',
+      accentColor: Color(0xFF3498DB),
+    ),
+    SlangCardData(
+      songName: 'Yes, And?',
+      artist: 'Ariana Grande',
+      lyrics: 'Say that shit with your chest, and be your own fan.',
+      avatarUrl: 'https://picsum.photos/id/241/200/200',
+      bgBlurUrl: 'https://picsum.photos/seed/music5/72/72',
+      accentColor: Color(0xFFF39C12),
     ),
   ];
 
@@ -108,7 +155,6 @@ class _MusicTabState extends State<MusicTab> {
       headerSliverBuilder: (BuildContext context, bool _) {
         return <Widget>[
           SliverAppBar(
-            // backgroundColor: Colors.black,
             surfaceTintColor: Theme.of(context).colorScheme.surface,
             backgroundColor: Theme.of(context).colorScheme.surface,
             expandedHeight: 100,
@@ -129,13 +175,10 @@ class _MusicTabState extends State<MusicTab> {
       body: ListView(
         padding: const EdgeInsets.only(top: 8, bottom: 8),
         children: [
-          // ========== ② 堆叠轮播卡片（card_swiper） ==========
           _buildCarouselCards(context),
           const SizedBox(height: 20),
-          // ========== ③ 音乐歌词卡片（新UI设计） ==========
           _buildMusicLyricsCard(context),
           const SizedBox(height: 20),
-          // ========== ④ 音乐排行榜（Top榜单） ==========
           _buildMusicRankingCard(context),
         ],
       ),
@@ -151,8 +194,7 @@ class _MusicTabState extends State<MusicTab> {
     final double itemHeight = itemWidth * 0.60;
     return Swiper(
       itemBuilder: (BuildContext context, int index) {
-        return _MainCardContent(data: _carouselCards[index]);
-        // return _MainCardContent(data: _carouselCards[index]);
+        return MainCardContent(data: _carouselCards[index]);
       },
       axisDirection: AxisDirection.right,
       itemWidth: itemWidth - 32,
@@ -162,52 +204,10 @@ class _MusicTabState extends State<MusicTab> {
       itemCount: _carouselCards.length,
     );
   }
+
   // ════════════════════════════════════════════════════════════════════════
   // ③ 音乐歌词卡片 — 黑色主题卡片设计，可左右滑动，两侧露出相邻卡片
   // ════════════════════════════════════════════════════════════════════════
-
-  static const List<_SlangCardData> _slangCards = [
-    _SlangCardData(
-      songName: 'Narcissism',
-      artist: 'SUNMI(이선미)',
-      lyrics: '当愚昧成为主流，清醒就是犯罪。',
-      avatarUrl: 'https://picsum.photos/id/237/200/200',
-      bgBlurUrl: 'https://picsum.photos/seed/music/72/72',
-      accentColor: Color(0xFF32CD32),
-    ),
-    _SlangCardData(
-      songName: 'Pink Venom',
-      artist: 'BLACKPINK',
-      lyrics: 'This that pink venom, get \'em get \'em get \'em',
-      avatarUrl: 'https://picsum.photos/id/238/200/200',
-      bgBlurUrl: 'https://picsum.photos/seed/music2/72/72',
-      accentColor: Color.fromARGB(255, 30, 176, 50),
-    ),
-    _SlangCardData(
-      songName: 'Die With A Smile',
-      artist: 'Bruno Mars',
-      lyrics: 'If the world was ending, I\'d wanna be next to you.',
-      avatarUrl: 'https://picsum.photos/id/239/200/200',
-      bgBlurUrl: 'https://picsum.photos/seed/music3/72/72',
-      accentColor: Color(0xFFE74C3C),
-    ),
-    _SlangCardData(
-      songName: 'Fortnight',
-      artist: 'Taylor Swift',
-      lyrics: 'And for a fortnight there, we were forever.',
-      avatarUrl: 'https://picsum.photos/id/240/200/200',
-      bgBlurUrl: 'https://picsum.photos/seed/music4/72/72',
-      accentColor: Color(0xFF3498DB),
-    ),
-    _SlangCardData(
-      songName: 'Yes, And?',
-      artist: 'Ariana Grande',
-      lyrics: 'Say that shit with your chest, and be your own fan.',
-      avatarUrl: 'https://picsum.photos/id/241/200/200',
-      bgBlurUrl: 'https://picsum.photos/seed/music5/72/72',
-      accentColor: Color(0xFFF39C12),
-    ),
-  ];
 
   Widget _buildMusicLyricsCard(BuildContext context) {
     return Container(
@@ -216,7 +216,6 @@ class _MusicTabState extends State<MusicTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 标题区域
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: Text(
@@ -232,14 +231,13 @@ class _MusicTabState extends State<MusicTab> {
   }
 
   Widget _buildMusicSlangCard(BuildContext context) {
-    // viewportFraction < 1.0 让左右两侧露出相邻卡片边缘
     const double viewportFraction = 0.92;
-    const double cardHorizontalMargin = 6.0; // 卡片之间视觉间距
+    const double cardHorizontalMargin = 6.0;
     return SizedBox(
       height: 120,
       child: PageView.builder(
         itemCount: _slangCards.length,
-        padEnds: false, // 关键：让第一页和最后一页也能贴边，两侧露出
+        padEnds: false,
         controller: PageController(
           viewportFraction: viewportFraction,
           initialPage: 0,
@@ -250,7 +248,7 @@ class _MusicTabState extends State<MusicTab> {
             padding: const EdgeInsets.symmetric(
               horizontal: cardHorizontalMargin,
             ),
-            child: _SlangCardItem(data: data),
+            child: SlangCardItem(data: data),
           );
         },
       ),
@@ -266,7 +264,6 @@ class _MusicTabState extends State<MusicTab> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 标题区域
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 16),
           child: const Text(
@@ -283,14 +280,12 @@ class _MusicTabState extends State<MusicTab> {
                 final index = entry.key;
                 final data = entry.value;
                 final isLast = index == localPlaylist.length - 1;
-                return _LocalRankingItem(
+                return LocalRankingItem(
                   data: data,
                   rank: index + 1,
                   isLast: isLast,
-                  // 点击：切换到对应曲目并跳转播放器页
                   onTap: () {
                     Get.find<MusicPlayerController>().selectTrack(index);
-                    // Get.toNamed(Routes.musicPlayer);
                   },
                 );
               }).toList(),
@@ -299,663 +294,5 @@ class _MusicTabState extends State<MusicTab> {
         ),
       ],
     );
-  }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// 主卡片内容 — 图片 + 标签 + 底部信息
-// ══════════════════════════════════════════════════════════════════════════════
-
-class _MainCardContent extends StatelessWidget {
-  final _CarouselCardData data;
-
-  const _MainCardContent({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        // border: Border.all(color: Colors.blue, width: 1),
-        color: data.accentColor,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // ====== 封面图（正方形 BoxFit.cover） ======
-          Image.network(
-            data.imageUrl,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(
-              color: const Color(0xFF1A1A2E),
-              child: const Icon(
-                Icons.music_video,
-                size: 56,
-                color: Colors.white12,
-              ),
-            ),
-            loadingBuilder: (context, child, progress) {
-              if (progress == null) return child;
-              return Container(
-                color: const Color(0xFF1A1A2E),
-                child: Center(
-                  child: CircularProgressIndicator(
-                    value: progress.expectedTotalBytes != null
-                        ? progress.cumulativeBytesLoaded /
-                              progress.expectedTotalBytes!
-                        : null,
-                    strokeWidth: 2,
-                    color: data.accentColor,
-                  ),
-                ),
-              );
-            },
-          ),
-
-          // ====== 底部渐变遮罩 ======
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.08),
-                    Colors.black.withValues(alpha: 0.55),
-                  ],
-                  stops: const [0.45, 1.0],
-                ),
-              ),
-            ),
-          ),
-
-          // ====== 左上角荧光标签 ======
-          Positioned(left: 13, top: 13, child: _buildTag()),
-
-          // ====== 底部信息栏 ======
-          Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomInfo()),
-        ],
-      ),
-    );
-  }
-
-  /// 左上角标签
-  Widget _buildTag() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: data.accentColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                data.tag,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '${data.currentIndex}/${data.totalCount}',
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.black87,
-                  letterSpacing: -0.5,
-                ),
-              ),
-            ],
-          ),
-          Text(
-            data.tagSub,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: Colors.black54,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 底部信息区
-  Widget _buildBottomInfo() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 分割线
-          Container(height: 0.7, color: Colors.white30),
-          const SizedBox(height: 10),
-
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _buildThumbnail(),
-              const SizedBox(width: 11),
-              Expanded(child: _buildTextInfo()),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 缩略图 + 播放按钮 + 时长
-  Widget _buildThumbnail() {
-    return SizedBox(
-      width: 52,
-      height: 52,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              data.thumbnailUrl,
-              width: 52,
-              height: 52,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(color: Colors.grey[850]),
-            ),
-          ),
-          // 播放遮罩
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: Colors.black38,
-            ),
-            child: const Icon(
-              Icons.play_arrow_rounded,
-              size: 22,
-              color: Colors.white,
-            ),
-          ),
-          // 时长标签
-          Positioned(
-            right: 2,
-            bottom: 2,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.65),
-                borderRadius: BorderRadius.circular(3),
-              ),
-              child: Text(
-                data.duration,
-                style: const TextStyle(
-                  fontSize: 9,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 文字信息
-  Widget _buildTextInfo() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          '${data.viewCount}人看过',
-          style: const TextStyle(fontSize: 13, color: Colors.white70),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          data.title,
-          style: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
-  }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// 数据模型
-// ══════════════════════════════════════════════════════════════════════════════
-
-// ══════════════════════════════════════════════════════════════════════════════
-// Slang 卡片单项 — 保持原有视觉风格
-// ══════════════════════════════════════════════════════════════════════════════
-
-class _SlangCardItem extends StatelessWidget {
-  final _SlangCardData data;
-
-  const _SlangCardItem({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(left: 10),
-      child: Stack(
-        children: [
-          Row(
-            children: [
-              // 音乐图标
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: data.accentColor,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(
-                  Icons.music_note,
-                  size: 14,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // 歌曲信息
-              Text(
-                data.songName,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(width: 2),
-              Text(
-                '- ${data.artist}',
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
-          ),
-          // 歌词展示区域
-          Container(
-            height: 80,
-            margin: const EdgeInsets.only(top: 34),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1A1A1A),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.05),
-                width: 1,
-              ),
-            ),
-            clipBehavior: Clip.hardEdge,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // 背景图片（带高斯模糊）
-                  ImageFiltered(
-                    imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Image.network(
-                      data.bgBlurUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
-                          Container(color: const Color(0xFF1A1A2E)),
-                    ),
-                  ),
-                  // 遮罩提升可读性
-                  Container(color: Colors.black.withValues(alpha: 0.3)),
-                  // 前景歌词内容
-                  Center(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            data.lyrics,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white.withValues(alpha: 0.85),
-                              height: 1.5,
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${data.songName} · ${data.artist}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.white.withValues(alpha: 0.5),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // 右侧头像
-          Positioned(
-            right: 10,
-            top: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(40),
-                border: Border.all(width: 2, color: Colors.white),
-              ),
-              child: CircleAvatar(
-                radius: 22,
-                backgroundColor: data.accentColor,
-                backgroundImage: NetworkImage(data.avatarUrl),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// 数据模型
-// ══════════════════════════════════════════════════════════════════════════════
-
-class _SlangCardData {
-  final String songName;
-  final String artist;
-  final String lyrics;
-  final String avatarUrl;
-  final String bgBlurUrl;
-  final Color accentColor;
-
-  const _SlangCardData({
-    required this.songName,
-    required this.artist,
-    required this.lyrics,
-    required this.avatarUrl,
-    required this.bgBlurUrl,
-    required this.accentColor,
-  });
-}
-
-class _CarouselCardData {
-  final String imageUrl;
-  final String tag;
-  final int currentIndex;
-  final int totalCount;
-  final String tagSub;
-  final String thumbnailUrl;
-  final String duration;
-  final String viewCount;
-  final String title;
-  final Color accentColor;
-  final List<Color> stackColors; // 堆叠层的颜色
-
-  const _CarouselCardData({
-    required this.imageUrl,
-    required this.tag,
-    required this.currentIndex,
-    required this.totalCount,
-    required this.tagSub,
-    required this.thumbnailUrl,
-    required this.duration,
-    required this.viewCount,
-    required this.title,
-    required this.accentColor,
-    required this.stackColors,
-  });
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// 本地歌曲排行单项组件
-// ══════════════════════════════════════════════════════════════════════════════
-
-class _LocalRankingItem extends StatelessWidget {
-  final PlaylistItem data;
-  final int rank;
-  final bool isLast;
-  final VoidCallback? onTap;
-
-  const _LocalRankingItem({
-    required this.data,
-    required this.rank,
-    required this.isLast,
-    this.onTap,
-  });
-
-  /// 获取排名对应的颜色
-  Color get _rankColor {
-    switch (rank) {
-      case 1:
-        return const Color(0xFF32CD32); // 绿色
-      case 2:
-        return const Color(0xFFFF9500); // 橙色
-      default:
-        return Colors.grey;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    // 使用 Obx 响应全局播放器状态变化，实时显示「正在播放」标识
-    return Obx(() {
-      final player = Get.find<MusicPlayerController>();
-      final isCurrent =
-          player.hasStartedPlaying.value && player.currentTrack.id == data.id;
-      final isCurrentPlaying = isCurrent && player.isPlaying.value;
-
-      return Column(
-        children: [
-          GestureDetector(
-            onTap: onTap ?? () => Get.toNamed(Routes.musicPlayer),
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  // 排名标签
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: _rankColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '$rank',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: _rankColor,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // 圆形封面
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: _rankColor.withValues(alpha: 0.15),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isCurrent
-                                ? _rankColor
-                                : _rankColor.withValues(alpha: 0.3),
-                            width: isCurrent ? 2.5 : 2,
-                          ),
-                        ),
-                        padding: const EdgeInsets.all(2),
-                        child: ClipOval(
-                          child: Image.network(
-                            data.avatarUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: const Color(0xFF2A2A2A),
-                              child: Icon(
-                                Icons.music_note,
-                                color: _rankColor,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      // 正在播放时显示音量图标遮罩
-                      if (isCurrentPlaying)
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.black.withValues(alpha: 0.45),
-                          ),
-                          child: const Icon(
-                            Icons.volume_up_rounded,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(width: 12),
-                  // 歌曲信息
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          data.title,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: isCurrent ? _rankColor : null,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          data.artist,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                            color: colorScheme.onSurfaceVariant.withValues(
-                              alpha: 0.5,
-                            ),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  // 右侧：播放中状态 or 排名趋势
-                  const SizedBox(width: 8),
-                  isCurrent
-                      ? Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _rankColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                isCurrentPlaying
-                                    ? Icons.pause_rounded
-                                    : Icons.play_arrow_rounded,
-                                size: 14,
-                                color: _rankColor,
-                              ),
-                              const SizedBox(width: 2),
-                              Text(
-                                isCurrentPlaying ? '播放中' : '已暂停',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: _rankColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(
-                              0xFF32CD32,
-                            ).withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.trending_up,
-                                size: 14,
-                                color: Color(0xFF32CD32),
-                              ),
-                              SizedBox(width: 2),
-                              Text(
-                                '1',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF32CD32),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                ],
-              ),
-            ),
-          ),
-          // 分割线（除了最后一个）
-          // if (!isLast)
-          //   Container(
-          //     margin: const EdgeInsets.only(left: 60),
-          //     height: 0.5,
-          //     color: colorScheme.onSurfaceVariant.withValues(alpha: 0.1),
-          //   ),
-        ],
-      );
-    });
   }
 }
