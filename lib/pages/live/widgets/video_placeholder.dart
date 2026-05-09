@@ -7,7 +7,7 @@ class VideoPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.black,
+      color: Colors.transparent,
       child: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

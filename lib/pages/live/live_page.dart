@@ -117,9 +117,10 @@ class _LivePageState extends State<LivePage>
       body: Stack(
         fit: StackFit.expand,
         children: [
+          const TopGradient(),
           // 全屏背景图 — 模拟直播画面
           Image.network(
-            'https://picsum.photos/seed/livestream/800/1200',
+            'https://picsum.photos/seed/mv3/800/800',
             fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,
@@ -129,7 +130,6 @@ class _LivePageState extends State<LivePage>
             playUrl: _playUrl,
             onTap: () {},
           ),
-          const TopGradient(),
           _buildTopBar(),
           Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomBar()),
           if (!_showInput)
