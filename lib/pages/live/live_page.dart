@@ -74,6 +74,15 @@ class _LivePageState extends State<LivePage>
       SystemUiMode.manual,
       overlays: [SystemUiOverlay.top],
     );
+
+    SystemUiOverlayStyle systemUiOverlayStyle = const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent, // 状态栏背景色
+      statusBarIconBrightness: Brightness.light, // 图标亮度：light=白色，dark=黑色
+      statusBarBrightness: Brightness.light, // iOS 专用
+    );
+
+    // 应用到当前界面
+    SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
     _playInitialDanmaku();
   }
 
@@ -96,25 +105,25 @@ class _LivePageState extends State<LivePage>
     _controller.dispose();
     _chatController.dispose();
     _scrollController.dispose();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    SystemUiOverlayStyle systemUiOverlayStyle = const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent, // 状态栏背景色
-      statusBarIconBrightness: Brightness.light, // 图标亮度：light=白色，dark=黑色
-      statusBarBrightness: Brightness.light, // iOS 专用
-    );
-
-    // 应用到当前界面
-    SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
     return Scaffold(
       backgroundColor: Colors.black,
       resizeToAvoidBottomInset: false,
       body: Stack(
         fit: StackFit.expand,
         children: [
+          // 全屏背景图 — 模拟直播画面
+          Image.network(
+            'https://picsum.photos/seed/livestream/800/1200',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
           VideoPlayerArea(
             controller: _controller,
             playUrl: _playUrl,

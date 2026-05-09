@@ -6,6 +6,7 @@ import 'package:komodo/pages/message/chat_page.dart';
 import 'package:komodo/pages/message/image_viewer_page.dart';
 import 'package:komodo/pages/design_system/design_system_page.dart';
 import 'package:komodo/pages/database_demo/database_demo_page.dart';
+import 'package:komodo/pages/cache_browser/cache_browser_page.dart';
 import '../pages/home/home_page.dart';
 import '../pages/settings/settings_page.dart';
 import '../pages/lifecycle/lifecycle_detail_page.dart';
@@ -29,6 +30,7 @@ abstract class Routes {
   static const String chat = '/chat';
   static const String imageViewer = '/image-viewer';
   static const String databaseDemo = '/database-demo';
+  static const String cacheBrowser = '/cache-browser';
 }
 
 /// 路由配置
@@ -117,6 +119,12 @@ class AppPages {
     GetPage(
       name: Routes.databaseDemo,
       page: () => const DatabaseDemoPage(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: Routes.cacheBrowser,
+      page: () => const CacheBrowserPage(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 250),
     ),

@@ -87,6 +87,13 @@ class SettingsPage extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Get.toNamed(Routes.databaseDemo),
           ),
+          ListTile(
+            leading: const Icon(Icons.folder_open),
+            title: const Text('缓存管理'),
+            subtitle: const Text('查看和清理聊天录音缓存文件'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Get.toNamed(Routes.cacheBrowser),
+          ),
 
           const Divider(),
 
