@@ -101,7 +101,7 @@ dev_dependencies:
     sdk: flutter
 
   # 启动页生成工具（dev 只用于生成，运行时依赖在 dependencies 里）
-  flutter_native_splash: ^2.4.6
+  # flutter_native_splash 2.4.6
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

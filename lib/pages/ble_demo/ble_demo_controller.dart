@@ -306,7 +306,7 @@ class BleDemoController extends GetxController {
       otaLog.add('[${_ts()}] ✅ 文件发送完成，等待设备校验...');
       otaState.value = OtaState.verifying;
 
-      // TODO: 通过通知回调接收校验结果，此处暂以超时模拟等待
+      //通过通知回调接收校验结果，此处暂以超时模拟等待
       await Future.delayed(const Duration(seconds: 3));
 
       otaState.value = OtaState.success;
