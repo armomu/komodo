@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../ble_demo_controller.dart';
+import '../widgets/hex_keyboard.dart';
 
 /// 合并后的日志条目
 class _MergedLogEntry {
@@ -105,14 +106,16 @@ class _SendDataTabState extends State<SendDataTab>
                           ),
                         ),
                         const SizedBox(height: 12),
-                        TextField(
+                        _HexInputField(
                           controller: _hexInputCtrl,
-                          decoration: const InputDecoration(
-                            labelText: '十六进制数据',
-                            hintText: '如: AA 01 00 BB',
-                            prefixIcon: Icon(Icons.code),
-                          ),
-                          style: const TextStyle(fontFamily: 'monospace'),
+                          onTap: () {
+                            HexKeyboard.show(
+                              value: _hexInputCtrl.text,
+                              onConfirm: (val) {
+                                setState(() => _hexInputCtrl.text = val);
+                              },
+                            );
+                          },
                         ),
                         const SizedBox(height: 16),
                         Obx(
@@ -339,5 +342,79 @@ class _SendDataTabState extends State<SendDataTab>
     return data
         .map((e) => e.toRadixString(16).padLeft(2, '0').toUpperCase())
         .join(' ');
+  }
+}
+
+// ── 十六进制输入展示框（只读，点击弹键盘）────────────────────────
+class _HexInputField extends StatelessWidget {
+  final TextEditingController controller;
+  final VoidCallback onTap;
+
+  const _HexInputField({required this.controller, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedBuilder(
+        animation: controller,
+        builder: (_, __) {
+          final empty = controller.text.isEmpty;
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0D0D14) : const Color(0xFF1A1A2E),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: colorScheme.primary.withValues(alpha: 0.4),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.keyboard_alt_outlined,
+                  size: 16,
+                  color: Colors.white.withValues(alpha: 0.45),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: empty
+                      ? Text(
+                          '点击输入十六进制数据',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            fontSize: 13,
+                            fontFamily: 'monospace',
+                          ),
+                        )
+                      : Text(
+                          controller.text,
+                          style: const TextStyle(
+                            color: Color(0xFFFFD60A),
+                            fontSize: 14,
+                            fontFamily: 'monospace',
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.2,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 18,
+                  color: Colors.white.withValues(alpha: 0.25),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 }
