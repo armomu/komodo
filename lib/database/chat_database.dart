@@ -6,20 +6,43 @@ import 'package:komodo/pages/message/models/chat_models.dart';
 import 'package:komodo/pages/home/tabs/models/message_models.dart';
 
 /// 聊天本地数据库 — 持久化会话列表 & 聊天消息
+///
+/// 启动优化：注册为全局 GetxService 但不立即初始化。
+///   通过 ensureInitialized() 在首帧后或消息 Tab 首次访问时懒加载。
 class ChatDatabase extends GetxService {
   static ChatDatabase get to => Get.find();
 
   Database? _db;
+  bool _initializing = false;
+  final Completer<void> _initCompleter = Completer<void>();
 
+  /// 获取 database 实例（调用前必须先 ensureInitialized）
   Database get db => _db!;
 
   // ── 表名 ──────────────────────────────────────────────────────────
   static const String tableConversations = 'conversations';
   static const String tableMessages = 'messages';
 
-  // ── 初始化 ──────────────────────────────────────────────────────────
+  // ── 懒初始化 ──────────────────────────────────────────────────────────
 
-  Future<void> init() async {
+  /// 确保数据库已初始化（幂等，多次调用安全）
+  Future<void> ensureInitialized() async {
+    if (_db != null) return;
+    if (_initializing) {
+      await _initCompleter.future;
+      return;
+    }
+    _initializing = true;
+    try {
+      await _init();
+      _initCompleter.complete();
+    } catch (e) {
+      _initializing = false;
+      rethrow;
+    }
+  }
+
+  Future<void> _init() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'komodo_chat.db');
 
@@ -149,6 +172,7 @@ class ChatDatabase extends GetxService {
   }
 
   Future<List<MessageItem>> getConversations() async {
+    await ensureInitialized();
     final rows = await db.query(tableConversations, orderBy: 'id ASC');
     return rows
         .map(
@@ -169,6 +193,7 @@ class ChatDatabase extends GetxService {
     String peerName,
     String peerAvatar,
   ) async {
+    await ensureInitialized();
     final rows = await db.query(
       tableConversations,
       where: 'peer_name = ?',
@@ -186,6 +211,7 @@ class ChatDatabase extends GetxService {
     String lastMessage,
     String lastTime,
   ) async {
+    await ensureInitialized();
     await db.update(
       tableConversations,
       {'last_message': lastMessage, 'last_time': lastTime},
@@ -198,6 +224,7 @@ class ChatDatabase extends GetxService {
     int conversationId,
     int unreadCount,
   ) async {
+    await ensureInitialized();
     await db.update(
       tableConversations,
       {'unread_count': unreadCount},
@@ -238,6 +265,7 @@ class ChatDatabase extends GetxService {
   }
 
   Future<int> insertMessage(int conversationId, ChatMessage msg) async {
+    await ensureInitialized();
     return await _insertMessage(
       conversationId,
       msg.type,
@@ -254,6 +282,7 @@ class ChatDatabase extends GetxService {
   }
 
   Future<List<ChatMessage>> getMessages(int conversationId) async {
+    await ensureInitialized();
     final rows = await db.query(
       tableMessages,
       where: 'conversation_id = ?',
@@ -283,6 +312,7 @@ class ChatDatabase extends GetxService {
   // ── 清空数据 ─────────────────────────────────────────────────────
 
   Future<void> clearAllData() async {
+    await ensureInitialized();
     await db.delete(tableMessages);
     await db.delete(tableConversations);
   }
@@ -290,6 +320,7 @@ class ChatDatabase extends GetxService {
   // ── 查询工具（demo 页使用） ───────────────────────────────────────
 
   Future<List<String>> getTableNames() async {
+    await ensureInitialized();
     final rows = await db.rawQuery(
       "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name",
     );
@@ -300,10 +331,12 @@ class ChatDatabase extends GetxService {
   }
 
   Future<List<Map<String, dynamic>>> queryTable(String tableName) async {
+    await ensureInitialized();
     return await db.query(tableName, orderBy: 'id DESC', limit: 200);
   }
 
   Future<List<Map<String, dynamic>>> queryRaw(String sql) async {
+    await ensureInitialized();
     return await db.rawQuery(sql);
   }
 }

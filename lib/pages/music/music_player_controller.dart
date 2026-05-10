@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:komodo/pages/music/music_models.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 全局音乐播放器控制器
@@ -18,6 +19,9 @@ import 'package:komodo/pages/music/music_models.dart';
 // 关键设计：用 setAudioSources(完整列表) 一次性加载所有曲目。
 //   just_audio_background 才能感知 hasNext/hasPrevious，
 //   通知栏 compact view 才会显示上一首/下一首按钮。
+//
+// 启动优化：onInit 仅创建 AudioPlayer 和流监听，_loadPlaylist 延后到
+//   首次 play() 时触发；JustAudioBackground 和通知权限在首帧后延迟请求。
 // ═════════════════════════════════════════════════════════════════════════════
 
 class MusicPlayerController extends GetxController {
@@ -41,6 +45,12 @@ class MusicPlayerController extends GetxController {
   final RxInt currentLyricIndex = (-1).obs;
   final RxBool isLoading = false.obs;
 
+  // 播放列表是否已加载（懒初始化标记）
+  bool _playlistLoaded = false;
+
+  // JustAudioBackground 是否已初始化
+  static bool _backgroundInitDone = false;
+
   // 当前歌曲
   PlaylistItem get currentTrack => playlist[currentIndex.value];
 
@@ -51,7 +61,7 @@ class MusicPlayerController extends GetxController {
     super.onInit();
     _audioPlayer = AudioPlayer();
     _initAudioPlayer();
-    _loadPlaylist();
+    // 播放列表延后到首次 play() 时懒加载
   }
 
   @override
@@ -61,6 +71,47 @@ class MusicPlayerController extends GetxController {
   }
 
   // ── 内部初始化 ─────────────────────────────────────────────────────────
+
+  /// Android 13+ 通知权限请求（静态方法，供 main.dart 首帧后调用）
+  static Future<void> requestNotificationPermission() async {
+    await Permission.notification.request();
+  }
+
+  /// 初始化 just_audio_background（静态方法，供首次 play 时懒调用）
+  static Future<void> _ensureBackgroundInit() async {
+    if (_backgroundInitDone) return;
+    await JustAudioBackground.init(
+      androidNotificationChannelId: 'com.komodo.music.channel.audio',
+      androidNotificationChannelName: 'Komodo 音乐播放',
+      androidNotificationOngoing: true,
+      androidStopForegroundOnPause: true,
+    );
+    _backgroundInitDone = true;
+  }
+
+  /// 确保播放列表已加载（首次 play/selectTrack 时触发懒加载）
+  Future<void> _ensurePlaylistLoaded() async {
+    if (_playlistLoaded) return;
+    _playlistLoaded = true;
+
+    // 首次播放前完成 just_audio_background 初始化
+    await _ensureBackgroundInit();
+
+    isLoading.value = true;
+    try {
+      await _audioPlayer.setAudioSources(
+        playlist.map(_buildAudioSource).toList(),
+        initialIndex: currentIndex.value,
+        initialPosition: Duration.zero,
+      );
+      await _loadLyricsForCurrentTrack();
+    } catch (e) {
+      _playlistLoaded = false; // 加载失败，允许重试
+      debugPrint('[MusicPlayer] 加载播放列表失败: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   void loadCurrentLyricIndex() {
     if (_audioPlayer.playing == false && position.value != Duration.zero) {
@@ -121,26 +172,6 @@ class MusicPlayerController extends GetxController {
     } else {
       // asset 文件
       return AudioSource.asset(src, tag: mediaItem);
-    }
-  }
-
-  /// 一次性加载完整播放列表（只调用一次）
-  ///
-  /// 使用 setAudioSources 而非 setAudioSource，让 just_audio_background
-  /// 能感知完整队列，从而在通知栏显示上/下一首按钮。
-  Future<void> _loadPlaylist() async {
-    isLoading.value = true;
-    try {
-      await _audioPlayer.setAudioSources(
-        playlist.map(_buildAudioSource).toList(),
-        initialIndex: currentIndex.value,
-        initialPosition: Duration.zero,
-      );
-      await _loadLyricsForCurrentTrack();
-    } catch (e) {
-      debugPrint('[MusicPlayer] 加载播放列表失败: $e');
-    } finally {
-      isLoading.value = false;
     }
   }
 
@@ -224,6 +255,7 @@ class MusicPlayerController extends GetxController {
   // ── 公开控制接口 ────────────────────────────────────────────────────
 
   Future<void> play() async {
+    await _ensurePlaylistLoaded(); // 懒加载：首次播放时才加载列表
     hasStartedPlaying.value = true; // 标记已播过歌，UI 才能显示状态
     await _audioPlayer.play();
   }
@@ -252,6 +284,7 @@ class MusicPlayerController extends GetxController {
 
   /// 点击播放列表中某首曲目
   Future<void> selectTrack(int index) async {
+    await _ensurePlaylistLoaded(); // 懒加载：首次切歌时才加载列表
     if (index == currentIndex.value) {
       // 已是当前曲，切换播放/暂停
       await togglePlay();

@@ -3,8 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:just_audio_background/just_audio_background.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'controllers/user_controller.dart';
 import 'pages/music/music_player_controller.dart';
 import 'services/api_service.dart';
@@ -18,55 +16,50 @@ void main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  // ── Android 13+ 通知权限（POST_NOTIFICATIONS）────────────────────────────
-  // 必须在 JustAudioBackground.init 之前请求，否则前台服务通知无法显示。
-  // Android 12 及以下无此权限，permission_handler 会自动跳过。
-  await Permission.notification.request();
-
-  // ── 初始化 just_audio_background ──────────────────────────────────────────
-  // 必须在 runApp 之前调用，负责注册系统媒体通知/锁屏/控制中心
-  await JustAudioBackground.init(
-    androidNotificationChannelId: 'com.komodo.music.channel.audio',
-    androidNotificationChannelName: 'Komodo 音乐播放',
-    androidNotificationOngoing: true, // 播放时通知不可手动清除
-    androidStopForegroundOnPause: true, // 暂停时允许滑掉通知
-  );
-  // SystemChrome.setEnabledSystemUIMode(
-  //   SystemUiMode.manual,
-  //   overlays: [SystemUiOverlay.top], // 只显示顶部
-  // );
+  // ── 系统栏样式（轻量、无 I/O） ──────────────────────────────────────────
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent, // 顶部透明
-      systemNavigationBarColor: Colors.transparent, // 底部透明
-      systemNavigationBarIconBrightness: Brightness.dark, // 图标颜色
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light,
     ),
   );
+
   // 初始化 GetStorage（用于本地存储）
   await GetStorage.init();
 
-  // ── 注入全局控制器 ────────────────────────────────────────────────────────
+  // ── 注入全局控制器（仅轻量注入，不做耗时 I/O）──────────────────────────
   // API 服务（需在控制器之前注入）
   Get.put(ApiService());
   // 用户状态控制器
   Get.put(UserController());
   // 主题控制器
   Get.put(ThemeController());
-  // 全局音乐播放器控制器（permanent = true 防止页面销毁时被自动 delete）
+  // 全局音乐播放器控制器（permanent = true，首帧前不加载播放列表）
   Get.put(MusicPlayerController(), permanent: true);
-  // 聊天数据库（GetxService，全局单例）
-  await Get.putAsync<ChatDatabase>(() async {
-    final db = ChatDatabase();
-    await db.init();
-    return db;
-  });
+  // 聊天数据库（GetxService，全局单例 — 延迟初始化，首帧后再建表/种子数据）
+  Get.put(ChatDatabase());
 
   // 初始化完成，移除启动页
   FlutterNativeSplash.remove();
 
   runApp(const MyApp());
+
+  // ── 首帧渲染后执行非关键初始化 ────────────────────────────────────────
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _initDeferred();
+  });
+}
+
+/// 首帧渲染后才执行的非关键初始化
+void _initDeferred() async {
+  // Android 13+ 通知权限 — 延迟请求，不阻塞首帧
+  MusicPlayerController.requestNotificationPermission();
+
+  // 聊天数据库初始化（建表 + 种子数据）
+  Get.find<ChatDatabase>().ensureInitialized();
 }
 
 class MyApp extends StatelessWidget {
