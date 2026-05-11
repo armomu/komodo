@@ -52,36 +52,39 @@ class MessageTabState extends State<MessageTab> {
     final leftPadding = startLeft + (endLeft - startLeft) * collapseProgress;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return CustomScrollView(
+    return NestedScrollView(
       controller: _scrollController,
-      slivers: [
-        SliverAppBar(
-          leading: Opacity(
-            opacity: collapseProgress,
-            child: IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.menu_rounded),
+      headerSliverBuilder: (context, innerBoxIsScrolled) {
+        return [
+          SliverAppBar(
+            leading: Opacity(
+              opacity: collapseProgress,
+              child: IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.menu_rounded),
+              ),
+            ),
+            expandedHeight: maxExtent,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text('Messages',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
+              titlePadding: EdgeInsets.only(left: leftPadding, bottom: 14),
+              centerTitle: false,
             ),
           ),
-          expandedHeight: maxExtent,
-          pinned: true,
-          flexibleSpace: FlexibleSpaceBar(
-            title: const Text('Messages',
-                style: TextStyle(fontWeight: FontWeight.w600)),
-            titlePadding: EdgeInsets.only(left: leftPadding, bottom: 14),
-            centerTitle: false,
+        ];
+      },
+      body: RefreshIndicator(
+        onRefresh: _loadConversations,
+        child: ListView.builder(
+          itemCount: _conversations.length,
+          itemBuilder: (BuildContext context, int index) => MessageListItem(
+            item: _conversations[index],
+            isDark: isDark,
           ),
         ),
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (BuildContext context, int index) => MessageListItem(
-              item: _conversations[index],
-              isDark: isDark,
-            ),
-            childCount: _conversations.length,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

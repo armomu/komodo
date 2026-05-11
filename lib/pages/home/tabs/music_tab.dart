@@ -136,6 +136,12 @@ class _MusicTabState extends State<MusicTab> {
     ),
   ];
 
+  Future<void> _onRefresh() async {
+    // 静态数据暂无实际请求，预留接口；后续接入真实数据时在此处加载
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
     _swiperController.dispose();
@@ -169,15 +175,18 @@ class _MusicTabState extends State<MusicTab> {
           ),
         ];
       },
-      body: ListView(
-        padding: const EdgeInsets.only(top: 8, bottom: 8),
-        children: [
-          _buildCarouselCards(context),
-          const SizedBox(height: 20),
-          _buildMusicLyricsCard(context),
-          const SizedBox(height: 20),
-          _buildMusicRankingCard(context),
-        ],
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        child: ListView(
+          padding: const EdgeInsets.only(top: 8, bottom: 8),
+          children: [
+            _buildCarouselCards(context),
+            const SizedBox(height: 20),
+            _buildMusicLyricsCard(context),
+            const SizedBox(height: 20),
+            _buildMusicRankingCard(context),
+          ],
+        ),
       ),
     );
   }
