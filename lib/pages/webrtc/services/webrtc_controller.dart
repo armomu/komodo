@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 // ignore: depend_on_referenced_packages
 import 'package:get/get.dart' hide navigator;
@@ -8,46 +9,51 @@ import 'package:get/get.dart' hide navigator;
 import '../models/call_state.dart';
 import 'signaling_client.dart';
 
-/// WebRTC 视频通话控制器——单房间一对一通话。
+/// WebRTC 视频通话控制器——Mesh 多人通话。
 ///
-/// 职责：
-/// - 管理 RTCPeerConnection 生命周期
-/// - 管理本地/远端媒体流
-/// - 与 SignalingClient 协作完成信令交换
+/// 架构：
+/// - 每个对端一个 RTCPeerConnection，地图存储
+/// - UID 字典序较大者主动发起 Offer，较小者自动应答
+/// - 服务端只转发信令，媒体流 P2P 直连
 class WebrtcController extends GetxController {
-  // ==================== 依赖（从 get 注入） ====================
+  // ==================== 依赖 ====================
   late final SignalingClient _signaling;
 
   // ==================== 信令相关 ====================
   String _roomId = '';
   String _myUid = '';
-  String _peerUid = '';
   String _serverUrl = '';
 
-  // ==================== WebRTC 相关 ====================
-  RTCPeerConnection? _pc;
+  // ==================== 本地媒体 ====================
   MediaStream? _localStream;
-  MediaStream? _remoteStream;
+
+  /// 本地视频渲染器
+  final localRenderer = RTCVideoRenderer();
+
+  // ==================== 多 Peer 管理 ====================
+
+  /// 每个对端一个 PC
+  final Map<String, RTCPeerConnection> _pcs = {};
+
+  /// 每个对端的远端流
+  final Map<String, MediaStream> _remoteStreams = {};
+
+  /// 每个对端的渲染器
+  final Map<String, RTCVideoRenderer> _remoteRenderers = {};
+
+  /// 已由我主动发起连接的 peer（防重入）
+  final Set<String> _peersIAmInitiator = {};
 
   // ==================== 订阅 ====================
   final List<StreamSubscription> _subs = [];
-
-  /// 防止重复处理 peer-ready
-  bool _handshakeStarted = false;
-
-  /// peer-ready 比 PC 先到达时待发送的 offer
-  bool _pendingOffer = false;
 
   // ==================== 可观察状态 ====================
 
   /// 通话状态
   final callState = CallState.idle.obs;
 
-  /// 本地视频渲染器
-  final localRenderer = RTCVideoRenderer();
-
-  /// 远端视频渲染器
-  final remoteRenderer = RTCVideoRenderer();
+  /// 远端 peer UID 列表，UI 据此渲染视频网格
+  final remotePeerUids = <String>[].obs;
 
   /// 摄像头是否开启
   final isCameraOn = true.obs;
@@ -58,15 +64,10 @@ class WebrtcController extends GetxController {
   /// 房间号
   String get roomId => _roomId;
 
-  /// 是否是对端发起的呼叫（被动方）
-  bool get isIncoming =>
-      callState.value == CallState.incoming;
-
   // ==================== 初始化 ====================
 
   Future<void> initRenderers() async {
     await localRenderer.initialize();
-    await remoteRenderer.initialize();
   }
 
   @override
@@ -87,7 +88,7 @@ class WebrtcController extends GetxController {
   /// 设置信令服务器地址（默认值）
   void setServerUrl(String url) => _serverUrl = url;
 
-  /// 发起呼叫：连接信令、加入房间、获取媒体、创建 Offer
+  /// 发起呼叫：连接信令、加入房间、获取本地媒体
   Future<void> startCall({
     required String serverUrl,
     required String roomId,
@@ -99,33 +100,17 @@ class WebrtcController extends GetxController {
     callState.value = CallState.calling;
 
     try {
-      // 1. 连接信令服务器
       await _signaling.connect(_serverUrl);
-      // 2. 加入房间
       _signaling.joinRoom(_roomId, _myUid);
-      // 3. 获取本地媒体
       await _getLocalMedia();
-      // 4. 创建 PeerConnection
-      await _createPeerConnection();
-      // 5. 等待 peer-ready 事件触发 offer/answer 协商
       callState.value = CallState.connecting;
     } catch (e) {
       callState.value = CallState.error;
     }
   }
 
-  /// 接听来电（手动）
-  Future<void> answerCall() async {
-    if (_pc == null) return;
-    callState.value = CallState.connecting;
-    await _createAndSendAnswer();
-  }
-
   /// 挂断
   Future<void> endCall() async {
-    if (_peerUid.isNotEmpty) {
-      _signaling.sendEndCall(_peerUid);
-    }
     _signaling.leaveRoom(_roomId);
     _cleanup();
     callState.value = CallState.ended;
@@ -156,92 +141,71 @@ class WebrtcController extends GetxController {
     }
   }
 
-  /// 重连
-  Future<void> reconnect({
-    required String serverUrl,
-    required String roomId,
-    required String myUid,
-  }) async {
-    _cleanup();
-    await startCall(
-      serverUrl: serverUrl,
-      roomId: roomId,
-      myUid: myUid,
-    );
-  }
+  /// UI 获取指定 peer 的渲染器
+  RTCVideoRenderer? rendererForPeer(String uid) => _remoteRenderers[uid];
 
   // ==================== 内部——信令事件监听 ====================
 
   void _setupListeners() {
-    // 注意：onConnected 的 uid 是服务端分配的会话 UUID，与自定义 UID 不同
-    // 所以这里不覆盖 _myUid（已在 startCall 中设置）
-    _subs.add(_signaling.onConnected.listen((uid) {
-      // _myUid 已在 startCall 中设为自定义 UID，不覆盖
-    }));
+    _subs.add(_signaling.onConnected.listen((_) {}));
 
-    _subs.add(_signaling.onUserJoined.listen((uid) {
-      if (_peerUid.isEmpty) _peerUid = uid;
-    }));
+    _subs.add(_signaling.onUserJoined.listen((_) {}));
 
-    _subs.add(_signaling.onRoomUsers.listen((data) {
-      if (data.users.isNotEmpty && _peerUid.isEmpty) {
-        _peerUid = data.users.first;
-      }
-    }));
+    _subs.add(_signaling.onRoomUsers.listen((_) {}));
 
-    _subs.add(_signaling.onPeerReady.listen((data) {
-      _handlePeerReady(data.peers);
-    }));
+    _subs.add(
+      _signaling.onPeerReady.listen((data) {
+        _handlePeerReady(data.peers);
+      }),
+    );
 
-    _subs.add(_signaling.onOffer.listen((data) {
-      _handleOfferReceived(data.from, data.sdp);
-    }));
+    _subs.add(
+      _signaling.onOffer.listen((data) {
+        _handleOfferReceived(data.from, data.sdp).catchError((e) {
+          debugPrint('[Mesh] !! onOffer(${data.from}) =========异常: $e');
+        });
+      }),
+    );
 
-    _subs.add(_signaling.onAnswer.listen((data) {
-      _handleAnswerReceived(data.sdp);
-    }));
+    _subs.add(
+      _signaling.onAnswer.listen((data) {
+        _handleAnswerReceived(data.from, data.sdp).catchError((e) {
+          debugPrint('[Mesh] !! onAnswer(${data.from}) =========异常: $e');
+        });
+      }),
+    );
 
-    _subs.add(_signaling.onIceCandidate.listen((data) {
-      _handleIceCandidateReceived(data.candidate);
-    }));
+    _subs.add(
+      _signaling.onIceCandidate.listen((data) {
+        _handleIceCandidateReceived(data.from, data.candidate).catchError((e) {
+          debugPrint('[Mesh] !! onIceCandidate(${data.from}) 异常: $e');
+        });
+      }),
+    );
 
-    _subs.add(_signaling.onCallEnded.listen((_) {
-      _onPeerEnded();
-    }));
+    _subs.add(
+      _signaling.onUserLeft.listen((uid) {
+        _removePeer(uid);
+        if (_pcs.isEmpty) {
+          callState.value = CallState.ended;
+        }
+      }),
+    );
 
-    _subs.add(_signaling.onError.listen((msg) {
-      callState.value = CallState.error;
-    }));
+    _subs.add(
+      _signaling.onCallEnded.listen((_) {
+        callState.value = CallState.ended;
+      }),
+    );
+
+    _subs.add(
+      _signaling.onError.listen((_) {
+        callState.value = CallState.error;
+      }),
+    );
   }
 
-  // ==================== 内部——媒体 & PeerConnection ====================
-
-  /// 收到 peer-ready 事件后决定谁发 Offer 谁发 Answer。
-  /// 规则：按 UID 字典序排序，较小的作为 Offer 发起方。
-  void _handlePeerReady(List<String> peers) {
-    if (_handshakeStarted) return;
-    if (peers.length < 2) return;
-    _handshakeStarted = true;
-
-    // 找出对端的 UID
-    final others = peers.where((uid) => uid != _myUid).toList();
-    if (others.isEmpty) return;
-    _peerUid = others.first;
-
-    // 排序后第一个发 Offer
-    final sorted = List<String>.from(peers)..sort();
-    final iAmInitiator = sorted.first == _myUid;
-
-    if (iAmInitiator) {
-      if (_pc != null) {
-        _createAndSendOffer();
-      } else {
-        // PC 尚未就绪，标记待发送
-        _pendingOffer = true;
-      }
-    }
-    // 非发起方等待对端发来的 Offer（由 _handleOfferReceived 处理）
-  }
+  // ==================== 内部——Mesh 信令处理 ====================
 
   Future<void> _getLocalMedia() async {
     final constraints = <String, dynamic>{
@@ -257,12 +221,56 @@ class WebrtcController extends GetxController {
       _localStream = await navigator.mediaDevices.getUserMedia(constraints);
       localRenderer.srcObject = _localStream;
     } catch (e) {
-      // 获取视频失败
       _localStream = null;
     }
   }
 
-  Future<void> _createPeerConnection() async {
+  /// peer-ready 到达后，与每个比自己 UID 大的 peer 主动建连
+  void _handlePeerReady(List<String> peers) {
+    debugPrint('[Mesh] peer-ready: ${peers.join(", ")}');
+    for (final peerUid in peers) {
+      if (peerUid == _myUid) continue;
+      if (_pcs.containsKey(peerUid)) continue;
+
+      // 字典序比较：比我大的我主动发 offer，比我小的等待对方发来
+      if (peerUid.compareTo(_myUid) > 0) {
+        debugPrint('[Mesh] -> 主动发 offer 给 $peerUid');
+        _peersIAmInitiator.add(peerUid);
+        _establishConnection(peerUid, initiator: true).catchError((e) {
+          debugPrint('[Mesh] !! establishConnection($peerUid) 失败: $e');
+          _removePeer(peerUid);
+        });
+      }
+    }
+  }
+
+  /// 与指定 peer 建立 PeerConnection
+  Future<void> _establishConnection(
+    String peerUid, {
+    required bool initiator,
+  }) async {
+    final renderer = RTCVideoRenderer();
+    await renderer.initialize();
+    _remoteRenderers[peerUid] = renderer;
+    remotePeerUids.add(peerUid);
+
+    try {
+      final pc = await _createPeerConnectionForPeer(peerUid);
+      _pcs[peerUid] = pc;
+      debugPrint('[Mesh] PC 创建成功 | peer=$peerUid');
+
+      if (initiator) {
+        await _sendOffer(pc, peerUid);
+        debugPrint('[Mesh] Offer 已发送 | peer=$peerUid');
+      }
+    } catch (e) {
+      debugPrint('[Mesh] !! _establishConnection($peerUid) 异常: $e');
+      _removePeer(peerUid);
+    }
+  }
+
+  /// 为指定 peer 创建 RTCPeerConnection
+  Future<RTCPeerConnection> _createPeerConnectionForPeer(String peerUid) async {
     final config = {
       'iceServers': [
         {'urls': 'stun:stun.l.google.com:19302'},
@@ -270,126 +278,146 @@ class WebrtcController extends GetxController {
       ],
     };
 
-    _pc = await createPeerConnection(config);
+    final pc = await createPeerConnection(config);
 
-    // 添加本地流（Unified Plan 下须用 addTrack 替代 addStream）
+    // 添加本地流
     if (_localStream != null) {
       for (final track in _localStream!.getTracks()) {
-        await _pc!.addTrack(track, _localStream!);
+        await pc.addTrack(track, _localStream!);
       }
     }
 
-    // ICE Candidate 回调
-    _pc!.onIceCandidate = (candidate) {
-      if (_peerUid.isNotEmpty) {
-        _signaling.sendIceCandidate(
-          _peerUid,
-          jsonEncode(candidate.toMap()),
-        );
-      }
+    // ICE Candidate——发往指定对端
+    pc.onIceCandidate = (candidate) {
+      _signaling.sendIceCandidate(peerUid, jsonEncode(candidate.toMap()));
     };
 
-    // 远端流回调
-    _pc!.onTrack = (event) {
+    // 远端流到达
+    pc.onTrack = (event) {
       if (event.track.kind == 'video') {
-        _remoteStream = event.streams[0];
-        remoteRenderer.srcObject = _remoteStream;
+        _remoteStreams[peerUid] = event.streams[0];
+        _remoteRenderers[peerUid]?.srcObject = event.streams[0];
         callState.value = CallState.connected;
       }
     };
 
-    // 连接状态变化
-    _pc!.onConnectionState = (state) {
-      switch (state) {
-        case RTCPeerConnectionState.RTCPeerConnectionStateConnected:
-          callState.value = CallState.connected;
-          break;
-        case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
-        case RTCPeerConnectionState.RTCPeerConnectionStateFailed:
+    // 连接状态
+    pc.onConnectionState = (state) {
+      if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
+        callState.value = CallState.connected;
+      } else if (state ==
+              RTCPeerConnectionState.RTCPeerConnectionStateDisconnected ||
+          state == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
+        _removePeer(peerUid);
+        if (_pcs.isEmpty) {
           callState.value = CallState.ended;
-          break;
-        default:
-          break;
+        }
       }
     };
 
-    // 如果 peer-ready 已到达但 PC 当时未就绪，现在补发 offer
-    if (_pendingOffer) {
-      _pendingOffer = false;
-      _createAndSendOffer();
+    return pc;
+  }
+
+  /// 向指定对端发送 Offer
+  Future<void> _sendOffer(RTCPeerConnection pc, String peerUid) async {
+    final session = await pc.createOffer();
+    await pc.setLocalDescription(session);
+    if (session.sdp != null) {
+      _signaling.sendOffer(peerUid, session.sdp!);
     }
   }
 
-  Future<void> _createAndSendOffer() async {
-    if (_pc == null) return;
-
-    final session = await _pc!.createOffer();
-    await _pc!.setLocalDescription(session);
-    if (session.sdp == null) return;
-    _signaling.sendOffer(
-      _peerUid,
-      session.sdp!,
-    );
-  }
-
-  // ==================== 内部——对端信令处理 ====================
-
+  /// 收到对端发来的 Offer
   Future<void> _handleOfferReceived(String fromUid, String sdp) async {
-    _peerUid = fromUid;
+    debugPrint('[Mesh] 收到 Offer | from=$fromUid');
 
-    if (_pc == null) {
-      // PC 尚未创建（未调用 startCall），这是通过信令直接收到来电
-      callState.value = CallState.incoming;
-      await _getLocalMedia();
-      await _createPeerConnection();
+    // 如果已有此对端的 PC，直接设置远端描述并应答
+    if (_pcs.containsKey(fromUid)) {
+      try {
+        final session = RTCSessionDescription(sdp, 'offer');
+        await _pcs[fromUid]!.setRemoteDescription(session);
+        await _sendAnswer(_pcs[fromUid]!, fromUid);
+        debugPrint('[Mesh] 已有PC，应答完毕 | peer=$fromUid');
+      } catch (e) {
+        debugPrint('[Mesh] !! onOffer($fromUid) 已有PC异常: $e');
+      }
+      return;
     }
 
-    final session = RTCSessionDescription(
-      sdp,
-      'offer',
-    );
-    await _pc!.setRemoteDescription(session);
+    // 首次收到此对端的 Offer，现场建连
+    try {
+      final renderer = RTCVideoRenderer();
+      await renderer.initialize();
+      _remoteRenderers[fromUid] = renderer;
+      remotePeerUids.add(fromUid);
 
-    // peer-ready 流程（双方主动加入房间）：自动应答
-    // 非 peer-ready 流程（被叫手动接听）：由 user 按接听按钮触发
-    if (_handshakeStarted) {
-      await _createAndSendAnswer();
+      final pc = await _createPeerConnectionForPeer(fromUid);
+      _pcs[fromUid] = pc;
+
+      final session = RTCSessionDescription(sdp, 'offer');
+      await pc.setRemoteDescription(session);
+      await _sendAnswer(pc, fromUid);
+      debugPrint('[Mesh] 新建PC应答完毕 | peer=$fromUid');
+    } catch (e) {
+      debugPrint('[Mesh] !! onOffer($fromUid) 新建PC异常: $e');
+      _removePeer(fromUid);
     }
   }
 
-  /// 创建并发送 Answer
-  Future<void> _createAndSendAnswer() async {
-    if (_pc == null) return;
-    final answer = await _pc!.createAnswer();
-    await _pc!.setLocalDescription(answer);
-    if (answer.sdp == null) return;
-    _signaling.sendAnswer(_peerUid, answer.sdp!);
+  /// 向指定对端发送 Answer
+  Future<void> _sendAnswer(RTCPeerConnection pc, String peerUid) async {
+    final answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    if (answer.sdp != null) {
+      _signaling.sendAnswer(peerUid, answer.sdp!);
+    }
   }
 
-  Future<void> _handleAnswerReceived(String sdp) async {
-    final session = RTCSessionDescription(
-      sdp,
-      'answer',
-    );
-    await _pc?.setRemoteDescription(session);
+  /// 收到对端发来的 Answer
+  Future<void> _handleAnswerReceived(String fromUid, String sdp) async {
+    final pc = _pcs[fromUid];
+    if (pc == null) return;
+    final session = RTCSessionDescription(sdp, 'answer');
+    await pc.setRemoteDescription(session);
   }
 
-  Future<void> _handleIceCandidateReceived(String candidate) async {
+  /// 收到对端发来的 ICE Candidate
+  Future<void> _handleIceCandidateReceived(
+    String fromUid,
+    String candidate,
+  ) async {
+    final pc = _pcs[fromUid];
+    if (pc == null) return;
     final map = jsonDecode(candidate) as Map<String, dynamic>;
     final iceCandidate = RTCIceCandidate(
       map['candidate'],
       map['sdpMid'],
       map['sdpMLineIndex'] as int?,
     );
-    await _pc?.addCandidate(iceCandidate);
+    await pc.addCandidate(iceCandidate);
   }
 
-  void _onPeerEnded() {
-    _cleanup();
-    callState.value = CallState.ended;
+  // ==================== Peer 清理 ====================
+
+  /// 移除指定 peer 的所有资源
+  void _removePeer(String uid) {
+    _pcs[uid]?.close();
+    _pcs.remove(uid);
+
+    _remoteStreams[uid]?.dispose();
+    _remoteStreams.remove(uid);
+
+    final r = _remoteRenderers.remove(uid);
+    if (r != null) {
+      r.srcObject = null;
+      r.dispose();
+    }
+
+    _peersIAmInitiator.remove(uid);
+    remotePeerUids.remove(uid);
   }
 
-  // ==================== 清理 ====================
+  // ==================== 全局清理 ====================
 
   bool _disposed = false;
 
@@ -408,19 +436,13 @@ class WebrtcController extends GetxController {
     _localStream?.dispose();
     _localStream = null;
 
-    _remoteStream?.dispose();
-    _remoteStream = null;
-
     localRenderer.srcObject = null;
     localRenderer.dispose();
-    remoteRenderer.srcObject = null;
-    remoteRenderer.dispose();
 
-    _pc?.close();
-    _pc = null;
-
-    _peerUid = '';
-    _handshakeStarted = false;
-    _pendingOffer = false;
+    // 清理所有远端 peer
+    for (final uid in _pcs.keys.toList()) {
+      _removePeer(uid);
+    }
+    _peersIAmInitiator.clear();
   }
 }

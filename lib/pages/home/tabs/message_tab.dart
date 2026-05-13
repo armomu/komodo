@@ -67,8 +67,10 @@ class MessageTabState extends State<MessageTab> {
             expandedHeight: maxExtent,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              title: const Text('Messages',
-                  style: TextStyle(fontWeight: FontWeight.w600)),
+              title: const Text(
+                'Messages',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
               titlePadding: EdgeInsets.only(left: leftPadding, bottom: 14),
               centerTitle: false,
             ),
@@ -78,11 +80,10 @@ class MessageTabState extends State<MessageTab> {
       body: RefreshIndicator(
         onRefresh: _loadConversations,
         child: ListView.builder(
+          padding: const EdgeInsets.all(0),
           itemCount: _conversations.length,
-          itemBuilder: (BuildContext context, int index) => MessageListItem(
-            item: _conversations[index],
-            isDark: isDark,
-          ),
+          itemBuilder: (BuildContext context, int index) =>
+              MessageListItem(item: _conversations[index], isDark: isDark),
         ),
       ),
     );

@@ -5,7 +5,8 @@ import 'package:get/get.dart';
 import '../models/call_state.dart';
 import '../services/webrtc_controller.dart';
 
-/// 视频通话页面——显示本地/远端画面和控制按钮。
+/// 视频通话页面——Mesh 多人通话。
+/// 远端画面根据人数自动切换布局：1人全屏、2人上下分屏、3-4人2x2网格。
 class VideoCallPage extends StatefulWidget {
   final String serverUrl;
   final String roomId;
@@ -30,7 +31,6 @@ class _VideoCallPageState extends State<VideoCallPage> {
     super.initState();
     _controller = Get.find<WebrtcController>();
 
-    // 启动呼叫
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.startCall(
         serverUrl: widget.serverUrl,
@@ -64,10 +64,8 @@ class _VideoCallPageState extends State<VideoCallPage> {
             final state = _controller.callState.value;
             return Stack(
               children: [
-                // 远端视频（主画面）
-                Positioned.fill(
-                  child: _buildRemoteVideo(),
-                ),
+                // 远端视频网格
+                Positioned.fill(child: _buildRemoteVideosGrid()),
 
                 // 本地视频（画中画）
                 Positioned(
@@ -85,12 +83,11 @@ class _VideoCallPageState extends State<VideoCallPage> {
                   child: _buildTopBar(),
                 ),
 
-                // 中间状态（等待/呼入）
+                // 等待/连接中遮罩
                 if (state == CallState.calling ||
-                    state == CallState.incoming ||
                     state == CallState.connecting)
                   Positioned.fill(
-                    child: _buildCallingOverlay(state),
+                    child: _buildConnectingOverlay(state),
                   ),
 
                 // 底部控制栏
@@ -108,21 +105,74 @@ class _VideoCallPageState extends State<VideoCallPage> {
     );
   }
 
-  // ==================== 构建组件 ====================
+  // ==================== 远端视频网格 ====================
 
-  Widget _buildRemoteVideo() {
-    return Obx(() {
-      if (_controller.callState.value == CallState.connected) {
-        return RTCVideoView(
-          _controller.remoteRenderer,
-          mirror: false,
-          objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
-        );
-      }
-      // 未连接时显示纯黑背景
+  Widget _buildRemoteVideosGrid() {
+    final peers = _controller.remotePeerUids;
+    if (peers.isEmpty) {
       return const ColoredBox(color: Colors.black);
-    });
+    }
+
+    final count = peers.length;
+
+    // 1人全屏
+    if (count == 1) {
+      return _buildPeerVideo(peers[0]);
+    }
+
+    // 2人上下分屏（各占一半）
+    if (count == 2) {
+      return Column(
+        children: [
+          Expanded(child: _buildPeerVideo(peers[0])),
+          SizedBox(height: 2, child: Container(color: Colors.black)),
+          Expanded(child: _buildPeerVideo(peers[1])),
+        ],
+      );
+    }
+
+    // 3-4人 2x2 网格
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = 2;
+        final rowCount = (count / crossAxisCount).ceil();
+        final aspectRatio =
+            (constraints.maxWidth / crossAxisCount) /
+            (constraints.maxHeight / rowCount);
+        return GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: aspectRatio,
+            mainAxisSpacing: 2,
+            crossAxisSpacing: 2,
+          ),
+          itemCount: count,
+          itemBuilder: (context, index) =>
+              _buildPeerVideo(peers[index]),
+        );
+      },
+    );
   }
+
+  Widget _buildPeerVideo(String uid) {
+    final renderer = _controller.rendererForPeer(uid);
+    if (renderer == null) {
+      return Container(
+        color: Colors.grey[900],
+        child: Center(
+          child: Text(uid, style: const TextStyle(color: Colors.white54)),
+        ),
+      );
+    }
+    return RTCVideoView(
+      renderer,
+      mirror: false,
+      objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+    );
+  }
+
+  // ==================== 本地视频 ====================
 
   Widget _buildLocalVideo() {
     return Obx(() {
@@ -148,10 +198,11 @@ class _VideoCallPageState extends State<VideoCallPage> {
     });
   }
 
+  // ==================== 顶部栏 ====================
+
   Widget _buildTopBar() {
     return Row(
       children: [
-        // 返回按钮
         SizedBox(
           height: 36,
           width: 36,
@@ -163,49 +214,35 @@ class _VideoCallPageState extends State<VideoCallPage> {
           ),
         ),
         const SizedBox(width: 8),
-        // 房间号
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
             color: Colors.black26,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Text(
-            '房间: ${widget.roomId}',
-            style: const TextStyle(color: Colors.white, fontSize: 12),
-          ),
+          child: Obx(() {
+            final count = _controller.remotePeerUids.length;
+            return Text(
+              '房间: ${widget.roomId}  ·  $count 人在线',
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+            );
+          }),
         ),
       ],
     );
   }
 
-  Widget _buildCallingOverlay(CallState state) {
-    String statusText;
-    IconData statusIcon;
+  // ==================== 连接中遮罩 ====================
 
-    switch (state) {
-      case CallState.calling:
-        statusText = '正在呼叫...';
-        statusIcon = Icons.call_made;
-        break;
-      case CallState.incoming:
-        statusText = '来电...';
-        statusIcon = Icons.call_received;
-        break;
-      case CallState.connecting:
-        statusText = '正在连接...';
-        statusIcon = Icons.sync;
-        break;
-      default:
-        return const SizedBox.shrink();
-    }
-
+  Widget _buildConnectingOverlay(CallState state) {
+    final statusText =
+        state == CallState.calling ? '正在呼叫...' : '等待其他人加入...';
     return Container(
       color: Colors.black54,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(statusIcon, color: Colors.white, size: 48),
+          const Icon(Icons.sync, color: Colors.white, size: 48),
           const SizedBox(height: 16),
           Text(
             statusText,
@@ -217,37 +254,15 @@ class _VideoCallPageState extends State<VideoCallPage> {
           ),
           const SizedBox(height: 8),
           const Text(
-            '对端用户加入后将自动接通',
+            '输入相同房间号的用户将自动连接',
             style: TextStyle(color: Colors.white60, fontSize: 14),
           ),
-          if (state == CallState.incoming) ...[
-            const SizedBox(height: 32),
-            // 接听按钮
-            FilledButton.icon(
-              onPressed: _controller.answerCall,
-              icon: const Icon(Icons.call, color: Colors.white),
-              label: const Text('接听'),
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.green,
-                minimumSize: const Size(140, 48),
-              ),
-            ),
-            const SizedBox(height: 12),
-            // 挂断按钮
-            OutlinedButton.icon(
-              onPressed: _handleBack,
-              icon: const Icon(Icons.call_end, color: Colors.red),
-              label: const Text('拒绝', style: TextStyle(color: Colors.red)),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.red),
-                minimumSize: const Size(140, 48),
-              ),
-            ),
-          ],
         ],
       ),
     );
   }
+
+  // ==================== 控制栏 ====================
 
   Widget _buildControls(CallState state) {
     if (state == CallState.ended || state == CallState.error) {
@@ -269,9 +284,7 @@ class _VideoCallPageState extends State<VideoCallPage> {
         children: [
           _buildControlButton(
             icon: Obx(() => Icon(
-                  _controller.isMicOn.value
-                      ? Icons.mic
-                      : Icons.mic_off,
+                  _controller.isMicOn.value ? Icons.mic : Icons.mic_off,
                   color: Colors.white,
                   size: 24,
                 )),
@@ -296,13 +309,16 @@ class _VideoCallPageState extends State<VideoCallPage> {
             onTap: _controller.toggleCamera,
           ),
           _buildControlButton(
-            icon: const Icon(Icons.flip_camera_android, color: Colors.white, size: 24),
-            label: const Text('翻转', style: TextStyle(color: Colors.white, fontSize: 10)),
+            icon: const Icon(Icons.flip_camera_android,
+                color: Colors.white, size: 24),
+            label: const Text('翻转',
+                style: TextStyle(color: Colors.white, fontSize: 10)),
             onTap: _controller.switchCamera,
           ),
           _buildControlButton(
             icon: const Icon(Icons.call_end, color: Colors.red, size: 28),
-            label: const Text('挂断', style: TextStyle(color: Colors.red, fontSize: 10)),
+            label: const Text('挂断',
+                style: TextStyle(color: Colors.red, fontSize: 10)),
             onTap: _handleBack,
           ),
         ],

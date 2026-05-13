@@ -24,6 +24,12 @@ class _CallEntryPageState extends State<CallEntryPage> {
   bool _connecting = false;
 
   @override
+  void initState() {
+    super.initState();
+    _roomController.text = '1';
+  }
+
+  @override
   void dispose() {
     _serverController.dispose();
     _roomController.dispose();
