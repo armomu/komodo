@@ -32,6 +32,9 @@ class WebrtcController extends GetxController {
   // ==================== 订阅 ====================
   final List<StreamSubscription> _subs = [];
 
+  /// 防止重复处理 peer-ready
+  bool _handshakeStarted = false;
+
   // ==================== 可观察状态 ====================
 
   /// 通话状态
@@ -101,26 +104,18 @@ class WebrtcController extends GetxController {
       await _getLocalMedia();
       // 4. 创建 PeerConnection
       await _createPeerConnection();
-      // 5. 创建并发送 Offer
-      await _createAndSendOffer();
+      // 5. 等待 peer-ready 事件触发 offer/answer 协商
       callState.value = CallState.connecting;
     } catch (e) {
       callState.value = CallState.error;
     }
   }
 
-  /// 接听来电
+  /// 接听来电（手动）
   Future<void> answerCall() async {
     if (_pc == null) return;
     callState.value = CallState.connecting;
-
-    try {
-      final session = await _pc!.createAnswer();
-      await _pc!.setLocalDescription(session);
-      _signaling.sendAnswer(_peerUid, jsonEncode(session.toMap()));
-    } catch (e) {
-      callState.value = CallState.error;
-    }
+    await _createAndSendAnswer();
   }
 
   /// 挂断
@@ -175,18 +170,24 @@ class WebrtcController extends GetxController {
   // ==================== 内部——信令事件监听 ====================
 
   void _setupListeners() {
+    // 注意：onConnected 的 uid 是服务端分配的会话 UUID，与自定义 UID 不同
+    // 所以这里不覆盖 _myUid（已在 startCall 中设置）
     _subs.add(_signaling.onConnected.listen((uid) {
-      _myUid = uid;
+      // _myUid 已在 startCall 中设为自定义 UID，不覆盖
     }));
 
     _subs.add(_signaling.onUserJoined.listen((uid) {
-      // 对端加入房间
+      if (_peerUid.isEmpty) _peerUid = uid;
     }));
 
     _subs.add(_signaling.onRoomUsers.listen((data) {
-      if (data.users.isNotEmpty) {
+      if (data.users.isNotEmpty && _peerUid.isEmpty) {
         _peerUid = data.users.first;
       }
+    }));
+
+    _subs.add(_signaling.onPeerReady.listen((data) {
+      _handlePeerReady(data.peers);
     }));
 
     _subs.add(_signaling.onOffer.listen((data) {
@@ -211,6 +212,28 @@ class WebrtcController extends GetxController {
   }
 
   // ==================== 内部——媒体 & PeerConnection ====================
+
+  /// 收到 peer-ready 事件后决定谁发 Offer 谁发 Answer。
+  /// 规则：按 UID 字典序排序，较小的作为 Offer 发起方。
+  void _handlePeerReady(List<String> peers) {
+    if (_handshakeStarted) return;
+    if (peers.length < 2) return;
+    _handshakeStarted = true;
+
+    // 找出对端的 UID
+    final others = peers.where((uid) => uid != _myUid).toList();
+    if (others.isEmpty) return;
+    _peerUid = others.first;
+
+    // 排序后第一个发 Offer
+    final sorted = List<String>.from(peers)..sort();
+    final iAmInitiator = sorted.first == _myUid;
+
+    if (iAmInitiator) {
+      _createAndSendOffer();
+    }
+    // 非发起方等待对端发来的 Offer（由 _handleOfferReceived 处理）
+  }
 
   Future<void> _getLocalMedia() async {
     final constraints = <String, dynamic>{
@@ -241,9 +264,11 @@ class WebrtcController extends GetxController {
 
     _pc = await createPeerConnection(config);
 
-    // 添加本地流
+    // 添加本地流（Unified Plan 下须用 addTrack 替代 addStream）
     if (_localStream != null) {
-      _pc!.addStream(_localStream!);
+      for (final track in _localStream!.getTracks()) {
+        await _pc!.addTrack(track, _localStream!);
+      }
     }
 
     // ICE Candidate 回调
@@ -286,10 +311,6 @@ class WebrtcController extends GetxController {
 
     final session = await _pc!.createOffer();
     await _pc!.setLocalDescription(session);
-    // 等有对端了才发送 offer（room-users 事件到达后再发）
-    // 此处直接发送，room-users 事件会稍后到达
-    // 更好的做法：用一个小延迟等待 room-users
-    await Future.delayed(const Duration(milliseconds: 500));
     _signaling.sendOffer(
       _peerUid,
       jsonEncode(session.toMap()),
@@ -300,19 +321,33 @@ class WebrtcController extends GetxController {
 
   Future<void> _handleOfferReceived(String fromUid, String sdp) async {
     _peerUid = fromUid;
-    callState.value = CallState.incoming;
 
-    // 获取本地媒体
-    await _getLocalMedia();
-    // 创建 PeerConnection
-    await _createPeerConnection();
+    if (_pc == null) {
+      // PC 尚未创建（未调用 startCall），这是通过信令直接收到来电
+      callState.value = CallState.incoming;
+      await _getLocalMedia();
+      await _createPeerConnection();
+    }
 
-    // 设置远端描述
     final session = RTCSessionDescription(
       sdp,
       'offer',
     );
     await _pc!.setRemoteDescription(session);
+
+    // peer-ready 流程（双方主动加入房间）：自动应答
+    // 非 peer-ready 流程（被叫手动接听）：由 user 按接听按钮触发
+    if (_handshakeStarted) {
+      await _createAndSendAnswer();
+    }
+  }
+
+  /// 创建并发送 Answer
+  Future<void> _createAndSendAnswer() async {
+    if (_pc == null) return;
+    final answer = await _pc!.createAnswer();
+    await _pc!.setLocalDescription(answer);
+    _signaling.sendAnswer(_peerUid, jsonEncode(answer.toMap()));
   }
 
   Future<void> _handleAnswerReceived(String sdp) async {
@@ -362,5 +397,6 @@ class WebrtcController extends GetxController {
     _pc = null;
 
     _peerUid = '';
+    _handshakeStarted = false;
   }
 }

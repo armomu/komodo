@@ -20,6 +20,7 @@ class SignalingClient extends GetxService {
   final _onAnswer = SdpController();
   final _onIceCandidate = IceCandidateController();
   final _onCallEnded = StringController();
+  final _onPeerReady = PeerReadyController();
   final _onError = StringController();
 
   // ============ 公开流 ============
@@ -49,6 +50,10 @@ class SignalingClient extends GetxService {
 
   /// 对端挂断
   Stream<String> get onCallEnded => _onCallEnded.stream;
+
+  /// 双方已就绪（房间恰好 2 人时触发）
+  Stream<({String roomId, List<String> peers})> get onPeerReady =>
+      _onPeerReady.stream;
 
   /// 错误消息
   Stream<String> get onError => _onError.stream;
@@ -170,6 +175,14 @@ class SignalingClient extends GetxService {
         case 'call-ended':
           _onCallEnded.add(data['from'] as String? ?? '');
           break;
+        case 'peer-ready':
+          final prRoomId = data['roomId'] as String? ?? '';
+          final peers = (data['peers'] as List<dynamic>?)
+                  ?.map((e) => (e as Map<String, dynamic>)['uid'] as String)
+                  .toList() ??
+              [];
+          _onPeerReady.add((roomId: prRoomId, peers: peers));
+          break;
         default:
           break;
       }
@@ -209,6 +222,13 @@ class RoomUsersController {
       StreamController<({String roomId, List<String> users})>.broadcast();
   Stream<({String roomId, List<String> users})> get stream => _controller.stream;
   void add(({String roomId, List<String> users}) value) => _controller.add(value);
+}
+
+class PeerReadyController {
+  final _controller =
+      StreamController<({String roomId, List<String> peers})>.broadcast();
+  Stream<({String roomId, List<String> peers})> get stream => _controller.stream;
+  void add(({String roomId, List<String> peers}) value) => _controller.add(value);
 }
 
 class SdpController {
