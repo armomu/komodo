@@ -8,6 +8,7 @@ import 'package:komodo/pages/design_system/design_system_page.dart';
 import 'package:komodo/pages/database_demo/database_demo_page.dart';
 import 'package:komodo/pages/cache_browser/cache_browser_page.dart';
 import 'package:komodo/pages/login/login_page.dart';
+import 'package:komodo/pages/webrtc/pages/call_entry_page.dart';
 import '../pages/home/home_page.dart';
 import '../pages/settings/settings_page.dart';
 import '../pages/lifecycle/lifecycle_detail_page.dart';
@@ -33,6 +34,7 @@ abstract class Routes {
   static const String imageViewer = '/image-viewer';
   static const String databaseDemo = '/database-demo';
   static const String cacheBrowser = '/cache-browser';
+  static const String webrtcCall = '/webrtc-call';
 }
 
 /// 路由配置
@@ -136,12 +138,17 @@ class AppPages {
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 250),
     ),
+    GetPage(
+      name: Routes.webrtcCall,
+      page: () => const CallEntryPage(),
+      transition: Transition.downToUp,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
   ];
 }
 
 /// Home 页面绑定
 class HomeBinding extends Bindings {
   @override
-  void dependencies() {
-  }
+  void dependencies() {}
 }

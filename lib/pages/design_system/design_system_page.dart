@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:komodo/components/switch_theme.dart';
 import 'package:komodo/pages/ble_demo/ble_demo_page.dart';
 import 'package:komodo/pages/lifecycle/lifecycle_demo_page.dart';
+import 'package:komodo/pages/webrtc/pages/call_entry_page.dart';
 import 'sections/colors_section.dart';
 import 'sections/typography_section.dart';
 import 'sections/spacing_radius_section.dart';
@@ -56,6 +57,13 @@ Widget buildDesignSystemSectionGrid(BuildContext context) {
       icon: Icons.bluetooth_connected,
       color: const Color.fromARGB(216, 153, 212, 43),
       page: const BleDemoPage(),
+    ),
+    _SectionItem(
+      title: '视频通话',
+      subtitle: 'WebRTC  P2P 通信',
+      icon: Icons.bluetooth_connected,
+      color: const Color.fromARGB(216, 153, 212, 43),
+      page: const CallEntryPage(),
     ),
     _SectionItem(
       title: '颜色系统',

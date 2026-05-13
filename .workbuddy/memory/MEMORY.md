@@ -119,3 +119,12 @@
   - `avatarBgColor` → `isDark ? Color(0xFF2C2C2C) : Colors.grey[200]`
 - **Flutter ColorScheme 会自动适配深浅主题**，无需手动定义
 - **文件位置**：lib/pages/message/chat_page.dart
+
+### WebRTC 视频通话模块 (2026-05-13)
+- **后端**：cuberverse 项目的 NestJS WebrtcModule（端口 3002）
+- **协议**：WebSocket JSON（event + data），支持 connected/join-room/leave-room/offer/answer/ice-candidate/end-call
+- **Flutter 端结构**：`lib/webrtc/` 模块，分 models/services/pages 三层
+- **架构**：`SignalingClient`（GetxService，全局单例）负责 WebSocket 通信；`WebrtcController`（GetxController，每次通话临时创建并销毁）管理 RTCPeerConnection、媒体流、信令协调
+- **UI**：`CallEntryPage` 输入房间号/服务器/昵称 → `VideoCallPage` 显示远端主画面 + 本地画中画 + 底部控制栏（麦克风/摄像头/翻转/挂断），支持来电接听弹窗
+- **STUN**：Google 公共 STUN 服务器
+- **依赖**：`flutter_webrtc: ^0.12.0`

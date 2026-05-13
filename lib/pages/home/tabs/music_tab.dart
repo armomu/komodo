@@ -195,19 +195,27 @@ class _MusicTabState extends State<MusicTab> {
   // ② 堆叠轮播卡片 — 基于 card_swiper 的自定义堆叠动画
   // ════════════════════════════════════════════════════════════════════════
 
-  Widget _buildCarouselCards(BuildContext context) {
+  _buildCarouselCards(BuildContext context) {
     final double itemWidth = MediaQuery.of(context).size.width;
     final double itemHeight = itemWidth * 0.60;
-    return Swiper(
-      itemBuilder: (BuildContext context, int index) {
-        return MainCardContent(data: _carouselCards[index]);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // 确保宽度合法后再渲染 Swiper
+        if (constraints.maxWidth <= 0) {
+          return const SizedBox(); // 或 loading占位
+        }
+        return Swiper(
+          itemBuilder: (BuildContext context, int index) {
+            return MainCardContent(data: _carouselCards[index]);
+          },
+          axisDirection: AxisDirection.right,
+          itemWidth: itemWidth - 32,
+          itemHeight: itemHeight,
+          layout: SwiperLayout.STACK,
+          controller: _swiperController,
+          itemCount: _carouselCards.length,
+        );
       },
-      axisDirection: AxisDirection.right,
-      itemWidth: itemWidth - 32,
-      itemHeight: itemHeight,
-      layout: SwiperLayout.STACK,
-      controller: _swiperController,
-      itemCount: _carouselCards.length,
     );
   }
 

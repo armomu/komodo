@@ -10,6 +10,7 @@ import 'database/chat_database.dart';
 import 'routes/app_routes.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_controller.dart';
+import 'pages/webrtc/services/signaling_client.dart';
 
 void main() async {
   // 保持启动页直到初始化完成
@@ -41,6 +42,8 @@ void main() async {
   Get.put(MusicPlayerController(), permanent: true);
   // 聊天数据库（GetxService，全局单例 — 延迟初始化，首帧后再建表/种子数据）
   Get.put(ChatDatabase());
+  // WebRTC 信令客户端（GetxService，全局单例）
+  Get.put(SignalingClient());
 
   // 初始化完成，移除启动页
   FlutterNativeSplash.remove();
