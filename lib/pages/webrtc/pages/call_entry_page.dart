@@ -60,7 +60,7 @@ class _CallEntryPageState extends State<CallEntryPage> {
       );
 
       // 回来时清理
-      Get.delete<WebrtcController>();
+      Get.delete<WebrtcController>(force: true);
     } catch (e) {
       Get.snackbar('错误', '连接失败: $e');
     } finally {

@@ -35,6 +35,9 @@ class WebrtcController extends GetxController {
   /// 防止重复处理 peer-ready
   bool _handshakeStarted = false;
 
+  /// peer-ready 比 PC 先到达时待发送的 offer
+  bool _pendingOffer = false;
+
   // ==================== 可观察状态 ====================
 
   /// 通话状态
@@ -230,7 +233,12 @@ class WebrtcController extends GetxController {
     final iAmInitiator = sorted.first == _myUid;
 
     if (iAmInitiator) {
-      _createAndSendOffer();
+      if (_pc != null) {
+        _createAndSendOffer();
+      } else {
+        // PC 尚未就绪，标记待发送
+        _pendingOffer = true;
+      }
     }
     // 非发起方等待对端发来的 Offer（由 _handleOfferReceived 处理）
   }
@@ -304,6 +312,12 @@ class WebrtcController extends GetxController {
           break;
       }
     };
+
+    // 如果 peer-ready 已到达但 PC 当时未就绪，现在补发 offer
+    if (_pendingOffer) {
+      _pendingOffer = false;
+      _createAndSendOffer();
+    }
   }
 
   Future<void> _createAndSendOffer() async {
@@ -311,9 +325,10 @@ class WebrtcController extends GetxController {
 
     final session = await _pc!.createOffer();
     await _pc!.setLocalDescription(session);
+    if (session.sdp == null) return;
     _signaling.sendOffer(
       _peerUid,
-      jsonEncode(session.toMap()),
+      session.sdp!,
     );
   }
 
@@ -347,7 +362,8 @@ class WebrtcController extends GetxController {
     if (_pc == null) return;
     final answer = await _pc!.createAnswer();
     await _pc!.setLocalDescription(answer);
-    _signaling.sendAnswer(_peerUid, jsonEncode(answer.toMap()));
+    if (answer.sdp == null) return;
+    _signaling.sendAnswer(_peerUid, answer.sdp!);
   }
 
   Future<void> _handleAnswerReceived(String sdp) async {
@@ -375,7 +391,12 @@ class WebrtcController extends GetxController {
 
   // ==================== 清理 ====================
 
+  bool _disposed = false;
+
   void _cleanup() {
+    if (_disposed) return;
+    _disposed = true;
+
     for (final sub in _subs) {
       sub.cancel();
     }
@@ -391,12 +412,15 @@ class WebrtcController extends GetxController {
     _remoteStream = null;
 
     localRenderer.srcObject = null;
+    localRenderer.dispose();
     remoteRenderer.srcObject = null;
+    remoteRenderer.dispose();
 
     _pc?.close();
     _pc = null;
 
     _peerUid = '';
     _handshakeStarted = false;
+    _pendingOffer = false;
   }
 }

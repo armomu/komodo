@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// WebSocket 信令客户端——连接 NestJS WebRTC 信令服务器。
@@ -11,6 +12,9 @@ import 'package:get/get.dart';
 class SignalingClient extends GetxService {
   WebSocket? _ws;
   bool _connected = false;
+
+  /// 当前房间号，发送转发消息时需要带上服务端才能正确路由
+  String _currentRoomId = '';
 
   final _onConnected = StringController();
   final _onUserJoined = StringController();
@@ -92,11 +96,13 @@ class SignalingClient extends GetxService {
     _ws?.close();
     _ws = null;
     _connected = false;
+    _currentRoomId = '';
   }
 
   // ============ 发送消息 ============
 
   void joinRoom(String roomId, String uid) {
+    _currentRoomId = roomId;
     _send('join-room', {'roomId': roomId, 'uid': uid});
   }
 
@@ -105,20 +111,23 @@ class SignalingClient extends GetxService {
   }
 
   void sendOffer(String to, String sdp) {
-    // roomId 由业务层携带
-    _send('offer', {'to': to, 'sdp': sdp});
+    _send('offer', {'roomId': _currentRoomId, 'to': to, 'sdp': sdp});
   }
 
   void sendAnswer(String to, String sdp) {
-    _send('answer', {'to': to, 'sdp': sdp});
+    _send('answer', {'roomId': _currentRoomId, 'to': to, 'sdp': sdp});
   }
 
   void sendIceCandidate(String to, String candidate) {
-    _send('ice-candidate', {'to': to, 'candidate': candidate});
+    _send('ice-candidate', {
+      'roomId': _currentRoomId,
+      'to': to,
+      'candidate': candidate,
+    });
   }
 
   void sendEndCall(String to) {
-    _send('end-call', {'to': to});
+    _send('end-call', {'roomId': _currentRoomId, 'to': to});
   }
 
   // ============ 内部 ============
@@ -134,7 +143,8 @@ class SignalingClient extends GetxService {
       final map = jsonDecode(raw) as Map<String, dynamic>;
       final event = map['event'] as String? ?? '';
       final data = (map['data'] as Map<String, dynamic>?) ?? {};
-
+      debugPrint('收到消息: $event, $data');
+      debugPrint('===============================================');
       switch (event) {
         case 'connected':
           final uid = data['uid'] as String? ?? '';
@@ -148,7 +158,8 @@ class SignalingClient extends GetxService {
           break;
         case 'room-users':
           final roomId = data['roomId'] as String? ?? '';
-          final users = (data['users'] as List<dynamic>?)
+          final users =
+              (data['users'] as List<dynamic>?)
                   ?.map((e) => (e as Map<String, dynamic>)['uid'] as String)
                   .toList() ??
               [];
@@ -177,7 +188,8 @@ class SignalingClient extends GetxService {
           break;
         case 'peer-ready':
           final prRoomId = data['roomId'] as String? ?? '';
-          final peers = (data['peers'] as List<dynamic>?)
+          final peers =
+              (data['peers'] as List<dynamic>?)
                   ?.map((e) => (e as Map<String, dynamic>)['uid'] as String)
                   .toList() ??
               [];
@@ -188,6 +200,7 @@ class SignalingClient extends GetxService {
       }
     } catch (e) {
       // 忽略解析错误
+      debugPrint('解析错误: $e=========================');
     }
   }
 
@@ -220,20 +233,23 @@ class StringController {
 class RoomUsersController {
   final _controller =
       StreamController<({String roomId, List<String> users})>.broadcast();
-  Stream<({String roomId, List<String> users})> get stream => _controller.stream;
-  void add(({String roomId, List<String> users}) value) => _controller.add(value);
+  Stream<({String roomId, List<String> users})> get stream =>
+      _controller.stream;
+  void add(({String roomId, List<String> users}) value) =>
+      _controller.add(value);
 }
 
 class PeerReadyController {
   final _controller =
       StreamController<({String roomId, List<String> peers})>.broadcast();
-  Stream<({String roomId, List<String> peers})> get stream => _controller.stream;
-  void add(({String roomId, List<String> peers}) value) => _controller.add(value);
+  Stream<({String roomId, List<String> peers})> get stream =>
+      _controller.stream;
+  void add(({String roomId, List<String> peers}) value) =>
+      _controller.add(value);
 }
 
 class SdpController {
-  final _controller =
-      StreamController<({String from, String sdp})>.broadcast();
+  final _controller = StreamController<({String from, String sdp})>.broadcast();
   Stream<({String from, String sdp})> get stream => _controller.stream;
   void add(({String from, String sdp}) value) => _controller.add(value);
 }
