@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-/// 图标扩展栏（图片/拍照/礼物/位置/红包）
+/// 图标扩展栏（图片/拍照/视频通话/礼物/位置/红包）
 class ExpandedIconBar extends StatelessWidget {
   final ColorScheme colorScheme;
   final double height;
   final VoidCallback? onImageTap;
   final VoidCallback? onCameraTap;
-  final VoidCallback? onGiftTap;
+  final VoidCallback? onVideoCallTap;
   final VoidCallback? onLocationTap;
   final VoidCallback? onRedPacketTap;
 
@@ -16,7 +16,7 @@ class ExpandedIconBar extends StatelessWidget {
     this.height = 260.0,
     this.onImageTap,
     this.onCameraTap,
-    this.onGiftTap,
+    this.onVideoCallTap,
     this.onLocationTap,
     this.onRedPacketTap,
   });
@@ -27,10 +27,7 @@ class ExpandedIconBar extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainer,
-        border: Border(
-          top: BorderSide(
-              color: colorScheme.outline.withValues(alpha: 0.2), width: 0.5),
-        ),
+        border: Border(top: BorderSide(color: colorScheme.outline, width: 0.5)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.max,
@@ -38,16 +35,13 @@ class ExpandedIconBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Container(
-            decoration: BoxDecoration(
-                border:
-                    Border(top: BorderSide(color: colorScheme.outline, width: 1))),
             padding: const EdgeInsets.all(16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildItem(Icons.image_outlined, '图片', onImageTap),
                 _buildItem(Icons.camera_alt_outlined, '拍照', onCameraTap),
-                _buildItem(Icons.card_giftcard, '礼物', onGiftTap),
+                _buildItem(Icons.videocam_rounded, '视频', onVideoCallTap),
                 _buildItem(Icons.location_on_outlined, '位置', onLocationTap),
                 _buildItem(Icons.kebab_dining, '红包', onRedPacketTap),
               ],
@@ -71,9 +65,10 @@ class ExpandedIconBar extends StatelessWidget {
             child: Icon(icon, size: 24, color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 4),
-          Text(label,
-              style: TextStyle(
-                  fontSize: 11, color: colorScheme.onSurfaceVariant)),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+          ),
         ],
       ),
     );

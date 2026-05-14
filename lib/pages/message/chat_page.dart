@@ -225,6 +225,22 @@ class _ChatContentState extends State<_ChatContent>
 
   // ─── 录音 ────────────────────────────────────────────────────────────
 
+  Future<void> _startVideoCall() async {
+    setState(() => _showIconBar = false);
+    const serverUrl = 'ws://192.168.1.38:3002';
+    const roomId = 'chat_room_001';
+    final myUid = 'User_${DateTime.now().millisecondsSinceEpoch % 10000}';
+    await Get.toNamed(
+      Routes.chatVideoCall,
+      arguments: {
+        'serverUrl': serverUrl,
+        'roomId': roomId,
+        'myUid': myUid,
+        'peerName': widget.peerName,
+      },
+    );
+  }
+
   void _toggleVoiceMode() {
     HapticFeedback.lightImpact();
     setState(() {
@@ -651,6 +667,7 @@ class _ChatContentState extends State<_ChatContent>
                               _pickAndSendImage();
                               setState(() => _showIconBar = false);
                             },
+                            onVideoCallTap: _startVideoCall,
                           )
                         : const SizedBox(key: ValueKey('empty'))),
             ),
