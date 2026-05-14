@@ -134,57 +134,26 @@ class GiftBottomSheet extends StatelessWidget {
         right: 16,
         bottom: MediaQuery.of(context).padding.bottom + 16,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 拖动条
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[600],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // 标题
-          const Text(
-            '送礼物',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // 礼物网格（2x2）
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4, // 4列
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 0.85, // 宽高比：礼物卡片更扁一些
-            ),
-            itemCount: kGiftList.length,
-            itemBuilder: (context, index) {
-              final gift = kGiftList[index];
-              return _GiftButton(
-                gift: gift,
-                onTap: () {
-                  onGiftSelected(gift);
-                  Get.back(); // 关闭 bottomSheet
-                },
-              );
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 4, // 4列
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 0.85, // 宽高比：礼物卡片更扁一些
+        ),
+        itemCount: kGiftList.length,
+        itemBuilder: (context, index) {
+          final gift = kGiftList[index];
+          return _GiftButton(
+            gift: gift,
+            onTap: () {
+              onGiftSelected(gift);
+              Get.back(); // 关闭 bottomSheet
             },
-          ),
-        ],
+          );
+        },
       ),
     );
   }
