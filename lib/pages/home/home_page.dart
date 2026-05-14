@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:komodo/controllers/user_controller.dart';
 import 'package:komodo/pages/ble_demo/ble_demo_controller.dart';
 import 'package:komodo/pages/home/tabs/video_feed_view.dart';
+import 'package:komodo/pages/message/models/chat_models.dart';
 import 'package:komodo/pages/music/mini_player_bar.dart';
 import 'package:komodo/routes/app_routes.dart';
 import 'package:komodo/services/consumer_ws_client.dart';
+import 'package:komodo/database/chat_database.dart';
 import 'tabs/music_tab.dart';
 import 'tabs/short_video_tab.dart';
 import 'tabs/message_tab.dart';
@@ -38,12 +41,71 @@ class _HomePageState extends State<HomePage> {
   final userCtrl = Get.find<UserController>();
   final wsCtrl = Get.find<ConsumerWsClient>();
 
+  /// 全局聊天消息监听订阅
+  StreamSubscription? _chatMsgSub;
+
+  /// 消息发送者的 userId -> 缓存最近的会话 ID
+  final Map<int, int> _cachedConvIds = {};
+
   @override
   void initState() {
     super.initState();
     if (userCtrl.isLoggedIn && !wsCtrl.isConnected.value) {
       wsCtrl.connect(userCtrl.accessToken);
     }
+    // 全局消息监听：无论是否打开聊天页面，都将消息写入本地数据库
+    debugPrint('[HomePage] 注册 onChatMessage 监听');
+    _chatMsgSub = wsCtrl.onChatMessage.listen(_handleIncomingMessage);
+  }
+
+  @override
+  void dispose() {
+    _chatMsgSub?.cancel();
+    super.dispose();
+  }
+
+  /// 处理收到的聊天消息：写入数据库
+  void _handleIncomingMessage(ChatMessageData data) {
+    debugPrint('[HomePage] _handleIncomingMessage 被调用 from=${data.from} msg=${data.message}');
+    final db = ChatDatabase.to;
+
+    // 查到对方的 online user 信息（用于获取昵称和头像）
+    final sender = wsCtrl.onlineUsers.firstWhereOrNull((u) => u.userId == data.from);
+    final peerName = sender?.nickname ?? data.nickname;
+    final peerAvatar = sender?.avatar ?? data.avatar;
+
+    debugPrint('[HomePage] 准备写入数据库 peerName=$peerName');
+
+    // 获取或创建会话
+    db.getOrCreateConversation(peerName, peerAvatar).then((result) {
+      final convId = result.$1;
+      _cachedConvIds[data.from] = convId;
+      debugPrint('[HomePage] 会话已获取 convId=$convId');
+
+      // 创建消息对象
+      final msg = ChatMessage(
+        type: ChatMsgType.text,
+        isMe: false,
+        content: data.message,
+      );
+
+      // 写入数据库
+      db.insertMessage(convId, msg).then((_) {
+        debugPrint('[HomePage] 消息已写入数据库 convId=$convId');
+      }).catchError((e, stack) {
+        debugPrint('[HomePage] 写入失败: $e\n$stack');
+      });
+
+      // 更新会话最新消息
+      final now = DateTime.now();
+      final timeStr = '${now.hour}:${now.minute.toString().padLeft(2, '0')}';
+      db.updateConversationLastMessage(convId, data.message, timeStr)
+          .catchError((e, stack) {
+        debugPrint('[HomePage] 更新会话失败: $e\n$stack');
+      });
+    }).catchError((e, stack) {
+      debugPrint('[HomePage] 获取/创建会话失败: $e\n$stack');
+    });
   }
 
   /// navIndex → 页面索引（+号占位不对应页面，跳过）

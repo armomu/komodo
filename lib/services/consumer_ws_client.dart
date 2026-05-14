@@ -320,6 +320,7 @@ class ConsumerWsClient extends GetxService {
 
         // ---- 聊天 ----
         case 'chat-message':
+          debugPrint('[WS] 向 onChatMessage 流推送消息 from=${data['from']}');
           _onChatMessage.add(ChatMessageData(
             from: data['from'] as int,
             nickname: data['nickname'] as String? ?? '',

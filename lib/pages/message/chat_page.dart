@@ -93,6 +93,13 @@ class _ChatContentState extends State<_ChatContent>
 
   final voiceCtrl = Get.put(ChatVoiceController());
 
+  /// 处理收到的消息：仅更新界面（数据库写入由全局监听器负责）
+  void _onReceiveMessage(ChatMessage msg, String rawMessage) {
+    // 添加到界面
+    setState(() => _messages.add(msg));
+    _scrollToBottom();
+  }
+
   // WebSocket 相关
   StreamSubscription? _chatMsgSub;
   StreamSubscription? _chatErrorSub;
@@ -130,25 +137,20 @@ class _ChatContentState extends State<_ChatContent>
 
     // 接收聊天消息
     _chatMsgSub = ws.onChatMessage.listen((data) {
-      if (data.from == widget.peerUserId && mounted) {
-        final msg = ChatMessage(
-          type: ChatMsgType.text,
-          isMe: false,
-          content: data.message,
-        );
-        // 立即写入本地数据库
-        _saveMessageToDb(msg);
-        // 更新会话最新消息
-        if (_conversationId != null) {
-          final now = DateTime.now();
-          final timeStr = '${now.hour}:${now.minute.toString().padLeft(2, '0')}';
-          ChatDatabase.to.updateConversationLastMessage(
-            _conversationId!, data.message, timeStr);
-        }
-        // 添加到界面
-        setState(() => _messages.add(msg));
-        _scrollToBottom();
+      debugPrint('[ChatPage] 收到消息 from=${data.from} peerUserId=${widget.peerUserId}');
+      if (data.from != widget.peerUserId) {
+        debugPrint('[ChatPage] 忽略: 不是当前聊天对象的消息');
+        return;
       }
+      if (!mounted) return;
+
+      final msg = ChatMessage(
+        type: ChatMsgType.text,
+        isMe: false,
+        content: data.message,
+      );
+
+      _onReceiveMessage(msg, data.message);
     });
 
     // 聊天错误
@@ -335,7 +337,11 @@ class _ChatContentState extends State<_ChatContent>
       content: trimmed,
     );
     setState(() => _messages.add(msg));
-    _saveMessageToDb(msg);
+    _saveMessageToDb(msg).then((_) {
+      debugPrint('[ChatPage] 发出的消息已写入数据库');
+    }).catchError((e, stack) {
+      debugPrint('[ChatPage] 发出消息写入失败: $e\n$stack');
+    });
     _textController.clear();
     _scrollToBottom();
   }
@@ -355,7 +361,11 @@ class _ChatContentState extends State<_ChatContent>
       isLocalImage: true,
     );
     setState(() => _messages.add(msg));
-    _saveMessageToDb(msg);
+    _saveMessageToDb(msg).then((_) {
+      debugPrint('[ChatPage] 发出的消息已保存到数据库');
+    }).catchError((e) {
+      debugPrint('[ChatPage] 保存发出的消息失败: $e');
+    });
     _scrollToBottom();
   }
 
