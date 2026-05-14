@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:komodo/components/app_bottom_sheet.dart';
 import 'package:komodo/components/switch_theme.dart';
 import 'package:komodo/controllers/user_controller.dart';
 import 'package:komodo/pages/design_system/design_system_page.dart';
@@ -14,10 +15,9 @@ class ProfileTab extends StatefulWidget {
 
 class _ProfileTabState extends State<ProfileTab> {
   int _selectedTabIndex = 0;
-  final List<String> _tabs = ['我喜欢', '本地/云盘', '收藏', '已购买', '歌单'];
+  final List<String> _tabs = ['DEMO', 'M3-UI组件', '收藏', '歌单'];
 
   // Mock data
-  final String _location = '深圳, Guangdong';
   final int _followers = 13;
   final int _following = 7;
   final int _activities = 109;
@@ -27,7 +27,16 @@ class _ProfileTabState extends State<ProfileTab> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
     final userController = Get.find<UserController>();
-
+    final list = [
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Card(child: buildDemoGrid(context)),
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Card(child: buildDesignSystemSectionGrid(context)),
+      ),
+    ];
     return Scaffold(
       appBar: AppBar(
         actions: [
@@ -172,7 +181,7 @@ class _ProfileTabState extends State<ProfileTab> {
             child: Row(
               children: [
                 Text(
-                  '互相关注 $_following',
+                  'Tag $_following',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -185,7 +194,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   color: colorScheme.onSurfaceVariant,
                 ),
                 Text(
-                  '关注 $_followers',
+                  'Tag  $_followers',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -198,34 +207,34 @@ class _ProfileTabState extends State<ProfileTab> {
                   color: colorScheme.onSurfaceVariant,
                 ),
                 Text(
-                  '粉丝 $_following',
+                  'Tag $_following',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 Expanded(child: Container()),
-                SizedBox(
-                  child: ElevatedButton(
-                    onPressed: () => Get.toNamed(Routes.livePushDemo),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.onSurface,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(22),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      '开直播',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colorScheme.surface,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
+                // SizedBox(
+                //   child: ElevatedButton(
+                //     onPressed: () => Get.toNamed(Routes.livePushDemo),
+                //     style: ElevatedButton.styleFrom(
+                //       backgroundColor: colorScheme.onSurface,
+                //       foregroundColor: Colors.white,
+                //       shape: RoundedRectangleBorder(
+                //         borderRadius: BorderRadius.circular(22),
+                //       ),
+                //       elevation: 0,
+                //     ),
+                //     child: Text(
+                //       'Live Push',
+                //       style: TextStyle(
+                //         fontSize: 12,
+                //         color: colorScheme.surface,
+                //         fontWeight: FontWeight.w600,
+                //       ),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),
@@ -262,10 +271,7 @@ class _ProfileTabState extends State<ProfileTab> {
           _buildTabNavigation(context, isDark),
 
           const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Card(child: buildDesignSystemSectionGrid(context)),
-          ),
+          if (_selectedTabIndex < 2) list[_selectedTabIndex],
           const SizedBox(height: 16),
         ],
       ),
@@ -377,32 +383,35 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 
   void _showAllTabs(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.only(bottom: 20),
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ..._tabs.map(
-              (tab) => ListTile(
-                title: Text(tab),
-                trailing: _tabs.indexOf(tab) == _selectedTabIndex
-                    ? const Icon(Icons.check, color: Color(0xFF2D5016))
-                    : null,
-                onTap: () {
-                  setState(() => _selectedTabIndex = _tabs.indexOf(tab));
-                  Navigator.pop(context);
-                },
-              ),
+    AppBottomSheet.show(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ..._tabs.map(
+            (tab) => ListTile(
+              title: Text(tab),
+              trailing: _tabs.indexOf(tab) == _selectedTabIndex
+                  ? const Icon(Icons.check, color: Color(0xFF2D5016))
+                  : null,
+              onTap: () {
+                setState(() => _selectedTabIndex = _tabs.indexOf(tab));
+                Navigator.pop(context);
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+    // showModalBottomSheet(
+    //   context: context,
+    //   builder: (context) => Container(
+    //     padding: const EdgeInsets.only(bottom: 20),
+    //     decoration: BoxDecoration(
+    //       color: Theme.of(context).scaffoldBackgroundColor,
+    //       borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+    //     ),
+    //     child:
+    //   ),
+    // );
   }
 }

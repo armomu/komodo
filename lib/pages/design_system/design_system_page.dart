@@ -45,27 +45,6 @@ class DesignSystemPage extends StatelessWidget {
 Widget buildDesignSystemSectionGrid(BuildContext context) {
   final sections = [
     _SectionItem(
-      title: '路由演示',
-      subtitle: '路由、生命周期演示',
-      icon: Icons.route_rounded,
-      color: const Color.fromARGB(79, 0, 174, 255),
-      page: const LifecycleDemoPage(),
-    ),
-    _SectionItem(
-      title: '蓝牙通信',
-      subtitle: '蓝牙连接设备',
-      icon: Icons.bluetooth_connected,
-      color: const Color.fromARGB(216, 153, 212, 43),
-      page: const BleDemoPage(),
-    ),
-    _SectionItem(
-      title: '视频通话',
-      subtitle: 'WebRTC  P2P 通信',
-      icon: Icons.bluetooth_connected,
-      color: const Color.fromARGB(216, 153, 212, 43),
-      page: const CallEntryPage(),
-    ),
-    _SectionItem(
       title: '颜色系统',
       subtitle: '基础色板、灰色阶梯、语义色、ColorScheme',
       icon: Icons.color_lens_outlined,
@@ -148,6 +127,39 @@ Widget buildDesignSystemSectionGrid(BuildContext context) {
       icon: Icons.widgets_outlined,
       color: const Color(0xFF785900),
       page: const OtherSection(),
+    ),
+  ];
+
+  return Card(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [...sections.map((section) => _SectionCard(item: section))],
+    ),
+  );
+}
+
+Widget buildDemoGrid(BuildContext context) {
+  final sections = [
+    _SectionItem(
+      title: '路由演示',
+      subtitle: '路由、生命周期演示',
+      icon: Icons.route_rounded,
+      color: const Color.fromARGB(79, 0, 174, 255),
+      page: const LifecycleDemoPage(),
+    ),
+    _SectionItem(
+      title: '蓝牙通信',
+      subtitle: '蓝牙连接设备',
+      icon: Icons.bluetooth_connected,
+      color: const Color.fromARGB(216, 153, 212, 43),
+      page: const BleDemoPage(),
+    ),
+    _SectionItem(
+      title: '视频通话',
+      subtitle: 'WebRTC  P2P 通信',
+      icon: Icons.videocam_outlined,
+      color: const Color.fromARGB(215, 103, 67, 221),
+      page: const CallEntryPage(),
     ),
   ];
 

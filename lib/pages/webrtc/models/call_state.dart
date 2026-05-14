@@ -3,9 +3,6 @@ enum CallState {
   /// 空闲
   idle,
 
-  /// 等待对方接受视频邀请
-  waiting,
-
   /// 呼叫中（正在给对端发 offer）
   calling,
 
@@ -23,4 +20,5 @@ enum CallState {
 
   /// 错误
   error,
+  waiting,
 }

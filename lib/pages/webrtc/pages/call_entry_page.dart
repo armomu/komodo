@@ -16,18 +16,12 @@ class _CallEntryPageState extends State<CallEntryPage> {
   final _serverController = TextEditingController(
     text: 'ws://192.168.1.38:3002',
   );
-  final _roomController = TextEditingController();
+  final _roomController = TextEditingController(text: 'room-001');
   final _nameController = TextEditingController(
     text: 'User_${DateTime.now().millisecondsSinceEpoch % 10000}',
   );
 
   bool _connecting = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _roomController.text = '1';
-  }
 
   @override
   void dispose() {
