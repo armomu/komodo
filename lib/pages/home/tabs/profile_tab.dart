@@ -17,7 +17,6 @@ class _ProfileTabState extends State<ProfileTab> {
   final List<String> _tabs = ['我喜欢', '本地/云盘', '收藏', '已购买', '歌单'];
 
   // Mock data
-  final String _userName = 'Oliver Nicolai';
   final String _location = '深圳, Guangdong';
   final int _followers = 13;
   final int _following = 7;
@@ -27,7 +26,7 @@ class _ProfileTabState extends State<ProfileTab> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
-    // const primaryColor = Color(0xFF2D5016);
+    final userController = Get.find<UserController>();
 
     return Scaffold(
       appBar: AppBar(
@@ -43,104 +42,136 @@ class _ProfileTabState extends State<ProfileTab> {
       ),
       body: ListView(
         children: [
-          // Avatar with plus badge — 点击跳转到登录页
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  if (!Get.find<UserController>().isLoggedIn) {
-                    Get.toNamed(Routes.login);
-                  }
-                },
-                child: Container(
-                  margin: const EdgeInsets.only(left: 16),
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 4),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withAlpha(20),
-                              blurRadius: 5,
-                              offset: const Offset(0, 0),
-                            ),
-                          ],
-                          image: const DecorationImage(
-                            image: NetworkImage(
-                              'https://picsum.photos/seed/mv2/100/100',
-                            ),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      // Plus badge
-                      Positioned(
-                        bottom: 0,
-                        right: -4,
-                        child: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: colorScheme.onSurface,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 3),
-                          ),
-                          child: Icon(
-                            Icons.add,
-                            size: 18,
-                            color: colorScheme.surface,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
+          // Avatar with user info — 根据登录态动态展示
+          Obx(
+            () => GestureDetector(
+              onTap: () {
+                if (userController.isLoggedIn) {
+                  Get.toNamed(Routes.profileEdit);
+                } else {
+                  Get.toNamed(Routes.login);
+                }
+              },
+              child: Row(
                 children: [
                   Container(
                     margin: const EdgeInsets.only(left: 16),
-                    child: Text(
-                      _userName,
-                      style: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 4),
-                  // Location
-                  Container(
-                    margin: const EdgeInsets.only(left: 16),
-                    child: Row(
+                    child: Stack(
+                      clipBehavior: Clip.none,
                       children: [
-                        Icon(
-                          Icons.location_on,
-                          size: 16,
-                          color: colorScheme.onSurfaceVariant,
+                        // 头像
+                        Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 4),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withAlpha(20),
+                                blurRadius: 5,
+                                offset: const Offset(0, 0),
+                              ),
+                            ],
+                            color: userController.isLoggedIn
+                                ? null
+                                : colorScheme.surfaceContainerHighest,
+                            image:
+                                userController.isLoggedIn &&
+                                    userController.avatar.isNotEmpty
+                                ? DecorationImage(
+                                    image: NetworkImage(userController.avatar),
+                                    fit: BoxFit.cover,
+                                  )
+                                : null,
+                          ),
+                          child: !userController.isLoggedIn
+                              ? Icon(
+                                  Icons.person,
+                                  size: 50,
+                                  color: colorScheme.onSurfaceVariant,
+                                )
+                              : (userController.avatar.isEmpty
+                                    ? Icon(
+                                        Icons.person,
+                                        size: 50,
+                                        color: colorScheme.onSurfaceVariant,
+                                      )
+                                    : null),
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _location,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: colorScheme.onSurfaceVariant,
+                        // Plus badge
+                        Positioned(
+                          bottom: 0,
+                          right: -4,
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: colorScheme.onSurface,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 3),
+                            ),
+                            child: Icon(
+                              userController.isLoggedIn
+                                  ? Icons.edit
+                                  : Icons.add,
+                              size: 16,
+                              color: colorScheme.surface,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
+
+                  // 用户名 / 登录提示
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(left: 16),
+                        child: Text(
+                          userController.isLoggedIn
+                              ? userController.nickname.isNotEmpty
+                                    ? userController.nickname
+                                    : '用户'
+                              : '登录',
+                          style: const TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      // Location
+                      Container(
+                        margin: const EdgeInsets.only(left: 16),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.android,
+                              size: 16,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              userController.isLoggedIn
+                                  ? 'ID：${userController.userId}'
+                                  : '~',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
-            ],
+            ),
           ),
 
           const SizedBox(height: 16),
@@ -209,8 +240,6 @@ class _ProfileTabState extends State<ProfileTab> {
             ),
           ),
 
-          // const SizedBox(height: 16),
-
           // Stats cards row
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -270,7 +299,6 @@ class _ProfileTabState extends State<ProfileTab> {
             const SizedBox(height: 8),
             Row(
               children: [
-                // Icon(icon, size: 24, color: colorScheme.onSurfaceVariant),
                 Expanded(
                   child: Text(
                     title,
@@ -280,11 +308,6 @@ class _ProfileTabState extends State<ProfileTab> {
                     ),
                   ),
                 ),
-                // Icon(
-                //   Icons.arrow_forward,
-                //   size: 20,
-                //   color: colorScheme.onSurfaceVariant,
-                // ),
               ],
             ),
             Text(
@@ -306,7 +329,6 @@ class _ProfileTabState extends State<ProfileTab> {
     final primaryColor = colorScheme.onSurface;
     return Container(
       height: 44,
-      // color: primaryColor,
       margin: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [

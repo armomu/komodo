@@ -98,6 +98,30 @@ class ApiService extends GetxService {
     }
   }
 
+  /// 统一 PATCH 请求
+  Future<ApiResponse<T>> patch<T>(
+    String path, {
+    Map<String, dynamic>? body,
+    T Function(dynamic json)? fromJsonT,
+  }) async {
+    try {
+      final response = await _connect.patch(
+        path,
+        body != null ? jsonEncode(body) : null,
+        contentType: 'application/json',
+        decoder: (data) => data,
+      );
+
+      return _parseResponse<T>(response, fromJsonT);
+    } on TimeoutException {
+      return const ApiResponse(code: -1, message: '请求超时，请检查网络连接');
+    } on SocketException {
+      return const ApiResponse(code: -1, message: '网络连接失败，请检查网络');
+    } catch (e) {
+      return ApiResponse(code: -1, message: '请求异常：${e.toString()}');
+    }
+  }
+
   /// 统一 GET 请求
   Future<ApiResponse<T>> get<T>(
     String path, {

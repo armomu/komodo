@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:komodo/controllers/user_controller.dart';
 import '../../theme/theme_controller.dart';
 import '../../routes/app_routes.dart';
 
@@ -129,6 +130,37 @@ class SettingsPage extends StatelessWidget {
               );
             },
           ),
+
+          const SizedBox(height: 32),
+
+          // 注销登录
+          Obx(
+            () {
+              final userController = Get.find<UserController>();
+              if (!userController.isLoggedIn) return const SizedBox.shrink();
+
+              return Column(
+                children: [
+                  const Divider(),
+                  ListTile(
+                    leading: Icon(
+                      Icons.logout,
+                      color: Colors.red.shade400,
+                    ),
+                    title: Text(
+                      '注销登录',
+                      style: TextStyle(
+                        color: Colors.red.shade400,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    onTap: () => _showLogoutConfirm(context),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              );
+            },
+          ),
         ],
       ),
     );
@@ -144,6 +176,37 @@ class SettingsPage extends StatelessWidget {
           fontWeight: FontWeight.bold,
           color: Colors.grey,
         ),
+      ),
+    );
+  }
+
+  /// 显示注销登录确认对话框
+  void _showLogoutConfirm(BuildContext context) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('确认注销'),
+        content: const Text('确定要注销登录吗？注销后需要重新登录。'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Get.back(); // 关闭对话框
+              final userController = Get.find<UserController>();
+              await userController.logout();
+              Get.offAllNamed(Routes.home);
+              Get.snackbar(
+                '已注销',
+                '您已成功注销登录',
+                snackPosition: SnackPosition.TOP,
+              );
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('确认注销'),
+          ),
+        ],
       ),
     );
   }

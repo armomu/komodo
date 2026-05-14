@@ -120,7 +120,21 @@
 - **Flutter ColorScheme 会自动适配深浅主题**，无需手动定义
 - **文件位置**：lib/pages/message/chat_page.dart
 
-### WebRTC 视频通话模块 (2026-05-13)
+### 登录/注册/用户信息改造 (2026-05-14)
+- **UserController**（`lib/controllers/user_controller.dart`）：全局单例，管理登录态 + 用户信息持久化
+  - `login(email, password)` → POST `/consumer/auth/login`，返回 token + id + email + nickname + avatar
+  - `register(email, code, password)` → POST `/consumer/auth/register`
+  - `sendCaptcha(email)` → GET `/auth/mail/captcha?email=xxx`
+  - `updateProfile(nickname?, avatar?)` → PATCH `/consumer/auth/profile`
+  - `logout()` → POST `/consumer/auth/logout` + 清除本地存储
+- **用户信息持久化**：GetStorage 存取 access_token, user_id, user_email, user_nickname, user_avatar
+- **头像数据**：`lib/utils/avatar_data.dart`，8个 picsum.photos 在线头像
+- **ProfileTab**：Obx 动态展示——未登录显示占位图标+"登录"文字，点击跳转 `/login`；登录后显示 nickname+avatar，点击跳转 `/profile-edit`
+- **API 路径**：基础地址 `http://192.168.1.38:8085`（api_service.dart）
+- **新增页面**：
+  - `lib/pages/login/register_page.dart`：邮箱+验证码+密码+确认密码，60s 倒计时
+  - `lib/pages/login/profile_edit_page.dart`：昵称编辑 + 8个头像 GridView 选择
+- **设置页**：底部红色"注销登录"按钮 + AlertDialog 确认
 - **后端**：cuberverse 项目的 NestJS WebrtcModule（端口 3002）
 - **协议**：WebSocket JSON（event + data），支持 connected/join-room/leave-room/offer/answer/ice-candidate/end-call
 - **Flutter 端结构**：`lib/webrtc/` 模块，分 models/services/pages 三层

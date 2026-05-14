@@ -14,7 +14,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _userController = Get.find<UserController>();
 
@@ -23,7 +23,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -32,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final success = await _userController.login(
-      _usernameController.text.trim(),
+      _emailController.text.trim(),
       _passwordController.text,
     );
 
@@ -44,7 +44,7 @@ class _LoginPageState extends State<LoginPage> {
           '登录失败',
           _userController.errorMessage.isNotEmpty
               ? _userController.errorMessage
-              : '请检查用户名和密码',
+              : '请检查邮箱和密码',
           snackPosition: SnackPosition.TOP,
           backgroundColor: Colors.red.shade50,
           colorText: Colors.red.shade700,
@@ -60,6 +60,7 @@ class _LoginPageState extends State<LoginPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      appBar: AppBar(title: const Text('登录')),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -70,13 +71,6 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo / 标题
-                  Icon(
-                    Icons.music_note_rounded,
-                    size: 80,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                  const SizedBox(height: 16),
                   Text(
                     'KOMODO',
                     textAlign: TextAlign.center,
@@ -98,18 +92,24 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 48),
 
-                  // 用户名输入框
+                  // 邮箱输入框
                   TextFormField(
-                    controller: _usernameController,
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
-                      labelText: '用户名',
-                      hintText: '请输入用户名',
-                      prefixIcon: Icon(Icons.person_outline),
+                      labelText: '邮箱',
+                      hintText: '请输入邮箱',
+                      prefixIcon: Icon(Icons.email_outlined),
                     ),
                     textInputAction: TextInputAction.next,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return '请输入用户名';
+                        return '请输入邮箱';
+                      }
+                      if (!RegExp(
+                        r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                      ).hasMatch(value.trim())) {
+                        return '请输入有效的邮箱地址';
                       }
                       return null;
                     },
@@ -131,8 +131,7 @@ class _LoginPageState extends State<LoginPage> {
                                 ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined,
                           ),
-                          onPressed: () =>
-                              _obscurePassword.toggle(),
+                          onPressed: () => _obscurePassword.toggle(),
                         ),
                       ),
                       textInputAction: TextInputAction.done,
@@ -152,8 +151,9 @@ class _LoginPageState extends State<LoginPage> {
                     () => SizedBox(
                       height: 48,
                       child: ElevatedButton(
-                        onPressed:
-                            _userController.loading ? null : _handleLogin,
+                        onPressed: _userController.loading
+                            ? null
+                            : _handleLogin,
                         child: _userController.loading
                             ? const SizedBox(
                                 width: 22,
@@ -166,6 +166,32 @@ class _LoginPageState extends State<LoginPage> {
                             : const Text('登 录', style: TextStyle(fontSize: 16)),
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 注册入口
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '没有账号？',
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurface.withAlpha(120),
+                          fontSize: 14,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => Get.toNamed(Routes.register),
+                        child: Text(
+                          '立即注册',
+                          style: TextStyle(
+                            color: theme.colorScheme.primary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

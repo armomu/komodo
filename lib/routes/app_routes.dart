@@ -8,6 +8,8 @@ import 'package:komodo/pages/design_system/design_system_page.dart';
 import 'package:komodo/pages/database_demo/database_demo_page.dart';
 import 'package:komodo/pages/cache_browser/cache_browser_page.dart';
 import 'package:komodo/pages/login/login_page.dart';
+import 'package:komodo/pages/login/register_page.dart';
+import 'package:komodo/pages/login/profile_edit_page.dart';
 import 'package:komodo/pages/webrtc/pages/call_entry_page.dart';
 import 'package:komodo/pages/message/pages/video_call_page.dart';
 import '../pages/home/home_page.dart';
@@ -37,6 +39,8 @@ abstract class Routes {
   static const String cacheBrowser = '/cache-browser';
   static const String webrtcCall = '/webrtc-call';
   static const String chatVideoCall = '/chat-video-call';
+  static const String register = '/register';
+  static const String profileEdit = '/profile-edit';
 }
 
 /// 路由配置
@@ -150,6 +154,18 @@ class AppPages {
       name: Routes.chatVideoCall,
       page: () => const VideoCallPage(),
       transition: Transition.downToUp,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: Routes.register,
+      page: () => const RegisterPage(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: Routes.profileEdit,
+      page: () => const ProfileEditPage(),
+      transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 300),
     ),
   ];
