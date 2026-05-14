@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:komodo/models/api_response.dart';
 import 'package:komodo/services/api_service.dart';
+import 'package:komodo/services/consumer_ws_client.dart';
 
 /// 全局用户状态控制器
 /// 管理登录/登出、token 持久化、用户信息、注册等。
@@ -66,6 +67,9 @@ class UserController extends GetxController {
       _email.value = box.read<String>(_emailKey) ?? '';
       _nickname.value = box.read<String>(_nicknameKey) ?? '';
       _avatar.value = box.read<String>(_avatarKey) ?? '';
+
+      // 恢复登录态后自动连接 WebSocket
+      _connectWs();
     }
   }
 
@@ -128,6 +132,9 @@ class UserController extends GetxController {
         nickname: result.nickname,
         avatar: result.avatar,
       );
+
+      // 连接 WebSocket
+      _connectWs();
 
       return true;
     } else {
@@ -226,9 +233,14 @@ class UserController extends GetxController {
     }
   }
 
-  /// 登出（调用服务端 + 清除本地状态）
+  /// 登出（调用服务端 + 清除本地状态 + 断开 WebSocket）
   Future<bool> logout() async {
     _loading.value = true;
+
+    // 断开 WebSocket
+    if (Get.isRegistered<ConsumerWsClient>()) {
+      Get.find<ConsumerWsClient>().disconnect();
+    }
 
     // 调用服务端注销
     final response = await _apiService.post<dynamic>(
@@ -249,5 +261,12 @@ class UserController extends GetxController {
     _clearSavedUserInfo();
 
     return response.isSuccess;
+  }
+
+  /// 连接 WebSocket（使用当前 token）
+  void _connectWs() {
+    if (accessToken.isNotEmpty && Get.isRegistered<ConsumerWsClient>()) {
+      Get.find<ConsumerWsClient>().connect(accessToken).catchError((_) {});
+    }
   }
 }

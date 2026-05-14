@@ -6,19 +6,22 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:get/get.dart' hide navigator;
 
 import '../../webrtc/models/call_state.dart';
-import '../../webrtc/services/signaling_client.dart';
+import '../../../services/consumer_ws_client.dart';
+import '../../../controllers/user_controller.dart';
 
-/// 简化版 1v1 视频通话控制器——消息聊天中的双人通话。
+/// 1v1 视频通话控制器——使用 ConsumerWsClient 替代旧 SignalingClient。
 ///
-/// 复用全局 SignalingClient，房间名基于聊天对端用户名生成。
+/// 参数：
+///   - peerUserId (int): 对方 userId
+///   - roomId (string): 通话房间标识
+///   - isCaller (bool): 是否主动呼叫方（呼叫方需等待对方接受）
 class VideoCallController extends GetxController {
-  late final SignalingClient _signaling;
+  ConsumerWsClient? _ws;
 
   // ==================== 信令相关 ====================
+  int _peerUserId = 0;
   String _roomId = '';
-  String _myUid = '';
-  String _serverUrl = '';
-  String _peerUid = '';
+  bool _isCaller = false;
 
   // ==================== WebRTC ====================
   RTCPeerConnection? _pc;
@@ -49,7 +52,7 @@ class VideoCallController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _signaling = Get.find<SignalingClient>();
+    _ws = Get.find<ConsumerWsClient>();
     _setupListeners();
   }
 
@@ -61,32 +64,53 @@ class VideoCallController extends GetxController {
 
   // ==================== 公开 API ====================
 
-  /// 发起 1v1 通话：先开摄像头，再连信令，加入房间
-  Future<void> startCall({
-    required String serverUrl,
+  /// 以呼叫方身份发起：发送邀请 → 进入等待状态
+  Future<void> startAsCaller({
+    required int peerUserId,
     required String roomId,
-    required String myUid,
   }) async {
-    _serverUrl = serverUrl;
+    _peerUserId = peerUserId;
     _roomId = roomId;
-    _myUid = myUid;
+    _isCaller = true;
+    callState.value = CallState.waiting;
+
+    // 先准备好本地渲染器和 PeerConnection，等对方接受后立即开始信令
+    try {
+      await _getLocalMedia();
+      await _createPeerConnection();
+    } catch (e) {
+      debugPrint('[VideoCall] startAsCaller prepare error: $e');
+      callState.value = CallState.error;
+    }
+  }
+
+  /// 以被叫方身份接听
+  Future<void> startAsCallee({
+    required int peerUserId,
+    required String roomId,
+  }) async {
+    _peerUserId = peerUserId;
+    _roomId = roomId;
+    _isCaller = false;
     callState.value = CallState.calling;
 
     try {
       await _getLocalMedia();
       await _createPeerConnection();
-      await _signaling.connect(_serverUrl);
-      _signaling.joinRoom(_roomId, _myUid);
+      _ws!.joinRoom(_roomId);
       callState.value = CallState.connecting;
     } catch (e) {
-      debugPrint('[VideoCall] startCall error: $e');
+      debugPrint('[VideoCall] startAsCallee error: $e');
       callState.value = CallState.error;
     }
   }
 
   /// 挂断
   Future<void> endCall() async {
-    _signaling.leaveRoom(_roomId);
+    if (_roomId.isNotEmpty && _peerUserId > 0) {
+      _ws!.leaveRoom(_roomId);
+      _ws!.sendEndCall(_roomId, _peerUserId);
+    }
     _cleanup();
     callState.value = CallState.ended;
   }
@@ -133,52 +157,63 @@ class VideoCallController extends GetxController {
   }
 
   void _setupListeners() {
-    _subs.add(_signaling.onConnected.listen((_) {}));
-    _subs.add(_signaling.onUserJoined.listen((uid) {
-      if (_peerUid.isEmpty) _peerUid = uid;
-    }));
-    _subs.add(_signaling.onRoomUsers.listen((data) {
-      if (data.users.isNotEmpty && _peerUid.isEmpty) {
-        _peerUid = data.users.first;
-      }
-    }));
-    _subs.add(_signaling.onPeerReady.listen((data) {
+    if (_ws == null) return;
+
+    _subs.add(_ws!.onPeerReady.listen((data) {
       _handlePeerReady(data.peers);
     }));
-    _subs.add(_signaling.onOffer.listen((data) {
+    _subs.add(_ws!.onOffer.listen((data) {
       _handleOfferReceived(data.from, data.sdp).catchError((e) {
         debugPrint('[VideoCall] onOffer error: $e');
       });
     }));
-    _subs.add(_signaling.onAnswer.listen((data) {
+    _subs.add(_ws!.onAnswer.listen((data) {
       _handleAnswerReceived(data.sdp);
     }));
-    _subs.add(_signaling.onIceCandidate.listen((data) {
+    _subs.add(_ws!.onIceCandidate.listen((data) {
       _handleIceCandidateReceived(data.candidate);
     }));
-    _subs.add(_signaling.onUserLeft.listen((_) {
+    _subs.add(_ws!.onUserLeft.listen((_) {
+      if (callState.value == CallState.connected) {
+        callState.value = CallState.ended;
+      }
+    }));
+    _subs.add(_ws!.onCallEnded.listen((_) {
       callState.value = CallState.ended;
     }));
-    _subs.add(_signaling.onCallEnded.listen((_) {
-      callState.value = CallState.ended;
+
+    // 呼叫方监听：对方接受邀请 → 加入房间开始建连
+    _subs.add(_ws!.onVideoCallAccept.listen((data) {
+      if (_isCaller && data.from == _peerUserId && data.roomId == _roomId) {
+        debugPrint('[VideoCall] 对方接受了邀请，开始连接');
+        callState.value = CallState.connecting;
+        _ws!.joinRoom(_roomId);
+        // 此时 peer-ready 或 offer 会触发
+      }
     }));
-    _subs.add(_signaling.onError.listen((_) {
-      callState.value = CallState.error;
+
+    // 呼叫方监听：对方拒绝邀请 → 结束
+    _subs.add(_ws!.onVideoCallReject.listen((data) {
+      if (_isCaller && data.from == _peerUserId && data.roomId == _roomId) {
+        debugPrint('[VideoCall] 对方拒绝了邀请');
+        callState.value = CallState.ended;
+      }
     }));
   }
 
-  void _handlePeerReady(List<String> peers) {
+  void _handlePeerReady(List<int> peers) {
     if (_handshakeStarted) return;
     if (peers.length < 2) return;
     _handshakeStarted = true;
 
-    final others = peers.where((uid) => uid != _myUid).toList();
+    final myUserId = UserController.to.userId;
+    final others = peers.where((uid) => uid != myUserId).toList();
     if (others.isEmpty) return;
-    _peerUid = others.first;
+    _peerUserId = others.first;
 
-    // 按 UID 字典序，小的发 Offer
-    final sorted = List<String>.from(peers)..sort();
-    if (sorted.first == _myUid) {
+    // 按 userId 字典序，小的发 Offer
+    final sorted = List<int>.from(peers)..sort();
+    if (sorted.first == myUserId) {
       _createAndSendOffer();
     }
   }
@@ -188,12 +223,12 @@ class VideoCallController extends GetxController {
     final session = await _pc!.createOffer();
     await _pc!.setLocalDescription(session);
     if (session.sdp != null) {
-      _signaling.sendOffer(_peerUid, session.sdp!);
+      _ws!.sendOffer(_roomId, _peerUserId, session.sdp!);
     }
   }
 
-  Future<void> _handleOfferReceived(String fromUid, String sdp) async {
-    _peerUid = fromUid;
+  Future<void> _handleOfferReceived(int fromUid, String sdp) async {
+    _peerUserId = fromUid;
 
     if (_pc == null) {
       await _getLocalMedia();
@@ -213,7 +248,7 @@ class VideoCallController extends GetxController {
     final answer = await _pc!.createAnswer();
     await _pc!.setLocalDescription(answer);
     if (answer.sdp != null) {
-      _signaling.sendAnswer(_peerUid, answer.sdp!);
+      _ws!.sendAnswer(_roomId, _peerUserId, answer.sdp!);
     }
   }
 
@@ -250,8 +285,8 @@ class VideoCallController extends GetxController {
     }
 
     _pc!.onIceCandidate = (candidate) {
-      if (_peerUid.isNotEmpty) {
-        _signaling.sendIceCandidate(_peerUid, jsonEncode(candidate.toMap()));
+      if (_peerUserId > 0) {
+        _ws!.sendIceCandidate(_roomId, _peerUserId, jsonEncode(candidate.toMap()));
       }
     };
 
@@ -285,7 +320,9 @@ class VideoCallController extends GetxController {
     }
     _subs.clear();
 
-    _signaling.disconnect();
+    if (_roomId.isNotEmpty) {
+      _ws!.leaveRoom(_roomId);
+    }
 
     _localStream?.getTracks().forEach((t) => t.stop());
     _localStream?.dispose();
@@ -302,7 +339,7 @@ class VideoCallController extends GetxController {
     _pc?.close();
     _pc = null;
 
-    _peerUid = '';
+    _peerUserId = 0;
     _handshakeStarted = false;
   }
 }

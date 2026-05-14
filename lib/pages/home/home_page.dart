@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:komodo/controllers/user_controller.dart';
 import 'package:komodo/pages/ble_demo/ble_demo_controller.dart';
 import 'package:komodo/pages/home/tabs/video_feed_view.dart';
 import 'package:komodo/pages/music/mini_player_bar.dart';
 import 'package:komodo/routes/app_routes.dart';
+import 'package:komodo/services/consumer_ws_client.dart';
 import 'tabs/music_tab.dart';
 import 'tabs/short_video_tab.dart';
 import 'tabs/message_tab.dart';
@@ -33,6 +35,16 @@ class _HomePageState extends State<HomePage> {
 
   /// 视频 Feed 控制器（全局共享）
   final videoFeedCtrl = Get.put(VideoFeedController());
+  final userCtrl = Get.find<UserController>();
+  final wsCtrl = Get.find<ConsumerWsClient>();
+
+  @override
+  void initState() {
+    super.initState();
+    if (userCtrl.isLoggedIn && !wsCtrl.isConnected.value) {
+      wsCtrl.connect(userCtrl.accessToken);
+    }
+  }
 
   /// navIndex → 页面索引（+号占位不对应页面，跳过）
   int _navIndexToPageIndex(int navIndex) {

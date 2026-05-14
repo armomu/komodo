@@ -5,8 +5,13 @@ import 'package:get/get.dart';
 import '../../webrtc/models/call_state.dart';
 import '../controllers/video_call_controller.dart';
 
-/// 简化版 1v1 视频通话页面
-/// 参数通过 Get.arguments 传入 Map: {serverUrl, roomId, myUid, peerName}
+/// 1v1 视频通话页面（基于 ConsumerWsClient）
+///
+/// 参数通过 Get.arguments 传入 Map:
+///   - peerUserId: int, 对方 userId
+///   - peerName: String, 对方昵称
+///   - roomId: String, 通话房间标识
+///   - isCaller: bool, 是否主动呼叫方（默认 true）
 class VideoCallPage extends StatefulWidget {
   const VideoCallPage({super.key});
 
@@ -16,27 +21,33 @@ class VideoCallPage extends StatefulWidget {
 
 class _VideoCallPageState extends State<VideoCallPage> {
   late final VideoCallController _controller;
-  late final String _serverUrl;
+  late final int _peerUserId;
   late final String _roomId;
-  late final String _myUid;
   late final String _peerName;
+  late final bool _isCaller;
 
   @override
   void initState() {
     super.initState();
     final args = Get.arguments as Map<String, dynamic>;
-    _serverUrl = args['serverUrl'] as String;
+    _peerUserId = args['peerUserId'] as int;
+    _peerName = args['peerName'] as String? ?? '';
     _roomId = args['roomId'] as String;
-    _myUid = args['myUid'] as String;
-    _peerName = args['peerName'] as String;
+    _isCaller = args['isCaller'] as bool? ?? true;
 
     _controller = Get.put(VideoCallController(), permanent: true);
     _controller.initRenderers().then((_) {
-      _controller.startCall(
-        serverUrl: _serverUrl,
-        roomId: _roomId,
-        myUid: _myUid,
-      );
+      if (_isCaller) {
+        _controller.startAsCaller(
+          peerUserId: _peerUserId,
+          roomId: _roomId,
+        );
+      } else {
+        _controller.startAsCallee(
+          peerUserId: _peerUserId,
+          roomId: _roomId,
+        );
+      }
     });
   }
 
@@ -55,14 +66,32 @@ class _VideoCallPageState extends State<VideoCallPage> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _handleBack();
+      onPopInvokedWithResult: (didPop, _) async {
+        if (!didPop) {
+          if (_controller.callState.value == CallState.ended) {
+            Get.back();
+            return;
+          }
+          await _controller.endCall();
+          Get.back();
+        }
       },
       child: Scaffold(
         backgroundColor: Colors.black,
         body: SafeArea(
           child: Obx(() {
             final state = _controller.callState.value;
+
+            // 被拒绝 → 显示提示后自动返回
+            if (state == CallState.ended && _isCaller) {
+              return _buildRejectedOverlay();
+            }
+
+            // 等待对方接受
+            if (state == CallState.waiting) {
+              return _buildWaitingOverlay();
+            }
+
             return Stack(
               children: [
                 // 远端视频
@@ -84,18 +113,28 @@ class _VideoCallPageState extends State<VideoCallPage> {
                   child: _buildTopBar(),
                 ),
 
-                // 等待中
+                // 连接中
                 if (state == CallState.calling ||
                     state == CallState.connecting)
                   Positioned.fill(child: _buildConnectingOverlay()),
 
+                // 已挂断
+                if (state == CallState.ended)
+                  Positioned.fill(child: _buildEndedOverlay()),
+
+                // 错误
+                if (state == CallState.error)
+                  Positioned.fill(child: _buildErrorOverlay()),
+
                 // 底部控制栏
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 40,
-                  child: _buildControls(state),
-                ),
+                if (state == CallState.connected ||
+                    state == CallState.connecting)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 40,
+                    child: _buildControls(state),
+                  ),
               ],
             );
           }),
@@ -103,6 +142,168 @@ class _VideoCallPageState extends State<VideoCallPage> {
       ),
     );
   }
+
+  // ---- 等待对方接受 ----
+
+  Widget _buildWaitingOverlay() {
+    return Container(
+      color: Colors.black87,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.videocam, color: Colors.white, size: 64),
+          const SizedBox(height: 24),
+          Text(
+            '正在呼叫 $_peerName...',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            '等待对方接受视频通话',
+            style: TextStyle(color: Colors.white60, fontSize: 14),
+          ),
+          const SizedBox(height: 40),
+          Container(
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.red,
+            ),
+            child: IconButton(
+              onPressed: _handleBack,
+              icon: const Icon(Icons.call_end, color: Colors.white, size: 36),
+              iconSize: 36,
+              padding: const EdgeInsets.all(16),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---- 被拒绝 ----
+
+  Widget _buildRejectedOverlay() {
+    // 2秒后自动返回
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) Get.back();
+    });
+
+    return Container(
+      color: Colors.black87,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.phone_disabled, color: Colors.white54, size: 64),
+          const SizedBox(height: 24),
+          Text(
+            '$_peerName 拒绝了通话',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            '即将返回...',
+            style: TextStyle(color: Colors.white60, fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---- 连接中 ----
+
+  Widget _buildConnectingOverlay() {
+    return Container(
+      color: Colors.black54,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.sync, color: Colors.white, size: 48),
+          const SizedBox(height: 16),
+          const Text(
+            '正在连接...',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '等待 $_peerName 加入...',
+            style: const TextStyle(color: Colors.white60, fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---- 通话结束 ----
+
+  Widget _buildEndedOverlay() {
+    return Container(
+      color: Colors.black54,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.call_end, color: Colors.white70, size: 48),
+          const SizedBox(height: 16),
+          const Text(
+            '通话已结束',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () => Get.back(),
+            icon: const Icon(Icons.arrow_back),
+            label: const Text('返回'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---- 错误 ----
+
+  Widget _buildErrorOverlay() {
+    return Container(
+      color: Colors.black54,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, color: Colors.white70, size: 48),
+          const SizedBox(height: 16),
+          const Text(
+            '连接失败',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () => Get.back(),
+            icon: const Icon(Icons.arrow_back),
+            label: const Text('返回'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---- 视频渲染 ----
 
   Widget _buildRemoteVideo() {
     return Obx(() {
@@ -114,7 +315,6 @@ class _VideoCallPageState extends State<VideoCallPage> {
               mirror: false,
               objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
             ),
-            // 对端名字标签
             Positioned(
               left: 12,
               bottom: 12,
@@ -172,7 +372,7 @@ class _VideoCallPageState extends State<VideoCallPage> {
                   borderRadius: BorderRadius.circular(3),
                 ),
                 child: Text(
-                  _myUid,
+                  _peerName,
                   style:
                       const TextStyle(color: Colors.white, fontSize: 10),
                 ),
@@ -213,37 +413,10 @@ class _VideoCallPageState extends State<VideoCallPage> {
     );
   }
 
-  Widget _buildConnectingOverlay() {
-    return Container(
-      color: Colors.black54,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.sync, color: Colors.white, size: 48),
-          const SizedBox(height: 16),
-          const Text(
-            '正在连接...',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '等待 $_peerName 加入...',
-            style: const TextStyle(color: Colors.white60, fontSize: 14),
-          ),
-        ],
-      ),
-    );
-  }
+  // ---- 底部控制栏 ----
 
   Widget _buildControls(CallState state) {
     if (state == CallState.ended || state == CallState.error) {
-      return _buildEndedControls();
-    }
-    if (state == CallState.calling || state == CallState.incoming) {
       return const SizedBox.shrink();
     }
 
@@ -323,24 +496,6 @@ class _VideoCallPageState extends State<VideoCallPage> {
           label,
         ],
       ),
-    );
-  }
-
-  Widget _buildEndedControls() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Text(
-          '通话已结束',
-          style: TextStyle(color: Colors.white70, fontSize: 16),
-        ),
-        const SizedBox(height: 16),
-        FilledButton.icon(
-          onPressed: _handleBack,
-          icon: const Icon(Icons.arrow_back),
-          label: const Text('返回'),
-        ),
-      ],
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:get_storage/get_storage.dart';
 import 'controllers/user_controller.dart';
 import 'pages/music/music_player_controller.dart';
 import 'services/api_service.dart';
+import 'services/consumer_ws_client.dart';
 import 'database/chat_database.dart';
 import 'routes/app_routes.dart';
 import 'theme/app_theme.dart';
@@ -44,6 +45,8 @@ void main() async {
   Get.put(ChatDatabase());
   // WebRTC 信令客户端（GetxService，全局单例）
   Get.put(SignalingClient());
+  // Consumer WebSocket 统一客户端（全局单例，登录后自动连接）
+  Get.put(ConsumerWsClient());
 
   // 初始化完成，移除启动页
   FlutterNativeSplash.remove();

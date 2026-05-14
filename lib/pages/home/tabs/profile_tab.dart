@@ -147,24 +147,14 @@ class _ProfileTabState extends State<ProfileTab> {
                       // Location
                       Container(
                         margin: const EdgeInsets.only(left: 16),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.android,
-                              size: 16,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              userController.isLoggedIn
-                                  ? 'ID：${userController.userId}'
-                                  : '~',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          userController.isLoggedIn
+                              ? 'ID：${userController.userId}'
+                              : '~',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
                     ],

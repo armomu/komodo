@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:komodo/routes/app_routes.dart';
+import 'package:komodo/services/consumer_ws_client.dart';
+import 'package:komodo/controllers/user_controller.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:komodo/pages/message/chat_voice_controller.dart';
@@ -20,16 +22,21 @@ import 'widgets/chat_input_bar.dart';
 import 'widgets/expanded_icon_bar.dart';
 import 'widgets/emoji_picker_widget.dart';
 
-/// 聊天详情页 — 社交私信聊天界面
+/// 聊天详情页 — 支持 WebSocket 收发 + 本地存储 + 视频通话邀请
 class ChatPage extends StatelessWidget {
   const ChatPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     final args = Get.arguments as Map<String, dynamic>?;
+    final peerUserId = args?['peerUserId'] as int? ?? 0;
     final peerName = args?['peerName'] as String? ?? _defaultPeerName;
     final peerAvatar = args?['peerAvatar'] as String? ?? _defaultPeerAvatar;
-    return _ChatContent(peerName: peerName, peerAvatar: peerAvatar);
+    return _ChatContent(
+      peerUserId: peerUserId,
+      peerName: peerName,
+      peerAvatar: peerAvatar,
+    );
   }
 
   static const String _defaultPeerName = '九黎❤️是美女';
@@ -38,9 +45,14 @@ class ChatPage extends StatelessWidget {
 }
 
 class _ChatContent extends StatefulWidget {
+  final int peerUserId;
   final String peerName;
   final String peerAvatar;
-  const _ChatContent({required this.peerName, required this.peerAvatar});
+  const _ChatContent({
+    required this.peerUserId,
+    required this.peerName,
+    required this.peerAvatar,
+  });
 
   @override
   State<_ChatContent> createState() => _ChatContentState();
@@ -81,6 +93,17 @@ class _ChatContentState extends State<_ChatContent>
 
   final voiceCtrl = Get.put(ChatVoiceController());
 
+  // WebSocket 相关
+  StreamSubscription? _chatMsgSub;
+  StreamSubscription? _chatErrorSub;
+  StreamSubscription? _videoCallInviteSub;
+  StreamSubscription? _videoCallAcceptSub;
+  StreamSubscription? _videoCallRejectSub;
+
+  // 视频通话状态
+
+  // ---- 数据库初始化 ----
+
   Future<void> _initConversation() async {
     final db = ChatDatabase.to;
     final (convId, _) = await db.getOrCreateConversation(
@@ -100,6 +123,125 @@ class _ChatContentState extends State<_ChatContent>
     }
   }
 
+  // ---- WebSocket 订阅 ----
+
+  void _setupWsListeners() {
+    final ws = Get.find<ConsumerWsClient>();
+
+    // 接收聊天消息
+    _chatMsgSub = ws.onChatMessage.listen((data) {
+      if (data.from == widget.peerUserId && mounted) {
+        final msg = ChatMessage(
+          type: ChatMsgType.text,
+          isMe: false,
+          content: data.message,
+        );
+        // 立即写入本地数据库
+        _saveMessageToDb(msg);
+        // 更新会话最新消息
+        if (_conversationId != null) {
+          final now = DateTime.now();
+          final timeStr = '${now.hour}:${now.minute.toString().padLeft(2, '0')}';
+          ChatDatabase.to.updateConversationLastMessage(
+            _conversationId!, data.message, timeStr);
+        }
+        // 添加到界面
+        setState(() => _messages.add(msg));
+        _scrollToBottom();
+      }
+    });
+
+    // 聊天错误
+    _chatErrorSub = ws.onChatError.listen((msg) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg), duration: const Duration(seconds: 2)),
+        );
+      }
+    });
+
+    // 收到视频通话邀请（此页面正与对方聊天）
+    _videoCallInviteSub = ws.onVideoCallInvite.listen((data) {
+      if (data.from == widget.peerUserId && mounted) {
+        _showIncomingCallSnackbar(data.nickname, data.roomId);
+      }
+    });
+
+      // 对方接受邀请
+    _videoCallAcceptSub = ws.onVideoCallAccept.listen((data) {
+      if (data.from == widget.peerUserId && mounted) {
+        _navigateToVideoCall(data.roomId, isCaller: false);
+      }
+    });
+
+      // 对方拒绝邀请
+    _videoCallRejectSub = ws.onVideoCallReject.listen((data) {
+      if (data.from == widget.peerUserId && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('对方拒绝了视频通话'),
+              duration: Duration(seconds: 2)),
+        );
+      }
+    });
+  }
+
+  /// 显示视频来电通知（接听/拒绝）
+  void _showIncomingCallSnackbar(String nickname, String roomId) {
+    final ctx = context;
+    if (!ctx.mounted) return;
+
+    ScaffoldMessenger.of(ctx).clearSnackBars();
+    ScaffoldMessenger.of(ctx).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 30),
+        content: Text('$nickname 邀请你视频通话'),
+        action: SnackBarAction(
+          label: '接听',
+          textColor: Colors.greenAccent,
+          onPressed: () {
+            ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
+            Get.find<ConsumerWsClient>()
+                .sendVideoCallAccept(widget.peerUserId, roomId);
+            _navigateToVideoCall(roomId, isCaller: false);
+          },
+        ),
+      ),
+    );
+    // 第二个 SnackBar 显示拒绝
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (ctx.mounted) {
+        ScaffoldMessenger.of(ctx).showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 30),
+            content: const Text('拒绝'),
+            action: SnackBarAction(
+              label: '拒绝',
+              textColor: Colors.redAccent,
+              onPressed: () {
+                ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
+                Get.find<ConsumerWsClient>()
+                    .sendVideoCallReject(widget.peerUserId, roomId);
+              },
+            ),
+          ),
+        );
+      }
+    });
+  }
+
+  /// 进入视频通话页面
+  void _navigateToVideoCall(String roomId, {bool isCaller = true}) {
+    Get.toNamed(
+      Routes.chatVideoCall,
+      arguments: {
+        'peerUserId': widget.peerUserId,
+        'peerName': widget.peerName,
+        'roomId': roomId,
+        'isCaller': isCaller,
+      },
+    );
+  }
+
   Worker? _lisenPlaying;
 
   @override
@@ -110,7 +252,6 @@ class _ChatContentState extends State<_ChatContent>
     _initConversation();
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
-        // 聚焦时：收起表情/图标栏、滚到底部
         if (_showEmojiPicker || _showIconBar) {
           setState(() {
             _showEmojiPicker = false;
@@ -129,6 +270,10 @@ class _ChatContentState extends State<_ChatContent>
     if (!Get.isRegistered<ChatVoiceController>()) {
       Get.put(ChatVoiceController());
     }
+
+    // 订阅 WebSocket 事件
+    _setupWsListeners();
+
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
   }
 
@@ -155,6 +300,11 @@ class _ChatContentState extends State<_ChatContent>
     _amplitudeSub?.cancel();
     _lisenPlaying?.dispose();
     _removeOverlay();
+    _chatMsgSub?.cancel();
+    _chatErrorSub?.cancel();
+    _videoCallInviteSub?.cancel();
+    _videoCallAcceptSub?.cancel();
+    _videoCallRejectSub?.cancel();
     super.dispose();
   }
 
@@ -169,9 +319,16 @@ class _ChatContentState extends State<_ChatContent>
     }
   }
 
+  // ---- 文本消息：WebSocket 发送 + 本地存储 ----
+
   void _sendTextMessage(String text) {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return;
+
+    // 发送到 WebSocket
+    Get.find<ConsumerWsClient>().sendChatMessage(widget.peerUserId, trimmed);
+
+    // 本地存储
     final msg = ChatMessage(
       type: ChatMsgType.text,
       isMe: true,
@@ -206,7 +363,6 @@ class _ChatContentState extends State<_ChatContent>
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
-        // 将选取的图片复制到 app 缓存目录，确保可管理
         final appDir = await getApplicationDocumentsDirectory();
         final cacheDir = Directory('${appDir.path}/image_cache');
         if (!await cacheDir.exists()) {
@@ -223,23 +379,32 @@ class _ChatContentState extends State<_ChatContent>
     }
   }
 
-  // ─── 录音 ────────────────────────────────────────────────────────────
+  // ---- 视频通话邀请（发送后立即进入等待页面） ----
 
-  Future<void> _startVideoCall() async {
+  void _startVideoCall() {
     setState(() => _showIconBar = false);
-    const serverUrl = 'ws://192.168.1.38:3002';
-    const roomId = 'chat_room_001';
-    final myUid = 'User_${DateTime.now().millisecondsSinceEpoch % 10000}';
-    await Get.toNamed(
-      Routes.chatVideoCall,
-      arguments: {
-        'serverUrl': serverUrl,
-        'roomId': roomId,
-        'myUid': myUid,
-        'peerName': widget.peerName,
-      },
-    );
+
+    final myUserId = UserController.to.userId;
+    if (myUserId <= 0 || widget.peerUserId <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('用户信息不完整')),
+      );
+      return;
+    }
+
+    // 生成唯一 roomId
+    final ids = [myUserId, widget.peerUserId]..sort();
+    final roomId = '${ids.first}_${ids.last}';
+
+    // 发送视频通话邀请
+    Get.find<ConsumerWsClient>()
+        .sendVideoCallInvite(widget.peerUserId, roomId);
+
+    // 立即进入等待页面（此时对方还没接，显示"等待对方接受"）
+    _navigateToVideoCall(roomId, isCaller: true);
   }
+
+  // ---- 录音（不变） ----
 
   void _toggleVoiceMode() {
     HapticFeedback.lightImpact();
@@ -358,7 +523,7 @@ class _ChatContentState extends State<_ChatContent>
     HapticFeedback.lightImpact();
   }
 
-  // ─── 波形动画 ────────────────────────────────────────────────────────
+  // ---- 波形动画 ----
 
   void _startWaveAnimation() {
     final recorder = _recorder;
@@ -367,14 +532,14 @@ class _ChatContentState extends State<_ChatContent>
     _amplitudeSub = recorder
         .onAmplitudeChanged(const Duration(milliseconds: 100))
         .listen((amp) {
-          if (!mounted) return;
-          final normalized = _dbfsToNormalized(amp.current);
-          setState(() {
-            _waveHeights.removeAt(0);
-            _waveHeights.add(normalized);
-          });
-          _overlayEntry?.markNeedsBuild();
-        });
+      if (!mounted) return;
+      final normalized = _dbfsToNormalized(amp.current);
+      setState(() {
+        _waveHeights.removeAt(0);
+        _waveHeights.add(normalized);
+      });
+      _overlayEntry?.markNeedsBuild();
+    });
   }
 
   double _dbfsToNormalized(double dbfs) {
@@ -393,7 +558,7 @@ class _ChatContentState extends State<_ChatContent>
     });
   }
 
-  // ─── Overlay ─────────────────────────────────────────────────────────
+  // ---- Overlay ----
 
   void _showRecordingOverlay() {
     _overlayEntry?.remove();
@@ -419,7 +584,8 @@ class _ChatContentState extends State<_ChatContent>
 
   void _showPermissionTip() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('请授予麦克风权限'), duration: Duration(seconds: 2)),
+      const SnackBar(content: Text('请授予麦克风权限'),
+          duration: Duration(seconds: 2)),
     );
   }
 
@@ -457,9 +623,7 @@ class _ChatContentState extends State<_ChatContent>
     }
   }
 
-  // ══════════════════════════════════════════════════════════════════════
-  // Build
-  // ══════════════════════════════════════════════════════════════════════
+  // ---- Build ----
 
   @override
   Widget build(BuildContext context) {
@@ -467,35 +631,9 @@ class _ChatContentState extends State<_ChatContent>
 
     return Scaffold(
       appBar: AppBar(
-        leading: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            Positioned(
-              right: 2,
-              top: 6,
-              child: Container(
-                width: 16,
-                height: 16,
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: const Text(
-                  '2',
-                  style: TextStyle(
-                    fontSize: 9,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
-          ],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           widget.peerName,
@@ -584,10 +722,6 @@ class _ChatContentState extends State<_ChatContent>
         );
     }
   }
-
-  // ══════════════════════════════════════════════════════════════════════
-  // 底部区域
-  // ══════════════════════════════════════════════════════════════════════
 
   Widget _buildBottomArea(BuildContext context, ColorScheme colorScheme) {
     return Container(
