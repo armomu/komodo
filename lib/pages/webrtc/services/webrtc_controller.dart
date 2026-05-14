@@ -16,12 +16,6 @@ import 'signaling_client.dart';
 /// - 每个对端一个 RTCPeerConnection，地图存储
 /// - UID 字典序较大者主动发起 Offer，较小者自动应答
 /// - 服务端只转发信令，媒体流 P2P 直连
-///
-/// ★ 多 Peer 修复要点：
-/// - 串行建立连接（队列），避免 flutter_webrtc 竞态
-/// - 每个 PC 使用 clone() 独立轨道，消除跨 PC 共享副作用
-/// - onTrack 处理空 streams + 音视频分离
-/// - ICE candidate 缓冲（PC 未就绪时暂存，就绪后批量消费）
 class WebrtcController extends GetxController {
   // ==================== 依赖 ====================
   late final SignalingClient _signaling;
@@ -79,6 +73,14 @@ class WebrtcController extends GetxController {
   /// 是否正在处理建连队列
   bool _isConnecting = false;
 
+  // ==================== 防竞态保护 ====================
+
+  /// 正在异步建连/应答中的 peer（_removePeer 等待其完成）
+  final Set<String> _peersInProgress = {};
+
+  /// 被 user-left 标记清理但尚在处理中的 peer
+  final Set<String> _pendingRemovals = {};
+
   // ==================== 初始化 ====================
 
   Future<void> initRenderers() async {
@@ -104,7 +106,6 @@ class WebrtcController extends GetxController {
   void setServerUrl(String url) => _serverUrl = url;
 
   /// 发起呼叫：先获取本地媒体，再连接信令、加入房间
-  /// （保证 Offer 到达时 _localStream 已就绪，避免无轨道建连）
   Future<void> startCall({
     required String serverUrl,
     required String roomId,
@@ -116,11 +117,8 @@ class WebrtcController extends GetxController {
     callState.value = CallState.calling;
 
     try {
-      // 1. 先获取本地媒体（摄像头授权可能需要时间）
       await _getLocalMedia();
-      // 2. 再连接信令服务器
       await _signaling.connect(_serverUrl);
-      // 3. 最后加入房间，此时 _localStream 已就绪
       _signaling.joinRoom(_roomId, _myUid);
       callState.value = CallState.connecting;
     } catch (e) {
@@ -146,7 +144,6 @@ class WebrtcController extends GetxController {
   Future<void> toggleMic() async {
     if (_localStream == null) return;
     isMicOn.value = !isMicOn.value;
-    // 所有克隆轨道同步静音状态
     for (final tracks in _clonedTracks.values) {
       for (final track in tracks) {
         if (track.kind == 'audio') {
@@ -154,7 +151,6 @@ class WebrtcController extends GetxController {
         }
       }
     }
-    // 源轨道也更新
     for (final track in _localStream!.getAudioTracks()) {
       track.enabled = isMicOn.value;
     }
@@ -164,7 +160,6 @@ class WebrtcController extends GetxController {
   Future<void> toggleCamera() async {
     if (_localStream == null) return;
     isCameraOn.value = !isCameraOn.value;
-    // 所有克隆轨道同步摄像头状态
     for (final tracks in _clonedTracks.values) {
       for (final track in tracks) {
         if (track.kind == 'video') {
@@ -184,9 +179,7 @@ class WebrtcController extends GetxController {
 
   void _setupListeners() {
     _subs.add(_signaling.onConnected.listen((_) {}));
-
     _subs.add(_signaling.onUserJoined.listen((_) {}));
-
     _subs.add(_signaling.onRoomUsers.listen((_) {}));
 
     _subs.add(
@@ -221,10 +214,7 @@ class WebrtcController extends GetxController {
 
     _subs.add(
       _signaling.onUserLeft.listen((uid) {
-        _removePeer(uid);
-        if (_pcs.isEmpty) {
-          callState.value = CallState.ended;
-        }
+        _handleUserLeft(uid);
       }),
     );
 
@@ -261,6 +251,37 @@ class WebrtcController extends GetxController {
     }
   }
 
+  /// user-left 到达，支持延迟清理（等待正在建连的异步过程完成）
+  void _handleUserLeft(String uid) {
+    if (_peersInProgress.contains(uid)) {
+      // 该 peer 正在异步建连/应答中，标记延迟清理
+      _pendingRemovals.add(uid);
+      debugPrint('[Mesh] 🚫 user-left 延迟清理 | uid=$uid（建连进行中）');
+      return;
+    }
+    _removePeer(uid);
+    if (_pcs.isEmpty) {
+      callState.value = CallState.ended;
+    }
+  }
+
+  /// 标记 peer 进入建连/应答流程
+  void _markInProgress(String uid) {
+    _peersInProgress.add(uid);
+  }
+
+  /// 标记 peer 退出建连/应答流程，并消费延迟清理
+  void _markDone(String uid) {
+    _peersInProgress.remove(uid);
+    if (_pendingRemovals.remove(uid)) {
+      debugPrint('[Mesh] 🧹 消费延迟清理 | uid=$uid');
+      _removePeer(uid);
+      if (_pcs.isEmpty) {
+        callState.value = CallState.ended;
+      }
+    }
+  }
+
   /// peer-ready 到达后，将需要主动建连的 peer 加入串行队列
   void _handlePeerReady(List<String> peers) {
     debugPrint('[Mesh] 🔔 peer-ready 到达 | peers=${peers.join(", ")} | 已有PC=${_pcs.keys.toList()}');
@@ -272,8 +293,6 @@ class WebrtcController extends GetxController {
         debugPrint('[Mesh] ⏭️  跳过已有PC | peer=$peerUid');
         continue;
       }
-
-      // 字典序比较：比我大的我主动发 offer，比我小的等待对方发来
       if (peerUid.compareTo(_myUid) > 0) {
         if (!_pendingPeers.contains(peerUid)) {
           _pendingPeers.add(peerUid);
@@ -287,7 +306,6 @@ class WebrtcController extends GetxController {
       debugPrint('[Mesh] 📋 队列新增 $queued 个 peer，当前队列=${_pendingPeers.toList()}');
     }
 
-    // 串行处理建连队列
     if (!_isConnecting) {
       _connectNext();
     }
@@ -298,14 +316,15 @@ class WebrtcController extends GetxController {
     String peerUid, {
     required bool initiator,
   }) async {
-    final renderer = RTCVideoRenderer();
-    await renderer.initialize();
-    _remoteRenderers[peerUid] = renderer;
-    if (!remotePeerUids.contains(peerUid)) {
-      remotePeerUids.add(peerUid);
-    }
-
+    _markInProgress(peerUid);
     try {
+      final renderer = RTCVideoRenderer();
+      await renderer.initialize();
+      _remoteRenderers[peerUid] = renderer;
+      if (!remotePeerUids.contains(peerUid)) {
+        remotePeerUids.add(peerUid);
+      }
+
       final pc = await _createPeerConnectionForPeer(peerUid);
       _pcs[peerUid] = pc;
       debugPrint('[Mesh] ✅ PC 创建成功 | peer=$peerUid');
@@ -316,12 +335,16 @@ class WebrtcController extends GetxController {
       }
     } catch (e) {
       debugPrint('[Mesh] ❌ _establishConnection($peerUid) 异常: $e');
-      _removePeer(peerUid);
+      _removePeerInternal(peerUid);
       rethrow;
+    } finally {
+      _markDone(peerUid);
     }
   }
 
-  /// 为指定 peer 创建 RTCPeerConnection，每个 PC 使用独立的克隆轨道
+  /// 为指定 peer 创建 RTCPeerConnection
+  ///   clone() 可用时：每个 PC 独立轨道
+  ///   clone() 不可用时：回退到 addTrack（使用原始轨道）
   Future<RTCPeerConnection> _createPeerConnectionForPeer(String peerUid) async {
     final config = {
       'iceServers': [
@@ -332,22 +355,19 @@ class WebrtcController extends GetxController {
 
     final pc = await createPeerConnection(config);
 
-    // ★ 核心修复：为每个 PC 克隆独立的音视频轨道
-    //   避免同一 MediaStreamTrack 跨多个 PC 共享导致的竞态
     final tracks = <MediaStreamTrack>[];
     if (_localStream != null) {
       for (final track in _localStream!.getTracks()) {
         try {
-          // clone() 返回 Future<MediaStreamTrack>，必须 await
           final cloned = await track.clone();
-          // 同步 mute 状态
           cloned.enabled = track.enabled;
           await pc.addTrack(cloned, _localStream!);
           tracks.add(cloned);
           debugPrint('[Mesh] 🎯 轨道克隆添加 | peer=$peerUid | kind=${cloned.kind}');
         } catch (e) {
-          // clone() 不可用时回退到原始轨道（兼容旧版 flutter_webrtc）
-          debugPrint('[Mesh] ⚠️ clone() 失败，使用原始轨道 | peer=$peerUid | err=$e');
+          // ★ clone() 不可用时回退到 addTrack
+          //   addTrack 会正确关联 stream（远端 onTrack 时 streams 非空）
+          debugPrint('[Mesh] ⚠️ clone() 不支持，回退 addTrack | peer=$peerUid | kind=${track.kind}');
           await pc.addTrack(track, _localStream!);
           tracks.add(track);
         }
@@ -355,18 +375,15 @@ class WebrtcController extends GetxController {
       _clonedTracks[peerUid] = tracks;
     }
 
-    // ICE Candidate——发往指定对端
+    // ICE Candidate
     pc.onIceCandidate = (candidate) {
       final candStr = candidate.candidate;
       if (candStr != null && candStr.isNotEmpty) {
-        _signaling.sendIceCandidate(
-          peerUid,
-          jsonEncode(candidate.toMap()),
-        );
+        _signaling.sendIceCandidate(peerUid, jsonEncode(candidate.toMap()));
       }
     };
 
-    // 远端流到达——健壮处理空 streams 和音视频分离
+    // 远端流到达
     pc.onTrack = (event) {
       _onRemoteTrack(peerUid, event);
     };
@@ -379,9 +396,12 @@ class WebrtcController extends GetxController {
       } else if (state ==
               RTCPeerConnectionState.RTCPeerConnectionStateDisconnected ||
           state == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
-        _removePeer(peerUid);
-        if (_pcs.isEmpty) {
-          callState.value = CallState.ended;
+        // ★ 不在建连过程中才清理，避免与 _handleOfferReceived 竞态
+        if (!_peersInProgress.contains(peerUid)) {
+          _removePeer(peerUid);
+          if (_pcs.isEmpty) {
+            callState.value = CallState.ended;
+          }
         }
       }
     };
@@ -389,37 +409,45 @@ class WebrtcController extends GetxController {
     return pc;
   }
 
-  /// 处理远端轨道到达——健壮处理各种边界情况
+  /// 处理远端轨道到达——包裹 try-catch 防止回调中异常被吞没
   void _onRemoteTrack(String peerUid, RTCTrackEvent event) {
-    final kind = event.track.kind;
-    debugPrint('[Mesh] 📺 onTrack | peer=$peerUid | kind=$kind | streams=${event.streams.length}');
+    try {
+      final kind = event.track.kind;
+      debugPrint('[Mesh] 📺 onTrack | peer=$peerUid | kind=$kind | streams=${event.streams.length}');
 
-    // 获取或创建远端流
-    MediaStream stream;
-    if (event.streams.isNotEmpty) {
-      stream = event.streams[0];
-    } else {
-      // ★ streams 为空时的兜底：手动创建 MediaStream 并添加 track
-      stream = _remoteStreams[peerUid] ?? (createLocalMediaStream('remote_$peerUid') as MediaStream);
-      stream.addTrack(event.track);
-      debugPrint('[Mesh] ⚠️  streams 为空，手动创建 MediaStream | peer=$peerUid');
-    }
-
-    _remoteStreams[peerUid] = stream;
-
-    // 视频轨道：绑定到渲染器
-    if (kind == 'video') {
-      final renderer = _remoteRenderers[peerUid];
-      if (renderer != null) {
-        renderer.srcObject = stream;
-        debugPrint('[Mesh] ✅ 视频渲染已绑定 | peer=$peerUid');
+      MediaStream? stream;
+      if (event.streams.isNotEmpty) {
+        stream = event.streams[0];
       } else {
-        debugPrint('[Mesh] ⚠️  渲染器不存在（可能已被清理） | peer=$peerUid');
+        // ★ streams 为空：用已有的远端流，没有则从 event 构造
+        stream = _remoteStreams[peerUid];
+        if (stream == null) {
+          try {
+            stream = createLocalMediaStream('remote_$peerUid') as MediaStream;
+          } catch (_) {
+            // createLocalMediaStream 返回类型不兼容时的兜底
+            debugPrint('[Mesh] ⚠️  无法创建 MediaStream，跳过 onTrack 处理 | peer=$peerUid');
+            return;
+          }
+        }
+        stream.addTrack(event.track);
+        debugPrint('[Mesh] ⚠️  streams 为空，手动构造 | peer=$peerUid');
       }
-    }
 
-    // 任一轨道到达即认为已连接
-    callState.value = CallState.connected;
+      _remoteStreams[peerUid] = stream;
+
+      if (kind == 'video') {
+        final renderer = _remoteRenderers[peerUid];
+        if (renderer != null) {
+          renderer.srcObject = stream;
+          debugPrint('[Mesh] ✅ 视频渲染已绑定 | peer=$peerUid');
+        }
+      }
+
+      callState.value = CallState.connected;
+    } catch (e, stack) {
+      debugPrint('[Mesh] ❌ onTrack 处理异常 | peer=$peerUid | $e\n$stack');
+    }
   }
 
   /// 向指定对端发送 Offer
@@ -435,7 +463,6 @@ class WebrtcController extends GetxController {
   Future<void> _handleOfferReceived(String fromUid, String sdp) async {
     debugPrint('[Mesh] 📩 收到 Offer | from=$fromUid | sdpLen=${sdp.length}');
 
-    // 如果已有此对端的 PC（重协商），直接设置远端描述并应答
     if (_pcs.containsKey(fromUid)) {
       try {
         final session = RTCSessionDescription(sdp, 'offer');
@@ -448,7 +475,8 @@ class WebrtcController extends GetxController {
       return;
     }
 
-    // 首次收到此对端的 Offer，现场建连
+    // ★ 标记为处理中，防止 user-left 在此期间关闭 PC
+    _markInProgress(fromUid);
     try {
       final renderer = RTCVideoRenderer();
       await renderer.initialize();
@@ -457,22 +485,33 @@ class WebrtcController extends GetxController {
         remotePeerUids.add(fromUid);
       }
 
-      // ★ 先创建 PC（包含轨道克隆），再设置远端描述
-      //   确保 ICE candidate 到达时 _pcs[fromUid] 已就绪
       final pc = await _createPeerConnectionForPeer(fromUid);
       _pcs[fromUid] = pc;
 
+      // ★ 每个 await 后检查 PC 是否仍有效
+      if (!_pcs.containsKey(fromUid)) {
+        debugPrint('[Mesh] ⚠️  PC 在 async 期间已移除 | peer=$fromUid');
+        return;
+      }
+
       final session = RTCSessionDescription(sdp, 'offer');
       await pc.setRemoteDescription(session);
-      await _sendAnswer(pc, fromUid);
 
-      // 消费缓冲的 ICE candidates
+      if (!_pcs.containsKey(fromUid) ||
+          pc.connectionState == RTCPeerConnectionState.RTCPeerConnectionStateClosed) {
+        debugPrint('[Mesh] ⚠️  PC 已关闭，跳过应答 | peer=$fromUid');
+        return;
+      }
+
+      await _sendAnswer(pc, fromUid);
       _flushBufferedCandidates(fromUid);
 
       debugPrint('[Mesh] ✅ 新建PC应答完毕 | peer=$fromUid');
     } catch (e, stack) {
       debugPrint('[Mesh] ❌ onOffer($fromUid) 新建PC异常: $e\n$stack');
-      _removePeer(fromUid);
+      _removePeerInternal(fromUid);
+    } finally {
+      _markDone(fromUid);
     }
   }
 
@@ -497,44 +536,34 @@ class WebrtcController extends GetxController {
     await pc.setRemoteDescription(session);
   }
 
-  /// ICE candidate 缓冲（PC 尚未创建时暂存）
+  /// ICE candidate 缓冲
   final Map<String, List<Map<String, dynamic>>> _bufferedCandidates = {};
 
-  /// 收到对端发来的 ICE Candidate——支持缓冲，PC 未就绪时暂存
-  Future<void> _handleIceCandidateReceived(
-    String fromUid,
-    String candidate,
-  ) async {
+  /// 收到 ICE Candidate
+  Future<void> _handleIceCandidateReceived(String fromUid, String candidate) async {
     final pc = _pcs[fromUid];
     if (pc == null) {
-      // PC 尚未就绪：缓冲 ICE candidate，待 PC 创建后消费
       final map = _parseIceCandidateMap(candidate);
       if (map != null) {
         _bufferedCandidates.putIfAbsent(fromUid, () => []);
         _bufferedCandidates[fromUid]!.add(map);
-        debugPrint('[Mesh] 🧊 ICE 缓冲 | from=$fromUid | 缓冲数=${_bufferedCandidates[fromUid]!.length}');
       }
       return;
     }
     await _addIceToPeer(pc, fromUid, candidate);
   }
 
-  /// 消费某 peer 的缓冲 ICE candidates
+  /// 消费缓冲的 ICE
   Future<void> _flushBufferedCandidates(String peerUid) async {
     final buffered = _bufferedCandidates.remove(peerUid);
     if (buffered == null || buffered.isEmpty) return;
-
     final pc = _pcs[peerUid];
     if (pc == null) return;
 
     debugPrint('[Mesh] 🧊 消费缓冲ICE | peer=$peerUid | 数量=${buffered.length}');
     for (final map in buffered) {
       try {
-        final ice = RTCIceCandidate(
-          map['candidate'] as String? ?? '',
-          map['sdpMid'] as String?,
-          map['sdpMLineIndex'] as int?,
-        );
+        final ice = RTCIceCandidate(map['candidate'] as String? ?? '', map['sdpMid'] as String?, map['sdpMLineIndex'] as int?);
         await pc.addCandidate(ice);
       } catch (e) {
         debugPrint('[Mesh] ⚠️  缓冲ICE添加失败 | peer=$peerUid | err=$e');
@@ -544,30 +573,20 @@ class WebrtcController extends GetxController {
 
   Map<String, dynamic>? _parseIceCandidateMap(String raw) {
     try {
-      // candidate 可能是 JSON 格式
       if (raw.trimLeft().startsWith('{')) {
         return jsonDecode(raw) as Map<String, dynamic>;
       }
-      // 也可能是 SDP 字符串格式，包装为 candidate 字段
       return {'candidate': raw, 'sdpMid': null, 'sdpMLineIndex': null};
     } catch (_) {
       return null;
     }
   }
 
-  Future<void> _addIceToPeer(
-    RTCPeerConnection pc,
-    String fromUid,
-    String raw,
-  ) async {
+  Future<void> _addIceToPeer(RTCPeerConnection pc, String fromUid, String raw) async {
     final map = _parseIceCandidateMap(raw);
     if (map == null) return;
     try {
-      final iceCandidate = RTCIceCandidate(
-        map['candidate'] as String? ?? '',
-        map['sdpMid'] as String?,
-        map['sdpMLineIndex'] as int?,
-      );
+      final iceCandidate = RTCIceCandidate(map['candidate'] as String? ?? '', map['sdpMid'] as String?, map['sdpMLineIndex'] as int?);
       await pc.addCandidate(iceCandidate);
     } catch (e) {
       debugPrint('[Mesh] ⚠️  addCandidate 失败 | from=$fromUid | err=$e');
@@ -576,8 +595,22 @@ class WebrtcController extends GetxController {
 
   // ==================== Peer 清理 ====================
 
-  /// 移除指定 peer 的所有资源
+  /// 内部清理（不检查 _peersInProgress）——仅在 catch 块中使用
+  void _removePeerInternal(String uid) {
+    _doRemovePeer(uid);
+  }
+
+  /// 公开清理——检查是否正在处理中
   void _removePeer(String uid) {
+    if (_peersInProgress.contains(uid)) {
+      _pendingRemovals.add(uid);
+      debugPrint('[Mesh] 🚫 延迟清理 | uid=$uid');
+      return;
+    }
+    _doRemovePeer(uid);
+  }
+
+  void _doRemovePeer(String uid) {
     debugPrint('[Mesh] 🧹 清理 peer | uid=$uid');
 
     _pcs[uid]?.close();
@@ -586,7 +619,6 @@ class WebrtcController extends GetxController {
     _remoteStreams[uid]?.dispose();
     _remoteStreams.remove(uid);
 
-    // 释放克隆轨道
     final tracks = _clonedTracks.remove(uid);
     if (tracks != null) {
       for (final t in tracks) {
@@ -601,6 +633,7 @@ class WebrtcController extends GetxController {
     }
 
     _bufferedCandidates.remove(uid);
+    _pendingRemovals.remove(uid);
     remotePeerUids.remove(uid);
   }
 
@@ -626,22 +659,21 @@ class WebrtcController extends GetxController {
     localRenderer.srcObject = null;
     localRenderer.dispose();
 
-    // 清理所有远端 peer
     for (final uid in _pcs.keys.toList()) {
-      _removePeer(uid);
+      _doRemovePeer(uid);
     }
 
-    // 清理所有缓冲
     _bufferedCandidates.clear();
     _clonedTracks.clear();
     _pendingPeers.clear();
+    _peersInProgress.clear();
+    _pendingRemovals.clear();
 
     debugPrint('[Mesh] 🧹 全局清理完毕');
   }
 
   // ==================== 串行建连队列处理 ====================
 
-  /// 串行建连：逐个处理队列中的 peer，避免 flutter_webrtc 并发竞态
   Future<void> _connectNext() async {
     _connectNextImpl();
   }
@@ -659,14 +691,12 @@ class WebrtcController extends GetxController {
 
     try {
       await _establishConnection(peerUid, initiator: true);
-      // 建连成功后消费缓冲的 ICE candidates
       _flushBufferedCandidates(peerUid);
     } catch (e) {
       debugPrint('[Mesh] ❌ 建连失败 | peer=$peerUid | err=$e');
       _removePeer(peerUid);
     } finally {
       _isConnecting = false;
-      // 继续处理下一个 peer
       _connectNextImpl();
     }
   }
