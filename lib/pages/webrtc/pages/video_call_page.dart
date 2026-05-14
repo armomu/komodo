@@ -134,7 +134,7 @@ class _VideoCallPageState extends State<VideoCallPage> {
     // 3-4人 2x2 网格
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = 2;
+        const crossAxisCount = 2;
         final rowCount = (count / crossAxisCount).ceil();
         final aspectRatio =
             (constraints.maxWidth / crossAxisCount) /
@@ -165,10 +165,30 @@ class _VideoCallPageState extends State<VideoCallPage> {
         ),
       );
     }
-    return RTCVideoView(
-      renderer,
-      mirror: false,
-      objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+    return Stack(
+      children: [
+        RTCVideoView(
+          renderer,
+          mirror: false,
+          objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+        ),
+        // 左下角名字标签
+        Positioned(
+          left: 8,
+          bottom: 8,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.black45,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              uid,
+              style: const TextStyle(color: Colors.white, fontSize: 11),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -189,10 +209,30 @@ class _VideoCallPageState extends State<VideoCallPage> {
       }
       return ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: RTCVideoView(
-          _controller.localRenderer,
-          mirror: true,
-          objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+        child: Stack(
+          children: [
+            RTCVideoView(
+              _controller.localRenderer,
+              mirror: true,
+              objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+            ),
+            // 左下角名字标签
+            Positioned(
+              left: 6,
+              bottom: 6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                  color: Colors.black45,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: Text(
+                  widget.myUid,
+                  style: const TextStyle(color: Colors.white, fontSize: 10),
+                ),
+              ),
+            ),
+          ],
         ),
       );
     });
