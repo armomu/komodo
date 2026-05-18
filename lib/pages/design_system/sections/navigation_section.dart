@@ -67,14 +67,22 @@ class _AppBarDemo extends StatelessWidget {
                 IconButton(icon: const Icon(Icons.share), onPressed: () {}),
               ],
             ),
-            SliverAppBar(
-              title: const Text('SliverAppBar'),
-              pinned: true,
-              expandedHeight: 100,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                ),
+            // SliverAppBar 只能在 CustomScrollView 中使用，这里用 Container 模拟展示
+            Container(
+              height: 56,
+              color: Theme.of(context).colorScheme.surface,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  const Icon(Icons.arrow_back),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      'SliverAppBar（需 CustomScrollView）',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -370,60 +378,63 @@ class _NavigationRailDemoState extends State<_NavigationRailDemo> {
     return _NavCategory(
       title: 'NavigationRail',
       description: '侧边导航栏',
-      child: Row(
-        children: [
-          NavigationRail(
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (index) =>
-                setState(() => _selectedIndex = index),
-            labelType: NavigationRailLabelType.all,
-            destinations: const [
-              NavigationRailDestination(
-                icon: Icon(Icons.home_outlined),
-                selectedIcon: Icon(Icons.home),
-                label: Text('首页'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.search),
-                selectedIcon: Icon(Icons.search),
-                label: Text('搜索'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.settings_outlined),
-                selectedIcon: Icon(Icons.settings),
-                label: Text('设置'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.person_outline),
-                selectedIcon: Icon(Icons.person),
-                label: Text('我的'),
-              ),
-            ],
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('选中的页面', style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  Text(
-                    _getPageContent(),
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+      child: SizedBox(
+        height: 240,
+        child: Row(
+          children: [
+            NavigationRail(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: (index) =>
+                  setState(() => _selectedIndex = index),
+              labelType: NavigationRailLabelType.all,
+              destinations: const [
+                NavigationRailDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home),
+                  label: Text('首页'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.search),
+                  selectedIcon: Icon(Icons.search),
+                  label: Text('搜索'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.settings_outlined),
+                  selectedIcon: Icon(Icons.settings),
+                  label: Text('设置'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.person_outline),
+                  selectedIcon: Icon(Icons.person),
+                  label: Text('我的'),
+                ),
+              ],
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('选中的页面', style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 8),
+                    Text(
+                      _getPageContent(),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

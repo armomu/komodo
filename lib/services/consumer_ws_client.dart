@@ -147,9 +147,12 @@ class ConsumerWsClient extends GetxService {
   Stream<SdpData> get onAnswer => _onAnswer.stream;
   Stream<IceData> get onIceCandidate => _onIceCandidate.stream;
   Stream<int> get onCallEnded => _onCallEnded.stream;
-  Stream<VideoCallInviteData> get onVideoCallInvite => _onVideoCallInvite.stream;
-  Stream<VideoCallAcceptData> get onVideoCallAccept => _onVideoCallAccept.stream;
-  Stream<VideoCallRejectData> get onVideoCallReject => _onVideoCallReject.stream;
+  Stream<VideoCallInviteData> get onVideoCallInvite =>
+      _onVideoCallInvite.stream;
+  Stream<VideoCallAcceptData> get onVideoCallAccept =>
+      _onVideoCallAccept.stream;
+  Stream<VideoCallRejectData> get onVideoCallReject =>
+      _onVideoCallReject.stream;
 
   // ===================== 连接 / 断开 =====================
 
@@ -235,7 +238,11 @@ class ConsumerWsClient extends GetxService {
   }
 
   void sendIceCandidate(String roomId, int to, String candidate) {
-    _send('ice-candidate', {'roomId': roomId, 'to': to, 'candidate': candidate});
+    _send('ice-candidate', {
+      'roomId': roomId,
+      'to': to,
+      'candidate': candidate,
+    });
   }
 
   void sendEndCall(String roomId, int to) {
@@ -280,6 +287,7 @@ class ConsumerWsClient extends GetxService {
         case 'auth-error':
           isAuthenticated.value = false;
           _onChatError.add(data['message'] as String? ?? '认证失败');
+          Get.snackbar('认证失败', data['message']);
           break;
 
         case 'kicked':
@@ -289,7 +297,8 @@ class ConsumerWsClient extends GetxService {
 
         // ---- 在线列表 ----
         case 'online-list':
-          final list = (data['users'] as List<dynamic>?)
+          final list =
+              (data['users'] as List<dynamic>?)
                   ?.map((e) => OnlineUser.fromJson(e as Map<String, dynamic>))
                   .toList() ??
               [];
@@ -302,7 +311,9 @@ class ConsumerWsClient extends GetxService {
           if (globalUser != null) {
             final user = OnlineUser.fromJson(globalUser);
             onlineUsers.addIf(
-                !onlineUsers.any((u) => u.userId == user.userId), user);
+              !onlineUsers.any((u) => u.userId == user.userId),
+              user,
+            );
           } else if (data['userId'] != null) {
             _onUserJoined.add(data['userId'].toString());
           }
@@ -321,13 +332,15 @@ class ConsumerWsClient extends GetxService {
         // ---- 聊天 ----
         case 'chat-message':
           debugPrint('[WS] 向 onChatMessage 流推送消息 from=${data['from']}');
-          _onChatMessage.add(ChatMessageData(
-            from: data['from'] as int,
-            nickname: data['nickname'] as String? ?? '',
-            avatar: data['avatar'] as String? ?? '',
-            message: data['message'] as String? ?? '',
-            timestamp: data['timestamp'] as int? ?? 0,
-          ));
+          _onChatMessage.add(
+            ChatMessageData(
+              from: data['from'] as int,
+              nickname: data['nickname'] as String? ?? '',
+              avatar: data['avatar'] as String? ?? '',
+              message: data['message'] as String? ?? '',
+              timestamp: data['timestamp'] as int? ?? 0,
+            ),
+          );
           break;
 
         case 'chat-error':
@@ -337,7 +350,8 @@ class ConsumerWsClient extends GetxService {
         // ---- WebRTC 房间 ----
         case 'room-users':
           final roomId = data['roomId'] as String? ?? '';
-          final users = (data['users'] as List<dynamic>?)
+          final users =
+              (data['users'] as List<dynamic>?)
                   ?.map((e) => (e as Map<String, dynamic>)['userId'] as int)
                   .toList() ??
               [];
@@ -346,7 +360,8 @@ class ConsumerWsClient extends GetxService {
 
         case 'peer-ready':
           final prRoomId = data['roomId'] as String? ?? '';
-          final peers = (data['peers'] as List<dynamic>?)
+          final peers =
+              (data['peers'] as List<dynamic>?)
                   ?.map((e) => (e as Map<String, dynamic>)['userId'] as int)
                   .toList() ??
               [];
@@ -355,24 +370,30 @@ class ConsumerWsClient extends GetxService {
 
         // ---- WebRTC 信令 ----
         case 'offer':
-          _onOffer.add(SdpData(
-            from: data['from'] as int,
-            sdp: data['sdp'] as String? ?? '',
-          ));
+          _onOffer.add(
+            SdpData(
+              from: data['from'] as int,
+              sdp: data['sdp'] as String? ?? '',
+            ),
+          );
           break;
 
         case 'answer':
-          _onAnswer.add(SdpData(
-            from: data['from'] as int,
-            sdp: data['sdp'] as String? ?? '',
-          ));
+          _onAnswer.add(
+            SdpData(
+              from: data['from'] as int,
+              sdp: data['sdp'] as String? ?? '',
+            ),
+          );
           break;
 
         case 'ice-candidate':
-          _onIceCandidate.add(IceData(
-            from: data['from'] as int,
-            candidate: data['candidate'] as String? ?? '',
-          ));
+          _onIceCandidate.add(
+            IceData(
+              from: data['from'] as int,
+              candidate: data['candidate'] as String? ?? '',
+            ),
+          );
           break;
 
         case 'call-ended':
@@ -381,26 +402,32 @@ class ConsumerWsClient extends GetxService {
 
         // ---- 视频通话邀请 ----
         case 'video-call-invite':
-          _onVideoCallInvite.add(VideoCallInviteData(
-            from: data['from'] as int,
-            nickname: data['nickname'] as String? ?? '',
-            avatar: data['avatar'] as String? ?? '',
-            roomId: data['roomId'] as String? ?? '',
-          ));
+          _onVideoCallInvite.add(
+            VideoCallInviteData(
+              from: data['from'] as int,
+              nickname: data['nickname'] as String? ?? '',
+              avatar: data['avatar'] as String? ?? '',
+              roomId: data['roomId'] as String? ?? '',
+            ),
+          );
           break;
 
         case 'video-call-accept':
-          _onVideoCallAccept.add(VideoCallAcceptData(
-            from: data['from'] as int,
-            roomId: data['roomId'] as String? ?? '',
-          ));
+          _onVideoCallAccept.add(
+            VideoCallAcceptData(
+              from: data['from'] as int,
+              roomId: data['roomId'] as String? ?? '',
+            ),
+          );
           break;
 
         case 'video-call-reject':
-          _onVideoCallReject.add(VideoCallRejectData(
-            from: data['from'] as int,
-            roomId: data['roomId'] as String? ?? '',
-          ));
+          _onVideoCallReject.add(
+            VideoCallRejectData(
+              from: data['from'] as int,
+              roomId: data['roomId'] as String? ?? '',
+            ),
+          );
           break;
 
         default:
