@@ -12,6 +12,7 @@ import 'package:komodo/pages/login/register_page.dart';
 import 'package:komodo/pages/login/profile_edit_page.dart';
 import 'package:komodo/pages/webrtc/pages/call_entry_page.dart';
 import 'package:komodo/pages/message/pages/video_call_page.dart';
+import 'package:komodo/pages/reactive_demo/reactive_demo_page.dart';
 import '../pages/home/home_page.dart';
 import '../pages/settings/settings_page.dart';
 import '../pages/lifecycle/lifecycle_detail_page.dart';
@@ -41,6 +42,7 @@ abstract class Routes {
   static const String chatVideoCall = '/chat-video-call';
   static const String register = '/register';
   static const String profileEdit = '/profile-edit';
+  static const String reactiveDemo = '/reactive-demo';
 }
 
 /// 路由配置
@@ -167,6 +169,12 @@ class AppPages {
       page: () => const ProfileEditPage(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: Routes.reactiveDemo,
+      page: () => const ReactiveDemoPage(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
     ),
   ];
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:komodo/controllers/user_controller.dart';
-import 'package:komodo/utils/avatar_data.dart';
+import 'package:komodo/models/avatar_data.dart';
 
 /// 编辑资料页面
 /// 可修改昵称和头像（从8个在线头像中选择）
@@ -20,9 +20,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   @override
   void initState() {
     super.initState();
-    _nicknameController = TextEditingController(
-      text: _userController.nickname,
-    );
+    _nicknameController = TextEditingController(text: _userController.nickname);
     _selectedAvatar = _userController.avatar;
   }
 
@@ -35,19 +33,11 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   Future<void> _handleSave() async {
     final nickname = _nicknameController.text.trim();
     if (nickname.isEmpty) {
-      Get.snackbar(
-        '提示',
-        '昵称不能为空',
-        snackPosition: SnackPosition.TOP,
-      );
+      Get.snackbar('提示', '昵称不能为空', snackPosition: SnackPosition.TOP);
       return;
     }
     if (nickname.length > 50) {
-      Get.snackbar(
-        '提示',
-        '昵称最长50个字符',
-        snackPosition: SnackPosition.TOP,
-      );
+      Get.snackbar('提示', '昵称最长50个字符', snackPosition: SnackPosition.TOP);
       return;
     }
 

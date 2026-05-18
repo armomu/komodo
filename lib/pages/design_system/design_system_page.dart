@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:komodo/components/switch_theme.dart';
 import 'package:komodo/pages/ble_demo/ble_demo_page.dart';
 import 'package:komodo/pages/lifecycle/lifecycle_demo_page.dart';
+import 'package:komodo/pages/reactive_demo/reactive_demo_page.dart';
 import 'package:komodo/pages/webrtc/pages/call_entry_page.dart';
 import 'sections/colors_section.dart';
 import 'sections/typography_section.dart';
@@ -160,6 +161,13 @@ Widget buildDemoGrid(BuildContext context) {
       icon: Icons.videocam_outlined,
       color: const Color.fromARGB(215, 103, 67, 221),
       page: const CallEntryPage(),
+    ),
+    _SectionItem(
+      title: '响应式 DI',
+      subtitle: '类 GetX 响应式依赖注入 Demo',
+      icon: Icons.electric_bolt_outlined,
+      color: const Color.fromARGB(220, 255, 152, 0),
+      page: const ReactiveDemoPage(),
     ),
   ];
 
