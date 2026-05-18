@@ -86,72 +86,72 @@ class ChatDatabase extends GetxService {
       await _db!.rawQuery('SELECT COUNT(*) FROM $tableConversations'),
     );
     if (count == 0) {
-      await _seedDefaultData();
+      // await _seedDefaultData();
     }
   }
 
   // ── 种子数据 ──────────────────────────────────────────────────────────
 
-  Future<void> _seedDefaultData() async {
-    final conversations = [
-      ('Sarah Miller', 'https://picsum.photos/seed/user1/100/100'),
-      ('John Doe', 'https://picsum.photos/seed/user2/100/100'),
-      ('Emma Wilson', 'https://picsum.photos/seed/user3/100/100'),
-      ('Mike Chen', 'https://picsum.photos/seed/user4/100/100'),
-    ];
+  // Future<void> _seedDefaultData() async {
+  //   final conversations = [
+  //     ('Sarah Miller', 'https://picsum.photos/seed/user1/100/100'),
+  //     ('John Doe', 'https://picsum.photos/seed/user2/100/100'),
+  //     ('Emma Wilson', 'https://picsum.photos/seed/user3/100/100'),
+  //     ('Mike Chen', 'https://picsum.photos/seed/user4/100/100'),
+  //   ];
 
-    for (final (name, avatar) in conversations) {
-      final convId = await _insertConversation(
-        name,
-        avatar,
-        '你好呀～',
-        '昨天',
-        name == 'Sarah Miller' ? 2 : 0,
-      );
-      if (name == 'Sarah Miller') {
-        // 初始聊天记录
-        await _insertMessage(
-          convId,
-          ChatMsgType.timestamp,
-          false,
-          time: '19:01',
-        );
-        await _insertMessage(
-          convId,
-          ChatMsgType.text,
-          false,
-          content: '嗨，你好呀～很高兴认识你 😊',
-        );
-        await _insertMessage(
-          convId,
-          ChatMsgType.voice,
-          false,
-          voicePath: 'https://www.w3schools.com/html/horse.mp3',
-          duration: 11,
-        );
-        await _insertMessage(
-          convId,
-          ChatMsgType.image,
-          false,
-          imageUrl: 'https://picsum.photos/seed/chatimg1/400/600',
-        );
-        await _insertMessage(
-          convId,
-          ChatMsgType.text,
-          false,
-          content: '回复了一条信息',
-        );
-        await _insertMessage(convId, ChatMsgType.text, true, content: '你好呀～');
-        await _insertMessage(
-          convId,
-          ChatMsgType.voice,
-          true,
-          voicePath: 'https://www.w3schools.com/html/horse.mp3',
-          duration: 5,
-        );
-      }
-    }
-  }
+  //   for (final (name, avatar) in conversations) {
+  //     final convId = await _insertConversation(
+  //       name,
+  //       avatar,
+  //       '你好呀～',
+  //       '昨天',
+  //       name == 'Sarah Miller' ? 2 : 0,
+  //     );
+  //     if (name == 'Sarah Miller') {
+  //       // 初始聊天记录
+  //       await _insertMessage(
+  //         convId,
+  //         ChatMsgType.timestamp,
+  //         false,
+  //         time: '19:01',
+  //       );
+  //       await _insertMessage(
+  //         convId,
+  //         ChatMsgType.text,
+  //         false,
+  //         content: '嗨，你好呀～很高兴认识你 😊',
+  //       );
+  //       await _insertMessage(
+  //         convId,
+  //         ChatMsgType.voice,
+  //         false,
+  //         voicePath: 'https://www.w3schools.com/html/horse.mp3',
+  //         duration: 11,
+  //       );
+  //       await _insertMessage(
+  //         convId,
+  //         ChatMsgType.image,
+  //         false,
+  //         imageUrl: 'https://picsum.photos/seed/chatimg1/400/600',
+  //       );
+  //       await _insertMessage(
+  //         convId,
+  //         ChatMsgType.text,
+  //         false,
+  //         content: '回复了一条信息',
+  //       );
+  //       await _insertMessage(convId, ChatMsgType.text, true, content: '你好呀～');
+  //       await _insertMessage(
+  //         convId,
+  //         ChatMsgType.voice,
+  //         true,
+  //         voicePath: 'https://www.w3schools.com/html/horse.mp3',
+  //         duration: 5,
+  //       );
+  //     }
+  //   }
+  // }
 
   // ── 会话 CRUD ──────────────────────────────────────────────────────
 
