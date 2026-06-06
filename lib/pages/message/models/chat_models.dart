@@ -140,6 +140,7 @@ class ConsumerItem {
   final int id;
   final String nickname;
   final String avatar;
+  final String recentMsg;
   final bool enable;
   final int unread;
   bool isOnline;
@@ -148,6 +149,7 @@ class ConsumerItem {
     required this.id,
     required this.nickname,
     required this.avatar,
+    this.recentMsg = '',
     required this.enable,
     this.unread = 0,
     this.isOnline = false,
