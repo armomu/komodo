@@ -1,39 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:komodo/components/switch_theme.dart';
 import '../../../theme/app_theme.dart';
 
 /// ========================================
 /// 对话框 - Material 3 Dialogs
 /// ========================================
-class DialogsSection extends StatelessWidget {
-  const DialogsSection({super.key});
+/// 对话框内容组件（可内联复用）
+class DialogsSectionBody extends StatelessWidget {
+  const DialogsSectionBody({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('对话框'),
-        actions: const [SwitchThemeWidget()],
-      ),
-      body: const SingleChildScrollView(
-        padding: EdgeInsets.all(0),
-        child: Column(
-          children: [
-            _AlertDialogDemo(),
-            SizedBox(height: 24),
-            _SimpleDialogDemo(),
-            SizedBox(height: 24),
-            _ConfirmDialogDemo(),
-            SizedBox(height: 24),
-            _CustomDialogDemo(),
-            SizedBox(height: 24),
-            _FullScreenDialogDemo(),
-            SizedBox(height: 24),
-            _DateTimePickerDialogDemo(),
-            SizedBox(height: 100),
-          ],
-        ),
-      ),
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _AlertDialogDemo(),
+        SizedBox(height: 24),
+        _SimpleDialogDemo(),
+        SizedBox(height: 24),
+        _ConfirmDialogDemo(),
+        SizedBox(height: 24),
+        _CustomDialogDemo(),
+        SizedBox(height: 24),
+        _FullScreenDialogDemo(),
+        SizedBox(height: 24),
+        _DateTimePickerDialogDemo(),
+        SizedBox(height: 100),
+      ],
     );
   }
 }
@@ -539,30 +531,27 @@ class _DialogCategory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(0),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            description,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(height: 4),
-            Text(
-              description,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 16),
-            child,
-          ],
-        ),
+          ),
+          const SizedBox(height: 16),
+          child,
+        ],
       ),
     );
   }

@@ -3,7 +3,11 @@ import 'package:get/get.dart';
 import 'package:komodo/components/app_bottom_sheet.dart';
 import 'package:komodo/components/switch_theme.dart';
 import 'package:komodo/controllers/user_controller.dart';
-import 'package:komodo/pages/design_system/design_system_page.dart';
+import 'package:komodo/pages/profile/sections/colors_section.dart';
+import 'package:komodo/pages/profile/sections/cards_section.dart';
+import 'package:komodo/pages/profile/sections/lists_section.dart';
+import 'package:komodo/pages/profile/sections/dialogs_section.dart';
+import 'package:komodo/pages/profile/sections/other_section.dart';
 import 'package:komodo/routes/app_routes.dart';
 
 class ProfileTab extends StatefulWidget {
@@ -15,7 +19,7 @@ class ProfileTab extends StatefulWidget {
 
 class _ProfileTabState extends State<ProfileTab> {
   int _selectedTabIndex = 0;
-  final List<String> _tabs = ['DEMO', 'M3-UI组件', '动画', '歌单'];
+  final List<String> _tabs = ['颜色系统', '卡片组件', '列表组件', '对话框', '其他组件'];
 
   // Mock data
   final int _followers = 13;
@@ -27,15 +31,12 @@ class _ProfileTabState extends State<ProfileTab> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
     final userController = Get.find<UserController>();
-    final list = [
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Card(child: buildDemoGrid(context)),
-      ),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Card(child: buildDesignSystemSectionGrid(context)),
-      ),
+    final sectionBodies = <Widget>[
+      const ColorsSectionBody(),
+      const CardsSectionBody(),
+      const ListsSectionBody(),
+      const DialogsSectionBody(),
+      const OtherSectionBody(),
     ];
     return Scaffold(
       appBar: AppBar(
@@ -250,7 +251,8 @@ class _ProfileTabState extends State<ProfileTab> {
           _buildTabNavigation(context, isDark),
 
           const SizedBox(height: 12),
-          if (_selectedTabIndex < list.length) list[_selectedTabIndex],
+          if (_selectedTabIndex < sectionBodies.length)
+            sectionBodies[_selectedTabIndex],
           const SizedBox(height: 16),
         ],
       ),
@@ -380,50 +382,6 @@ class _ProfileTabState extends State<ProfileTab> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _SectionItem {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color color;
-  final Widget page;
-
-  _SectionItem({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.color,
-    required this.page,
-  });
-}
-
-class _SectionCard extends StatelessWidget {
-  final _SectionItem item;
-
-  const _SectionCard({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      onTap: () => Get.to(() => item.page),
-      leading: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          color: item.color.withAlpha(30),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(item.icon, color: item.color, size: 24),
-      ),
-      title: Text(item.title),
-      subtitle: Container(
-        padding: const EdgeInsets.only(top: 4),
-        child: Text(item.subtitle),
-      ),
-      trailing: const Icon(Icons.chevron_right),
     );
   }
 }

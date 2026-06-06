@@ -5,6 +5,35 @@ import '../../../theme/app_theme.dart';
 /// ========================================
 /// 其他组件 - Material 3 Other Components
 /// ========================================
+/// 其他组件内容（可内联复用）
+class OtherSectionBody extends StatelessWidget {
+  const OtherSectionBody({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      children: [
+        _AvatarDemo(),
+        SizedBox(height: 24),
+        _AnimatedContainerDemo(),
+        SizedBox(height: 24),
+        _ExpansionTileDemo(),
+        SizedBox(height: 24),
+        _WrapDemo(),
+        SizedBox(height: 24),
+        _AnimatedCrossFadeDemo(),
+        SizedBox(height: 24),
+        _GridViewDemo(),
+        SizedBox(height: 24),
+        _AspectRatioFittedBoxDemo(),
+        SizedBox(height: 24),
+        _GestureDetectorDemo(),
+        SizedBox(height: 120),
+      ],
+    );
+  }
+}
+
 class OtherSection extends StatelessWidget {
   const OtherSection({super.key});
 
@@ -15,29 +44,7 @@ class OtherSection extends StatelessWidget {
         title: const Text('其他组件'),
         actions: const [SwitchThemeWidget()],
       ),
-      body: const SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _AvatarDemo(),
-            SizedBox(height: 24),
-            _AnimatedContainerDemo(),
-            SizedBox(height: 24),
-            _ExpansionTileDemo(),
-            SizedBox(height: 24),
-            _WrapDemo(),
-            SizedBox(height: 24),
-            _AnimatedCrossFadeDemo(),
-            SizedBox(height: 24),
-            _GridViewDemo(),
-            SizedBox(height: 24),
-            _AspectRatioFittedBoxDemo(),
-            SizedBox(height: 24),
-            _GestureDetectorDemo(),
-            SizedBox(height: 100),
-          ],
-        ),
-      ),
+      body: const OtherSectionBody(),
     );
   }
 }
@@ -51,14 +58,11 @@ class _AvatarDemo extends StatelessWidget {
     return _OtherCategory(
       title: 'Avatar',
       description: '头像组件',
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      // padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '基础 Avatar',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-          const SizedBox(height: 8),
           Wrap(
             spacing: 12,
             runSpacing: 12,
@@ -163,6 +167,7 @@ class _AnimatedContainerDemoState extends State<_AnimatedContainerDemo> {
     return _OtherCategory(
       title: 'AnimatedContainer',
       description: '动画容器，属性变化时有平滑过渡',
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
           Center(
@@ -209,59 +214,56 @@ class _ExpansionTileDemo extends StatelessWidget {
     return const _OtherCategory(
       title: 'ExpansionTile',
       description: '可展开的列表项',
-      child: Card(
-        margin: EdgeInsets.zero,
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          children: [
-            ExpansionTile(
-              leading: Icon(Icons.folder),
-              title: Text('文件夹'),
-              subtitle: Text('点击展开'),
-              children: [
-                ListTile(
-                  leading: Icon(Icons.insert_drive_file),
-                  title: Text('文件 1.txt'),
-                  dense: true,
-                ),
-                ListTile(
-                  leading: Icon(Icons.insert_drive_file),
-                  title: Text('文件 2.txt'),
-                  dense: true,
-                ),
-              ],
-            ),
-            Divider(height: 1),
-            ExpansionTile(
-              leading: Icon(Icons.image),
-              title: Text('图片'),
-              subtitle: Text('3 个项目'),
-              children: [
-                ListTile(
-                  leading: Icon(Icons.photo),
-                  title: Text('photo1.jpg'),
-                  dense: true,
-                ),
-                ListTile(
-                  leading: Icon(Icons.photo),
-                  title: Text('photo2.jpg'),
-                  dense: true,
-                ),
-              ],
-            ),
-            Divider(height: 1),
-            ExpansionTile(
-              leading: Icon(Icons.settings),
-              title: Text('设置'),
-              subtitle: Text('展开查看更多'),
-              initiallyExpanded: true,
-              children: [
-                ListTile(title: Text('子设置 1'), dense: true),
-                ListTile(title: Text('子设置 2'), dense: true),
-              ],
-            ),
-          ],
-        ),
+      padding: EdgeInsets.all(16),
+      child: Column(
+        children: [
+          ExpansionTile(
+            leading: Icon(Icons.folder),
+            title: Text('文件夹'),
+            subtitle: Text('点击展开'),
+            children: [
+              ListTile(
+                leading: Icon(Icons.insert_drive_file),
+                title: Text('文件 1.txt'),
+                dense: true,
+              ),
+              ListTile(
+                leading: Icon(Icons.insert_drive_file),
+                title: Text('文件 2.txt'),
+                dense: true,
+              ),
+            ],
+          ),
+          Divider(height: 1),
+          ExpansionTile(
+            leading: Icon(Icons.image),
+            title: Text('图片'),
+            subtitle: Text('3 个项目'),
+            children: [
+              ListTile(
+                leading: Icon(Icons.photo),
+                title: Text('photo1.jpg'),
+                dense: true,
+              ),
+              ListTile(
+                leading: Icon(Icons.photo),
+                title: Text('photo2.jpg'),
+                dense: true,
+              ),
+            ],
+          ),
+          Divider(height: 1),
+          ExpansionTile(
+            leading: Icon(Icons.settings),
+            title: Text('设置'),
+            subtitle: Text('展开查看更多'),
+            initiallyExpanded: true,
+            children: [
+              ListTile(title: Text('子设置 1'), dense: true),
+              ListTile(title: Text('子设置 2'), dense: true),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -276,6 +278,7 @@ class _WrapDemo extends StatelessWidget {
     return _OtherCategory(
       title: 'Wrap',
       description: '自动换行的布局组件',
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -323,6 +326,7 @@ class _AnimatedCrossFadeDemoState extends State<_AnimatedCrossFadeDemo> {
     return _OtherCategory(
       title: 'AnimatedCrossFade',
       description: '两个子组件之间的交叉淡入淡出动画',
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
           AnimatedCrossFade(
@@ -407,6 +411,7 @@ class _GridViewDemo extends StatelessWidget {
     return _OtherCategory(
       title: 'GridView',
       description: '网格视图',
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -416,7 +421,7 @@ class _GridViewDemo extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           SizedBox(
-            height: 160,
+            height: 196,
             child: GridView.count(
               crossAxisCount: 4,
               mainAxisSpacing: 8,
@@ -462,6 +467,8 @@ class _AspectRatioFittedBoxDemo extends StatelessWidget {
     return _OtherCategory(
       title: 'AspectRatio & FittedBox',
       description: '调整组件比例和缩放',
+
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
           Expanded(
@@ -581,6 +588,8 @@ class _GestureDetectorDemoState extends State<_GestureDetectorDemo> {
     return _OtherCategory(
       title: 'GestureDetector',
       description: '手势检测',
+
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
           GestureDetector(
@@ -648,11 +657,13 @@ class _GestureDetectorDemoState extends State<_GestureDetectorDemo> {
 class _OtherCategory extends StatelessWidget {
   final String title;
   final String description;
+  final EdgeInsets padding;
   final Widget child;
 
   const _OtherCategory({
     required this.title,
     required this.description,
+    required this.padding,
     required this.child,
   });
 
@@ -661,21 +672,27 @@ class _OtherCategory extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
         ),
         const SizedBox(height: 4),
-        Text(
-          description,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            description,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
         const SizedBox(height: 16),
-        child,
+        Container(padding: padding, child: child),
       ],
     );
   }

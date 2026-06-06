@@ -4,7 +4,6 @@ import 'package:komodo/pages/live/push_demo.dart';
 import 'package:komodo/pages/music/music_player_page.dart';
 import 'package:komodo/pages/message/chat_page.dart';
 import 'package:komodo/pages/message/image_viewer_page.dart';
-import 'package:komodo/pages/design_system/design_system_page.dart';
 import 'package:komodo/pages/database_demo/database_demo_page.dart';
 import 'package:komodo/pages/cache_browser/cache_browser_page.dart';
 import 'package:komodo/pages/login/login_page.dart';
@@ -62,13 +61,6 @@ class AppPages {
     GetPage(
       name: Routes.settings,
       page: () => const SettingsPage(),
-      middlewares: [AuthMiddleware()],
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: Routes.designSystem,
-      page: () => const DesignSystemPage(),
       middlewares: [AuthMiddleware()],
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 250),

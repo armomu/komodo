@@ -5,19 +5,18 @@ import '../../../theme/app_theme.dart';
 /// ========================================
 /// 颜色系统 - Material 3 颜色规范
 /// ========================================
-class ColorsSection extends StatelessWidget {
-  const ColorsSection({super.key});
+
+/// 颜色系统内容组件（可内联复用）
+class ColorsSectionBody extends StatelessWidget {
+  const ColorsSectionBody({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('颜色系统'),
-        actions: const [SwitchThemeWidget()],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: const [
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           _SubTitle('基础色板'),
           SizedBox(height: 8),
           _BasicColorGrid(),
@@ -36,9 +35,25 @@ class ColorsSection extends StatelessWidget {
           _SubTitle('ColorScheme 颜色'),
           SizedBox(height: 8),
           _ColorSchemeColors(),
-          SizedBox(height: 100),
+          SizedBox(height: 8),
         ],
       ),
+    );
+  }
+}
+
+/// 颜色系统 - 完整页面（保留原入口）
+class ColorsSection extends StatelessWidget {
+  const ColorsSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('颜色系统'),
+        actions: const [SwitchThemeWidget()],
+      ),
+      body: const ColorsSectionBody(),
     );
   }
 }
@@ -222,7 +237,6 @@ class _ColorSchemeColors extends StatelessWidget {
           cs.onPrimaryContainer,
           cs.primaryContainer,
         ),
-        const SizedBox(height: 8),
         _ColorRow('secondary', cs.secondary, cs.onSecondary),
         _ColorRow('onSecondary', cs.onSecondary, cs.secondary),
         _ColorRow(
@@ -235,7 +249,6 @@ class _ColorSchemeColors extends StatelessWidget {
           cs.onSecondaryContainer,
           cs.secondaryContainer,
         ),
-        const SizedBox(height: 8),
         _ColorRow('tertiary', cs.tertiary, cs.onTertiary),
         _ColorRow('onTertiary', cs.onTertiary, cs.tertiary),
         _ColorRow(
@@ -248,7 +261,6 @@ class _ColorSchemeColors extends StatelessWidget {
           cs.onTertiaryContainer,
           cs.tertiaryContainer,
         ),
-        const SizedBox(height: 8),
         _ColorRow('surface', cs.surface, cs.onSurface),
         _ColorRow('onSurface', cs.onSurface, cs.surface),
         _ColorRow(
@@ -261,7 +273,6 @@ class _ColorSchemeColors extends StatelessWidget {
           cs.onSurfaceVariant,
           cs.surfaceContainerHighest,
         ),
-        const SizedBox(height: 8),
         _ColorRow(
           'surfaceContainerLowest',
           cs.surfaceContainerLowest,
@@ -279,12 +290,10 @@ class _ColorSchemeColors extends StatelessWidget {
           cs.surfaceContainerHighest,
           cs.onSurfaceVariant,
         ),
-        const SizedBox(height: 8),
         _ColorRow('error', cs.error, cs.onError),
         _ColorRow('onError', cs.onError, cs.error),
         _ColorRow('errorContainer', cs.errorContainer, cs.onErrorContainer),
         _ColorRow('onErrorContainer', cs.onErrorContainer, cs.errorContainer),
-        const SizedBox(height: 8),
         _ColorRow('outline', cs.outline, cs.surface),
         _ColorRow('outlineVariant', cs.outlineVariant, cs.surface),
         _ColorRow('inverseSurface', cs.inverseSurface, cs.onInverseSurface),
@@ -304,7 +313,7 @@ class _ColorRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           SizedBox(

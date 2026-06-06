@@ -4,6 +4,40 @@ import 'package:komodo/components/switch_theme.dart';
 /// ========================================
 /// 卡片组件 - Material 3 Cards
 /// ========================================
+
+/// 卡片组件内容（可内联复用）
+class CardsSectionBody extends StatelessWidget {
+  const CardsSectionBody({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _BasicCardDemo(),
+          SizedBox(height: 24),
+          _IconCardDemo(),
+          SizedBox(height: 24),
+          _ClickableCardDemo(),
+          SizedBox(height: 24),
+          _HorizontalCardDemo(),
+          SizedBox(height: 24),
+          _CardGroupDemo(),
+          SizedBox(height: 24),
+          _OutlinedCardDemo(),
+          SizedBox(height: 24),
+          _FilledCardDemo(),
+          SizedBox(height: 24),
+          _ElevatedCardDemo(),
+        ],
+      ),
+    );
+  }
+}
+
+/// 卡片组件 - 完整页面（保留原入口）
 class CardsSection extends StatelessWidget {
   const CardsSection({super.key});
 
@@ -14,29 +48,7 @@ class CardsSection extends StatelessWidget {
         title: const Text('卡片组件'),
         actions: const [SwitchThemeWidget()],
       ),
-      body: const SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _BasicCardDemo(),
-            SizedBox(height: 24),
-            _IconCardDemo(),
-            SizedBox(height: 24),
-            _ClickableCardDemo(),
-            SizedBox(height: 24),
-            _HorizontalCardDemo(),
-            SizedBox(height: 24),
-            _CardGroupDemo(),
-            SizedBox(height: 24),
-            _OutlinedCardDemo(),
-            SizedBox(height: 24),
-            _FilledCardDemo(),
-            SizedBox(height: 24),
-            _ElevatedCardDemo(),
-            SizedBox(height: 100),
-          ],
-        ),
-      ),
+      body: const CardsSectionBody(),
     );
   }
 }
