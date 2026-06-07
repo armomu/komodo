@@ -123,7 +123,13 @@ class _ChatContentState extends State<_ChatContent>
     final msgs = await db.getMessages(convId);
     if (mounted) {
       setState(() => _messages.addAll(msgs));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_scrollController.hasClients) return;
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      });
+      return Future.value();
     }
+    return Future.value();
   }
 
   Future<void> _saveMessageToDb(ChatMessage msg) async {
@@ -206,10 +212,11 @@ class _ChatContentState extends State<_ChatContent>
   @override
   void initState() {
     super.initState();
+    _initConversation();
     WidgetsBinding.instance.addObserver(this);
     _recorder = AudioRecorder();
-    _initConversation();
     _focusNode.addListener(() {
+      debugPrint('[_focusNode]=========================');
       if (_focusNode.hasFocus) {
         if (_showEmojiPicker || _showIconBar) {
           setState(() {
@@ -217,7 +224,10 @@ class _ChatContentState extends State<_ChatContent>
             _showIconBar = false;
           });
         }
-        _scrollToBottom(milliseconds: 280);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || !_scrollController.hasClients) return;
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        });
       }
     });
     // 监听播放状态
@@ -242,8 +252,6 @@ class _ChatContentState extends State<_ChatContent>
     setState(() {
       _myAvatar = userAvatar;
     });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
   }
 
   @override
