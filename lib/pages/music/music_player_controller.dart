@@ -280,17 +280,36 @@ class MusicPlayerController extends GetxController {
   }
 
   Future<void> nextTrack() async {
+    final nextIndex = (currentIndex.value + 1) % playlist.length;
+    // 立即显示缓冲状态（网络歌曲需要加载时间）
+    hasStartedPlaying.value = true;
+    if (playlist[nextIndex].audioPath.startsWith('http')) {
+      isBuffering.value = true;
+    }
     await _audioPlayer.seekToNext();
     await _audioPlayer.play();
   }
 
   Future<void> previousTrack() async {
+    final prevIndex =
+        (currentIndex.value - 1 + playlist.length) % playlist.length;
+    // 立即显示缓冲状态（网络歌曲需要加载时间）
+    hasStartedPlaying.value = true;
+    if (playlist[prevIndex].audioPath.startsWith('http')) {
+      isBuffering.value = true;
+    }
     await _audioPlayer.seekToPrevious();
     await _audioPlayer.play();
   }
 
   /// 点击播放列表中某首曲目
   Future<void> selectTrack(int index) async {
+    // 立即显示 MiniPlayerBar，不等待列表加载或缓冲完成
+    hasStartedPlaying.value = true;
+    // 若目标歌曲是网络歌曲，立即显示缓冲中状态
+    final bool isNetwork = playlist[index].audioPath.startsWith('http');
+    if (isNetwork) isBuffering.value = true;
+
     await _ensurePlaylistLoaded(); // 懒加载：首次切歌时才加载列表
     if (index == currentIndex.value) {
       // 已是当前曲，切换播放/暂停

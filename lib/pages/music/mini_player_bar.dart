@@ -183,20 +183,12 @@ class MiniPlayerBar extends StatelessWidget {
             bottomLeft: Radius.circular(8),
             bottomRight: Radius.circular(8),
           ),
-          child: isBuffering
-              ? LinearProgressIndicator(
-                  backgroundColor: Colors.white.withValues(alpha: 0.08),
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(track.accentColor),
-                  minHeight: 2,
-                )
-              : LinearProgressIndicator(
-                  value: progress.clamp(0.0, 1.0),
-                  backgroundColor: Colors.white.withValues(alpha: 0.08),
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(track.accentColor),
-                  minHeight: 2,
-                ),
+          child: LinearProgressIndicator(
+            value: progress.clamp(0.0, 1.0),
+            backgroundColor: Colors.white.withValues(alpha: 0.08),
+            valueColor: AlwaysStoppedAnimation<Color>(track.accentColor),
+            minHeight: 2,
+          ),
         ),
       );
     });

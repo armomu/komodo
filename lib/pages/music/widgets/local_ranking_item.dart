@@ -46,8 +46,7 @@ class LocalRankingItem extends StatelessWidget {
             onTap: onTap ?? () => Get.toNamed(Routes.musicPlayer),
             behavior: HitTestBehavior.opaque,
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
                   Container(
@@ -58,11 +57,14 @@ class LocalRankingItem extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     alignment: Alignment.center,
-                    child: Text('$rank',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: _rankColor)),
+                    child: Text(
+                      '$rank',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: _rankColor,
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Stack(
@@ -88,8 +90,11 @@ class LocalRankingItem extends StatelessWidget {
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => Container(
                               color: const Color(0xFF2A2A2A),
-                              child: Icon(Icons.music_note,
-                                  color: _rankColor, size: 20),
+                              child: Icon(
+                                Icons.music_note,
+                                color: _rankColor,
+                                size: 20,
+                              ),
                             ),
                           ),
                         ),
@@ -111,8 +116,11 @@ class LocalRankingItem extends StatelessWidget {
                                     color: Colors.white70,
                                   ),
                                 )
-                              : const Icon(Icons.volume_up_rounded,
-                                  color: Colors.white, size: 20),
+                              : const Icon(
+                                  Icons.volume_up_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
                         ),
                     ],
                   ),
@@ -121,102 +129,93 @@ class LocalRankingItem extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(data.title,
-                            style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: isCurrent ? _rankColor : null),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis),
+                        Text(
+                          data.title,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: isCurrent ? _rankColor : null,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         const SizedBox(height: 2),
-                        Text(data.artist,
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                                color: colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.5)),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis),
+                        Text(
+                          data.artist,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: colorScheme.onSurfaceVariant.withValues(
+                              alpha: 0.5,
+                            ),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 8),
                   isCurrent
-                      ? (isCurrentBuffering
-                          ? Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: _rankColor.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(12),
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _rankColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isCurrentPlaying
+                                    ? Icons.pause_rounded
+                                    : Icons.play_arrow_rounded,
+                                size: 14,
+                                color: _rankColor,
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 1.5,
-                                      color: _rankColor,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    '缓冲中',
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: _rankColor),
-                                  ),
-                                ],
+                              const SizedBox(width: 2),
+                              Text(
+                                isCurrentPlaying ? '播放中' : '已暂停',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: _rankColor,
+                                ),
                               ),
-                            )
-                          : Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: _rankColor.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                      isCurrentPlaying
-                                          ? Icons.pause_rounded
-                                          : Icons.play_arrow_rounded,
-                                      size: 14,
-                                      color: _rankColor),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                      isCurrentPlaying ? '播放中' : '已暂停',
-                                      style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: _rankColor)),
-                                ],
-                              ),
-                            ))
+                            ],
+                          ),
+                        )
                       : Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF32CD32)
-                                .withValues(alpha: 0.15),
+                            color: const Color(
+                              0xFF32CD32,
+                            ).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.trending_up,
-                                  size: 14, color: Color(0xFF32CD32)),
+                              Icon(
+                                Icons.trending_up,
+                                size: 14,
+                                color: Color(0xFF32CD32),
+                              ),
                               SizedBox(width: 2),
-                              Text('1',
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Color(0xFF32CD32))),
+                              Text(
+                                '1',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF32CD32),
+                                ),
+                              ),
                             ],
                           ),
                         ),
