@@ -97,7 +97,7 @@ class _ChatContentState extends State<_ChatContent>
   /// 处理收到的消息：仅更新界面（数据库写入由全局监听器负责）
   void _onReceiveMessage(ChatMessage msg, String rawMessage) {
     // 添加到界面
-    setState(() => _messages.add(msg));
+    setState(() => _messages.insert(0, msg));
     _scrollToBottom();
   }
 
@@ -121,15 +121,12 @@ class _ChatContentState extends State<_ChatContent>
     );
     _conversationId = convId;
     final msgs = await db.getMessages(convId);
-    if (mounted) {
-      setState(() => _messages.addAll(msgs));
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !_scrollController.hasClients) return;
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-      });
-      return Future.value();
-    }
-    return Future.value();
+    if (!mounted) return;
+    setState(() {
+      _messages
+        ..clear()
+        ..addAll(msgs.reversed);
+    });
   }
 
   Future<void> _saveMessageToDb(ChatMessage msg) async {
@@ -212,52 +209,61 @@ class _ChatContentState extends State<_ChatContent>
   @override
   void initState() {
     super.initState();
-    _initConversation();
-    WidgetsBinding.instance.addObserver(this);
-    _recorder = AudioRecorder();
-    _focusNode.addListener(() {
-      debugPrint('[_focusNode]=========================');
-      if (_focusNode.hasFocus) {
-        if (_showEmojiPicker || _showIconBar) {
-          setState(() {
-            _showEmojiPicker = false;
-            _showIconBar = false;
-          });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || !_scrollController.hasClients) return;
+      await _initConversation();
+      WidgetsBinding.instance.addObserver(this);
+      _recorder = AudioRecorder();
+      _focusNode.addListener(() {
+        if (_focusNode.hasFocus) {
+          if (_showEmojiPicker || _showIconBar) {
+            setState(() {
+              _showEmojiPicker = false;
+              _showIconBar = false;
+            });
+          }
         }
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted || !_scrollController.hasClients) return;
-          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-        });
+      });
+      // 监听播放状态
+      _lisenPlaying = ever(voiceCtrl.isPlaying, (bool playing) {
+        if (!playing && mounted) {
+          setState(() => _playingVoiceIndex = null);
+          _overlayEntry?.markNeedsBuild();
+        }
+      });
+      if (!Get.isRegistered<ChatVoiceController>()) {
+        Get.put(ChatVoiceController());
       }
-    });
-    // 监听播放状态
-    _lisenPlaying = ever(voiceCtrl.isPlaying, (bool playing) {
-      if (!playing && mounted) {
-        setState(() => _playingVoiceIndex = null);
-        _overlayEntry?.markNeedsBuild();
-      }
-    });
-    if (!Get.isRegistered<ChatVoiceController>()) {
-      Get.put(ChatVoiceController());
-    }
 
-    // 订阅 WebSocket 事件
-    _setupWsListeners();
+      // 订阅 WebSocket 事件
+      _setupWsListeners();
 
-    final box = GetStorage();
+      final box = GetStorage();
 
-    final userAvatar =
-        box.read<String>('user_avatar') ??
-        'https://picsum.photos/seed/myavatar/100/100';
-    setState(() {
-      _myAvatar = userAvatar;
+      final userAvatar =
+          box.read<String>('user_avatar') ??
+          'https://picsum.photos/seed/myavatar/100/100';
+      setState(() {
+        _myAvatar = userAvatar;
+      });
     });
   }
+
+  // double _lastKeyboardHeight = 0;
 
   @override
   void didChangeMetrics() {
     super.didChangeMetrics();
     final bool isKeyboardVisible = View.of(context).viewInsets.bottom > 0;
+    // 键盘弹出/收起动画期间，每帧都会触发
+    // final keyboardHeight = View.of(context).viewInsets.bottom;
+
+    // final delta = keyboardHeight - _lastKeyboardHeight;
+    // _lastKeyboardHeight = keyboardHeight;
+
+    // 每一帧都能拿到当前键盘高度，和上一帧对比得到增量
+    // debugPrint('键盘高度: $keyboardHeight, 增量: $delta');
+    // _scrollController.jumpTo(_scrollController.position.minScrollExtent);
     if (_isKeyboardVisible != isKeyboardVisible) {
       setState(() => _isKeyboardVisible = isKeyboardVisible);
       if (!isKeyboardVisible && _focusNode.hasFocus) {
@@ -290,7 +296,7 @@ class _ChatContentState extends State<_ChatContent>
     await Future.delayed(Duration(milliseconds: milliseconds));
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
+        _scrollController.position.minScrollExtent,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
       );
@@ -312,7 +318,7 @@ class _ChatContentState extends State<_ChatContent>
       isMe: true,
       content: trimmed,
     );
-    setState(() => _messages.add(msg));
+    setState(() => _messages.insert(0, msg));
     _saveMessageToDb(msg)
         .then((_) {
           debugPrint('[ChatPage] 发出的消息已写入数据库');
@@ -338,7 +344,7 @@ class _ChatContentState extends State<_ChatContent>
       imageUrl: imagePath,
       isLocalImage: true,
     );
-    setState(() => _messages.add(msg));
+    setState(() => _messages.insert(0, msg));
     _saveMessageToDb(msg)
         .then((_) {
           debugPrint('[ChatPage] 发出的消息已保存到数据库');
@@ -483,7 +489,7 @@ class _ChatContentState extends State<_ChatContent>
       voicePath: path,
     );
     setState(() {
-      _messages.add(msg);
+      _messages.insert(0, msg);
       _recordState = ChatRecordState.ready;
       _recordedPath = null;
       _recordSeconds = 0;
@@ -653,13 +659,19 @@ class _ChatContentState extends State<_ChatContent>
               }),
               child: ListView.builder(
                 controller: _scrollController,
+                reverse: true,
                 padding: const EdgeInsets.only(top: 8, bottom: 8),
                 itemCount: _messages.length + 1,
                 itemBuilder: (context, index) {
-                  if (index == _messages.length) {
+                  if (index == 0) {
                     return const SizedBox(height: 8);
                   }
-                  return _buildChatMessage(context, _messages[index], index);
+                  final msgIndex = index - 1;
+                  return _buildChatMessage(
+                    context,
+                    _messages[msgIndex],
+                    msgIndex,
+                  );
                 },
               ),
             ),
@@ -774,24 +786,33 @@ class _ChatContentState extends State<_ChatContent>
                   child: child,
                 ),
               ),
-              child: _showEmojiPicker
-                  ? EmojiPickerWidget(
-                      key: const ValueKey('emoji'),
+              child: _showEmojiPicker || _showIconBar
+                  ? const SizedBox(
                       height: _expandedHeight,
-                      onEmojiSelected: _sendEmojiMessage,
+                      child: Column(children: [
+                        
+                      ]
+                    ),
                     )
-                  : (_showIconBar
-                        ? ExpandedIconBar(
-                            key: const ValueKey('icons'),
-                            colorScheme: colorScheme,
-                            height: _expandedHeight,
-                            onImageTap: () {
-                              _pickAndSendImage();
-                              setState(() => _showIconBar = false);
-                            },
-                            onVideoCallTap: _startVideoCall,
-                          )
-                        : const SizedBox(key: ValueKey('empty'))),
+                  : const SizedBox.shrink(),
+              // _showEmojiPicker
+              //     ? EmojiPickerWidget(
+              //         key: const ValueKey('emoji'),
+              //         height: _expandedHeight,
+              //         onEmojiSelected: _sendEmojiMessage,
+              //       )
+              //     : (_showIconBar
+              //           ? ExpandedIconBar(
+              //               key: const ValueKey('icons'),
+              //               colorScheme: colorScheme,
+              //               height: _expandedHeight,
+              //               onImageTap: () {
+              //                 _pickAndSendImage();
+              //                 setState(() => _showIconBar = false);
+              //               },
+              //               onVideoCallTap: _startVideoCall,
+              //             )
+              //           : const SizedBox(key: ValueKey('empty'))),
             ),
           ],
         ),
