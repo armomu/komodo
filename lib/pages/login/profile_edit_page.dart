@@ -47,34 +47,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     );
 
     if (success) {
-      if (mounted) {
-        Get.back();
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          Get.snackbar(
-            '保存成功',
-            '资料已更新',
-            snackPosition: SnackPosition.TOP,
-            backgroundColor: Colors.green.shade50,
-            colorText: Colors.green.shade700,
-            icon: const Icon(Icons.check_circle_outline, color: Colors.green),
-            duration: const Duration(seconds: 2),
-          );
-        }
-      }
-    } else {
-      if (mounted) {
-        Get.snackbar(
-          '保存失败',
-          _userController.errorMessage.isNotEmpty
-              ? _userController.errorMessage
-              : '请稍后重试',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red.shade50,
-          colorText: Colors.red.shade700,
-          icon: const Icon(Icons.error_outline, color: Colors.red),
-        );
-      }
+      Get.back();
     }
   }
 

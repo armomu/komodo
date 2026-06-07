@@ -48,9 +48,6 @@ class MiniPlayerBar extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 顶部细线
-            Container(height: 0.5, color: Colors.white.withValues(alpha: 0.1)),
-
             // 主内容区
             GestureDetector(
               onTap: () => Get.toNamed(Routes.musicPlayer),
