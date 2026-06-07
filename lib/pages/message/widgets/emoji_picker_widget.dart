@@ -17,11 +17,7 @@ class EmojiPickerWidget extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       height: height,
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainer,
-        border:
-            Border(top: BorderSide(color: colorScheme.outline, width: 1)),
-      ),
+      decoration: BoxDecoration(color: colorScheme.surfaceContainer),
       child: Column(
         children: [
           Expanded(
@@ -43,8 +39,10 @@ class EmojiPickerWidget extends StatelessWidget {
                     color: colorScheme.surface,
                   ),
                   alignment: Alignment.center,
-                  child: Text(EmojiList[index],
-                      style: const TextStyle(fontSize: 24)),
+                  child: Text(
+                    EmojiList[index],
+                    style: const TextStyle(fontSize: 24),
+                  ),
                 ),
               ),
             ),

@@ -25,10 +25,7 @@ class ExpandedIconBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: height,
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainer,
-        border: Border(top: BorderSide(color: colorScheme.outline, width: 0.5)),
-      ),
+      decoration: BoxDecoration(color: colorScheme.surfaceContainer),
       child: Column(
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.start,

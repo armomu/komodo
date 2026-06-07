@@ -725,15 +725,7 @@ class _ChatContentState extends State<_ChatContent>
 
   Widget _buildBottomArea(BuildContext context, ColorScheme colorScheme) {
     return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: colorScheme.outline.withValues(alpha: 0.3),
-            width: 1,
-          ),
-        ),
-      ),
+      color: colorScheme.surface,
       child: SafeArea(
         top: false,
         child: Column(
@@ -787,32 +779,32 @@ class _ChatContentState extends State<_ChatContent>
                 ),
               ),
               child: _showEmojiPicker || _showIconBar
-                  ? const SizedBox(
+                  ? Container(
+                      color: colorScheme.primary,
                       height: _expandedHeight,
-                      child: Column(children: [
-                        
-                      ]
-                    ),
+                      child: Column(
+                        children: [
+                          if (_showEmojiPicker)
+                            EmojiPickerWidget(
+                              key: const ValueKey('emoji'),
+                              height: _expandedHeight,
+                              onEmojiSelected: _sendEmojiMessage,
+                            ),
+                          if (_showIconBar)
+                            ExpandedIconBar(
+                              key: const ValueKey('icons'),
+                              colorScheme: colorScheme,
+                              height: _expandedHeight,
+                              onImageTap: () {
+                                _pickAndSendImage();
+                                setState(() => _showIconBar = false);
+                              },
+                              onVideoCallTap: _startVideoCall,
+                            ),
+                        ],
+                      ),
                     )
                   : const SizedBox.shrink(),
-              // _showEmojiPicker
-              //     ? EmojiPickerWidget(
-              //         key: const ValueKey('emoji'),
-              //         height: _expandedHeight,
-              //         onEmojiSelected: _sendEmojiMessage,
-              //       )
-              //     : (_showIconBar
-              //           ? ExpandedIconBar(
-              //               key: const ValueKey('icons'),
-              //               colorScheme: colorScheme,
-              //               height: _expandedHeight,
-              //               onImageTap: () {
-              //                 _pickAndSendImage();
-              //                 setState(() => _showIconBar = false);
-              //               },
-              //               onVideoCallTap: _startVideoCall,
-              //             )
-              //           : const SizedBox(key: ValueKey('empty'))),
             ),
           ],
         ),

@@ -56,14 +56,7 @@ class ChatInputBar extends StatelessWidget {
             visualDensity: VisualDensity.comfortable,
             onPressed: onToggleVoiceMode,
             icon: isVoiceMode
-                ? Transform.rotate(
-                    angle: 45 * 3.1415926 / 180, // 1弧度 ≈ 57.3度，45度 = π/4
-                    child: Icon(
-                      Icons.add_circle_outline,
-                      size: 26,
-                      color: colorScheme.inverseSurface,
-                    ),
-                  )
+                ? Icon(Icons.close, size: 22, color: colorScheme.inverseSurface)
                 : Icon(
                     Icons.multitrack_audio,
                     size: 26,
@@ -125,13 +118,18 @@ class ChatInputBar extends StatelessWidget {
           ),
         ),
         // 发送按钮（替换加号）
-        IconButton(
-          visualDensity: VisualDensity.comfortable,
-          onPressed: () {
+        GestureDetector(
+          onTap: () {
             HapticFeedback.lightImpact();
             onSendTextMessage(textController.text);
           },
-          icon: Icon(Icons.send_rounded, size: 22, color: colorScheme.primary),
+          child: const Padding(
+            padding: EdgeInsets.only(left: 4, right: 12),
+            child: Text(
+              '发送',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+          ),
         ),
       ],
     );
@@ -152,14 +150,7 @@ class ChatInputBar extends StatelessWidget {
           icon: AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
             child: showEmojiPicker
-                ? Transform.rotate(
-                    angle: 45 * 3.1415926 / 180, // 1弧度 ≈ 57.3度，45度 = π/4
-                    child: Icon(
-                      Icons.add_circle_outline,
-                      size: 26,
-                      color: colorScheme.inverseSurface,
-                    ),
-                  )
+                ? const Icon(Icons.keyboard_arrow_up_rounded, size: 26)
                 : Icon(
                     Icons.emoji_emotions_outlined,
                     key: ValueKey(showEmojiPicker),
@@ -179,14 +170,7 @@ class ChatInputBar extends StatelessWidget {
             icon: AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
               child: showIconBar
-                  ? Transform.rotate(
-                      angle: 45 * 3.1415926 / 180, // 1弧度 ≈ 57.3度，45度 = π/4
-                      child: Icon(
-                        Icons.add_circle_outline,
-                        size: 26,
-                        color: colorScheme.inverseSurface,
-                      ),
-                    )
+                  ? const Icon(Icons.keyboard_arrow_up_rounded, size: 26)
                   : Icon(
                       Icons.add_circle_outline,
                       key: ValueKey(showIconBar),
@@ -216,23 +200,17 @@ class _ChatTextInputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 40,
-      child: TextField(
-        controller: controller,
-        focusNode: focusNode,
-        style: TextStyle(fontSize: 14, color: colorScheme.onSurface),
-        decoration: InputDecoration(
-          fillColor: colorScheme.outline,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 8,
-          ),
-          isDense: true,
-        ),
-        onSubmitted: onSubmitted,
+    return TextField(
+      controller: controller,
+      focusNode: focusNode,
+      style: TextStyle(fontSize: 14, color: colorScheme.onSurface),
+      decoration: InputDecoration(
+        fillColor: colorScheme.outline,
+        border: InputBorder.none,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        isDense: true,
       ),
+      onSubmitted: onSubmitted,
     );
   }
 }
@@ -254,9 +232,8 @@ class _VoiceRecordBar extends StatelessWidget {
     return GestureDetector(
       onLongPressStart: onStartRecording,
       onLongPressEnd: onStopRecording,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        height: 40,
+      child: Container(
+        height: 36,
         decoration: BoxDecoration(
           color: colorScheme.outline,
           borderRadius: BorderRadius.circular(10),
