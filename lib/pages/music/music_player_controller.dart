@@ -306,15 +306,16 @@ class MusicPlayerController extends GetxController {
   Future<void> selectTrack(int index) async {
     // 立即显示 MiniPlayerBar，不等待列表加载或缓冲完成
     hasStartedPlaying.value = true;
-    // 若目标歌曲是网络歌曲，立即显示缓冲中状态
-    final bool isNetwork = playlist[index].audioPath.startsWith('http');
-    if (isNetwork) isBuffering.value = true;
 
     await _ensurePlaylistLoaded(); // 懒加载：首次切歌时才加载列表
     if (index == currentIndex.value) {
-      // 已是当前曲，切换播放/暂停
+      // 已是当前曲，切换播放/暂停（不触发缓冲状态）
       await togglePlay();
       return;
+    }
+    // 切换到不同曲目：若是网络歌曲立即显示缓冲中
+    if (playlist[index].audioPath.startsWith('http')) {
+      isBuffering.value = true;
     }
     // seek 到指定索引，just_audio 会自动触发 currentIndexStream 更新歌词
     await _audioPlayer.seek(Duration.zero, index: index);
