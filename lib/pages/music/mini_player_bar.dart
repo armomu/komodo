@@ -115,6 +115,24 @@ class MiniPlayerBar extends StatelessWidget {
   /// 播放/暂停按钮
   Widget _buildPlayPauseButton(MusicPlayerController controller) {
     return Obx(() {
+      // 缓冲中 → 显示加载动画
+      if (controller.isBuffering.value) {
+        return const SizedBox(
+          width: 36,
+          height: 36,
+          child: Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: Colors.white70,
+              ),
+            ),
+          ),
+        );
+      }
+
       return GestureDetector(
         onTap: () => controller.togglePlay(),
         behavior: HitTestBehavior.opaque,
@@ -152,6 +170,7 @@ class MiniPlayerBar extends StatelessWidget {
     PlaylistItem track,
   ) {
     return Obx(() {
+      final isBuffering = controller.isBuffering.value;
       final progress = controller.duration.value.inMilliseconds > 0
           ? controller.position.value.inMilliseconds /
                 controller.duration.value.inMilliseconds
@@ -164,12 +183,20 @@ class MiniPlayerBar extends StatelessWidget {
             bottomLeft: Radius.circular(8),
             bottomRight: Radius.circular(8),
           ),
-          child: LinearProgressIndicator(
-            value: progress.clamp(0.0, 1.0),
-            backgroundColor: Colors.white.withValues(alpha: 0.08),
-            valueColor: AlwaysStoppedAnimation<Color>(track.accentColor),
-            minHeight: 2,
-          ),
+          child: isBuffering
+              ? LinearProgressIndicator(
+                  backgroundColor: Colors.white.withValues(alpha: 0.08),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(track.accentColor),
+                  minHeight: 2,
+                )
+              : LinearProgressIndicator(
+                  value: progress.clamp(0.0, 1.0),
+                  backgroundColor: Colors.white.withValues(alpha: 0.08),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(track.accentColor),
+                  minHeight: 2,
+                ),
         ),
       );
     });

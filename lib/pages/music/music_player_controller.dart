@@ -44,6 +44,8 @@ class MusicPlayerController extends GetxController {
   final RxList<LyricLine> lyrics = <LyricLine>[].obs;
   final RxInt currentLyricIndex = (-1).obs;
   final RxBool isLoading = false.obs;
+  // 缓冲中：仅对网络歌曲在播放前需要加载数据时触发
+  final RxBool isBuffering = false.obs;
 
   // 播放列表是否已加载（懒初始化标记）
   bool _playlistLoaded = false;
@@ -142,6 +144,11 @@ class MusicPlayerController extends GetxController {
         currentIndex.value = idx;
         _loadLyricsForCurrentTrack();
       }
+    });
+
+    // 缓冲状态（网络歌曲需要加载时出现）
+    _audioPlayer.processingStateStream.listen((state) {
+      isBuffering.value = state == ProcessingState.buffering;
     });
 
     // 播放完成 → 循环到第一首

@@ -38,6 +38,7 @@ class LocalRankingItem extends StatelessWidget {
       final isCurrent =
           player.hasStartedPlaying.value && player.currentTrack.id == data.id;
       final isCurrentPlaying = isCurrent && player.isPlaying.value;
+      final isCurrentBuffering = isCurrent && player.isBuffering.value;
 
       return Column(
         children: [
@@ -93,7 +94,7 @@ class LocalRankingItem extends StatelessWidget {
                           ),
                         ),
                       ),
-                      if (isCurrentPlaying)
+                      if (isCurrentPlaying || isCurrentBuffering)
                         Container(
                           width: 48,
                           height: 48,
@@ -101,8 +102,17 @@ class LocalRankingItem extends StatelessWidget {
                             shape: BoxShape.circle,
                             color: Colors.black.withValues(alpha: 0.45),
                           ),
-                          child: const Icon(Icons.volume_up_rounded,
-                              color: Colors.white, size: 20),
+                          child: isCurrentBuffering
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white70,
+                                  ),
+                                )
+                              : const Icon(Icons.volume_up_rounded,
+                                  color: Colors.white, size: 20),
                         ),
                     ],
                   ),
@@ -132,32 +142,62 @@ class LocalRankingItem extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   isCurrent
-                      ? Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: _rankColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                  isCurrentPlaying
-                                      ? Icons.pause_rounded
-                                      : Icons.play_arrow_rounded,
-                                  size: 14,
-                                  color: _rankColor),
-                              const SizedBox(width: 2),
-                              Text(
-                                  isCurrentPlaying ? '播放中' : '已暂停',
-                                  style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: _rankColor)),
-                            ],
-                          ),
-                        )
+                      ? (isCurrentBuffering
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: _rankColor.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 1.5,
+                                      color: _rankColor,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    '缓冲中',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: _rankColor),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: _rankColor.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                      isCurrentPlaying
+                                          ? Icons.pause_rounded
+                                          : Icons.play_arrow_rounded,
+                                      size: 14,
+                                      color: _rankColor),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                      isCurrentPlaying ? '播放中' : '已暂停',
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: _rankColor)),
+                                ],
+                              ),
+                            ))
                       : Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 4),

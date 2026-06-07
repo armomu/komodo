@@ -112,19 +112,28 @@ class PlaylistBottomSheet extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     trailing: isCurrent
-                        ? Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              color: track.accentColor,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.equalizer,
-                              color: Colors.white,
-                              size: 14,
-                            ),
-                          )
+                        ? (controller.isBuffering.value
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white70,
+                                ),
+                              )
+                            : Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: track.accentColor,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.equalizer,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
+                              ))
                         : null,
                   );
                 });

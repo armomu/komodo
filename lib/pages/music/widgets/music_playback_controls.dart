@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 /// 底部播放控制栏（上一首/播放暂停/下一首/播放列表）
 class MusicPlaybackControls extends StatelessWidget {
   final bool isPlaying;
+  final bool isBuffering;
   final VoidCallback onTogglePlay;
   final VoidCallback onPrevious;
   final VoidCallback onNext;
@@ -11,6 +12,7 @@ class MusicPlaybackControls extends StatelessWidget {
   const MusicPlaybackControls({
     super.key,
     required this.isPlaying,
+    required this.isBuffering,
     required this.onTogglePlay,
     required this.onPrevious,
     required this.onNext,
@@ -39,14 +41,14 @@ class MusicPlaybackControls extends StatelessWidget {
           ),
           // 上一首
           IconButton(
-            onPressed: onPrevious,
+            onPressed: isBuffering ? null : onPrevious,
             icon: const Icon(Icons.skip_previous_rounded),
-            color: Colors.white,
+            color: isBuffering ? Colors.white30 : Colors.white,
             iconSize: 32,
           ),
           // 播放/暂停
           GestureDetector(
-            onTap: onTogglePlay,
+            onTap: isBuffering ? null : onTogglePlay,
             child: Container(
               width: 64,
               height: 64,
@@ -54,18 +56,31 @@ class MusicPlaybackControls extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: Colors.white10,
               ),
-              child: Icon(
-                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                color: Colors.white,
-                size: 36,
-              ),
+              child: isBuffering
+                  ? const Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    )
+                  : Icon(
+                      isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 36,
+                    ),
             ),
           ),
           // 下一首
           IconButton(
-            onPressed: onNext,
+            onPressed: isBuffering ? null : onNext,
             icon: const Icon(Icons.skip_next_rounded),
-            color: Colors.white,
+            color: isBuffering ? Colors.white30 : Colors.white,
             iconSize: 32,
           ),
           // 播放列表

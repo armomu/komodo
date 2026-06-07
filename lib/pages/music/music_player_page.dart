@@ -157,14 +157,29 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
               ),
             ),
 
-            // 加载指示器
-            if (_controller.isLoading.value)
-              Container(
-                color: Colors.black26,
-                child: const Center(
-                  child: CircularProgressIndicator(color: Colors.white70),
-                ),
-              ),
+            // 加载指示器（列表加载中 或 网络歌曲缓冲中）
+            // if (_controller.isLoading.value || _controller.isBuffering.value)
+            //   Container(
+            //     color: Colors.black26,
+            //     child: Center(
+            //       child: Column(
+            //         mainAxisSize: MainAxisSize.min,
+            //         children: [
+            //           const CircularProgressIndicator(
+            //             color: Colors.white70,
+            //           ),
+            //           const SizedBox(height: 12),
+            //           Text(
+            //             _controller.isLoading.value ? '加载中...' : '缓冲中...',
+            //             style: TextStyle(
+            //               color: Colors.white.withValues(alpha: 0.7),
+            //               fontSize: 14,
+            //             ),
+            //           ),
+            //         ],
+            //       ),
+            //     ),
+            //   ),
           ],
         ),
       );
@@ -219,9 +234,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
         return SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: constraints.maxHeight,
-            ),
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: _buildSongInfo(),
           ),
         );
@@ -239,9 +252,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
           Column(
             mainAxisSize: MainAxisSize.max,
             children: [
-              VinylRecordPlayer(
-                size: MediaQuery.of(context).size.width * 0.50,
-              ),
+              VinylRecordPlayer(size: MediaQuery.of(context).size.width * 0.50),
               const SizedBox(height: 24),
               // Mini 歌词展示
               MiniLyricsView(
@@ -325,8 +336,14 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
         children: <Widget>[
           MusicFunctionButton(icon: Icons.graphic_eq, label: '音效'),
           MusicFunctionButton(icon: Icons.tune, label: '定时'),
-          MusicFunctionButton(icon: Icons.download_for_offline_outlined, label: '下载'),
-          MusicFunctionButton(icon: Icons.chat_bubble_outline_rounded, label: '评论'),
+          MusicFunctionButton(
+            icon: Icons.download_for_offline_outlined,
+            label: '下载',
+          ),
+          MusicFunctionButton(
+            icon: Icons.chat_bubble_outline_rounded,
+            label: '评论',
+          ),
           MusicFunctionButton(icon: Icons.live_tv, label: '直播'),
           MusicFunctionButton(icon: Icons.more_vert, label: '更多'),
         ],
@@ -356,6 +373,7 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
     return Obx(
       () => MusicPlaybackControls(
         isPlaying: _controller.isPlaying.value,
+        isBuffering: _controller.isBuffering.value,
         onTogglePlay: _controller.togglePlay,
         onPrevious: _controller.previousTrack,
         onNext: _controller.nextTrack,
