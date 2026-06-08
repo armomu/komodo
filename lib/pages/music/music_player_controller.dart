@@ -149,7 +149,7 @@ class MusicPlayerController extends GetxController {
   }
 
   void loadCurrentLyricIndex() {
-    if (_audioPlayer.playing == false && position.value != Duration.zero) {
+    if (position.value != Duration.zero) {
       _updateCurrentLyricIndex(position.value);
     }
   }

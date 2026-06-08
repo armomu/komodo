@@ -68,8 +68,29 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
         );
+      } else if (_tabController.index == 1) {
+        // Tab 切换完成且落在歌词页时，滚动歌词到当前位置
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToCurrentLyricIfNeeded();
+        });
       }
     });
+    // 首帧后滚动到当前歌词位置（此时 ScrollController 已 attach）
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToCurrentLyricIfNeeded();
+    });
+  }
+
+  /// 主动滚动到当前歌词位置（不依赖索引变化）
+  void _scrollToCurrentLyricIfNeeded() {
+    final index = _controller.currentLyricIndex.value;
+    if (index < 0) return;
+    if (_lyricsScrollController.hasClients) {
+      _scrollToCurrentLyric(index);
+    }
+    if (_miniLyricsScrollController.hasClients) {
+      _scrollMiniLyricToCenter(index);
+    }
   }
 
   @override
@@ -123,6 +144,12 @@ class _MusicPlayerPageState extends State<MusicPlayerPage>
   void _onPageChanged(int index) {
     _tabController.animateTo(index);
     setState(() => _topTabIndex = index);
+    // 切换到歌词 Tab（page=1）时，滚动歌词到当前位置
+    if (index == 1) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToCurrentLyricIfNeeded();
+      });
+    }
   }
 
   /// 显示播放列表底部弹窗
