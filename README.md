@@ -2,6 +2,18 @@
 
 音视频、直播流 IM 类的示例应用，包含 NestJS 完整后台
 
+
+<p align="center">
+  <img width="24.6%" src="https://github.com/armomu/komodo/raw/main/assets/img/1.jpg">
+  <img width="24.6%" src="https://github.com/armomu/komodo/raw/main/assets/img/2.jpg">
+  <img width="24.6%" src="https://github.com/armomu/komodo/raw/main/assets/img/3.jpg">
+  <img width="24.6%" src="https://github.com/armomu/komodo/raw/main/assets/img/4.jpg">
+  <img width="24.6%" src="https://github.com/armomu/komodo/raw/main/assets/img/5.jpg">
+  <img width="24.6%" src="https://github.com/armomu/komodo/raw/main/assets/img/6.jpg">
+  <img width="24.6%" src="https://github.com/armomu/komodo/raw/main/assets/img/7.jpg">
+  <img width="24.6%" src="https://github.com/armomu/komodo/raw/main/assets/img/8.jpg">
+</p>
+
 ## 功能概览
 
 ### 注册/登录 (带完整后台服务)
