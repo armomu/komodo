@@ -41,6 +41,7 @@ class ConsumerListController extends GetxController {
     super.onInit();
     // 延迟一帧，等 GetX 绑定完成后再加载
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint('[ConsumerList] init=========================');
       if (Get.find<UserController>().isLoggedIn) {
         loadFirstPage();
       }
@@ -83,7 +84,10 @@ class ConsumerListController extends GetxController {
     isLoadingMore.value = true;
     final nextPage = _currentPage + 1;
     try {
-      final (items, totalPages, _) = await _repo.fetchConsumerPage(nextPage, 20);
+      final (items, totalPages, _) = await _repo.fetchConsumerPage(
+        nextPage,
+        20,
+      );
       _totalPages = totalPages;
       _currentPage = nextPage;
       _hasMore = _currentPage < _totalPages;
@@ -95,12 +99,14 @@ class ConsumerListController extends GetxController {
         final (content, time) = await db.getLastMessageByPeerId(item.id);
         final unread = await db.getUnreadCountByPeerId(item.id);
         final isOnline = wsCtrl.onlineUsers.any((u) => u.userId == item.id);
-        newItems.add(item.copyWith(
-          lastMessage: content,
-          lastTime: time,
-          unread: unread,
-          isOnline: isOnline,
-        ));
+        newItems.add(
+          item.copyWith(
+            lastMessage: content,
+            lastTime: time,
+            unread: unread,
+            isOnline: isOnline,
+          ),
+        );
       }
       consumers.addAll(newItems);
     } catch (e) {

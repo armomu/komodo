@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:komodo/config/base_url.dart';
 import 'package:komodo/models/user.dart';
+import 'package:komodo/pages/message/controllers/consumer_list_controller.dart';
 import 'package:komodo/utils/request.dart';
 import 'package:komodo/pages/message/controllers/consumer_ws_client.dart';
 
@@ -309,6 +310,7 @@ class UserController extends GetxController {
         box.write(_avatarKey, profile.avatar);
         final token = box.read<String>(BaseUrl.tokenKey) ?? '';
         _accessToken.value = token;
+        Get.find<ConsumerListController>().refreshList();
         return true;
       } else {
         _errorMessage.value = response.message;

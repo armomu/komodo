@@ -14,44 +14,43 @@ class ConsumerListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(
-      () {
-        // 未登录
-        if (!Get.find<UserController>().isLoggedIn) {
-          return _buildNotLoggedIn();
-        }
+    return Obx(() {
+      // 未登录
+      if (!Get.find<UserController>().isLoggedIn) {
+        return _buildNotLoggedIn();
+      }
 
-        // 首次加载中
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
+      // 首次加载中
+      if (controller.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
 
-        // 空列表
-        if (controller.consumers.isEmpty && !controller.isLoading.value) {
-          return _buildEmpty();
-        }
+      // 空列表
+      if (controller.consumers.isEmpty && !controller.isLoading.value) {
+        return _buildEmpty();
+      }
 
-        // 列表
-        return RefreshIndicator(
-          onRefresh: () => controller.refreshList(),
-          child: ListView.builder(
-            padding: const EdgeInsets.only(top: 8, bottom: 16),
-            itemCount: controller.consumers.length + 1, // +1 for loading more indicator
-            itemBuilder: (context, index) {
-              // 最后一项：加载更多指示器
-              if (index == controller.consumers.length) {
-                return _buildLoadMoreIndicator();
-              }
-              final item = controller.consumers[index];
-              return ConsumerListTile(
-                item: item,
-                onTap: () => controller.openChat(item),
-              );
-            },
-          ),
-        );
-      },
-    );
+      // 列表
+      return RefreshIndicator(
+        onRefresh: () => controller.refreshList(),
+        child: ListView.builder(
+          padding: const EdgeInsets.only(top: 8, bottom: 16),
+          itemCount:
+              controller.consumers.length + 1, // +1 for loading more indicator
+          itemBuilder: (context, index) {
+            // 最后一项：加载更多指示器
+            if (index == controller.consumers.length) {
+              return _buildLoadMoreIndicator();
+            }
+            final item = controller.consumers[index];
+            return ConsumerListTile(
+              item: item,
+              onTap: () => controller.openChat(item),
+            );
+          },
+        ),
+      );
+    });
   }
 
   Widget _buildNotLoggedIn() {
