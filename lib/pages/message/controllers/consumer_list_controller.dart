@@ -140,7 +140,8 @@ class ConsumerListController extends GetxController {
     // 设置当前聊天 peerId（WS 客户端用来判断是否在前台）
     final wsCtrl = Get.find<ConsumerWsClient>();
     wsCtrl.currentChatPeerId.value = item.id;
-    // 清未读（方案A：由 Controller 内存维护，进入即清）
+    // 清未读：DB 标记 is_read=1 + 内存置零
+    ChatDatabase.to.clearUnreadByPeerId(item.id);
     final idx = consumers.indexWhere((c) => c.id == item.id);
     if (idx != -1) {
       consumers[idx] = consumers[idx].copyWith(unread: 0);

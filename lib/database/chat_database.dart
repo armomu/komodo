@@ -47,7 +47,7 @@ class ChatDatabase extends GetxService {
 
     _db = await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE $tableMessages (
@@ -55,6 +55,7 @@ class ChatDatabase extends GetxService {
             peer_id INTEGER NOT NULL,
             type TEXT NOT NULL,
             is_me INTEGER NOT NULL DEFAULT 0,
+            is_read INTEGER NOT NULL DEFAULT 0,
             content TEXT,
             image_url TEXT,
             is_local_image INTEGER DEFAULT 0,
@@ -93,6 +94,12 @@ class ChatDatabase extends GetxService {
           // 旧表数据不迁移（方案A：conversations 已删除，peer_id 无法追溯）
           await db.execute('DROP TABLE IF EXISTS messages_old');
         }
+        if (oldVersion < 3) {
+          // v3：新增 is_read 字段，用于区分已读/未读消息
+          await db.execute(
+            'ALTER TABLE $tableMessages ADD COLUMN is_read INTEGER NOT NULL DEFAULT 0',
+          );
+        }
       },
     );
   }
@@ -106,6 +113,7 @@ class ChatDatabase extends GetxService {
       'peer_id': peerId,
       'type': msg.type.name,
       'is_me': msg.isMe ? 1 : 0,
+      'is_read': 0,
       'content': msg.content,
       'image_url': msg.imageUrl,
       'is_local_image': msg.isLocalImage ? 1 : 0,
@@ -164,25 +172,25 @@ class ChatDatabase extends GetxService {
     return (r['content'] as String?, r['time'] as String?);
   }
 
-  /// 获取某用户的未读消息数（is_me=0 的消息条数）
+  /// 获取某用户的未读消息数（is_me=0 且 is_read=0 的消息条数）
   Future<int> getUnreadCountByPeerId(int peerId) async {
     await ensureInitialized();
     final rows = await db.rawQuery(
-      'SELECT COUNT(*) as cnt FROM $tableMessages WHERE peer_id = ? AND is_me = 0',
+      'SELECT COUNT(*) as cnt FROM $tableMessages WHERE peer_id = ? AND is_me = 0 AND is_read = 0',
       [peerId],
     );
     return Sqflite.firstIntValue(rows) ?? 0;
   }
 
-  /// 清除某用户的未读数
+  /// 清除某用户的未读数（将所有收到的消息标记为已读）
   Future<void> clearUnreadByPeerId(int peerId) async {
-    // 方案A：未读数不单独存，通过 is_me=0 的消息条数实时计算
-    // 如需"已读/未读"状态，需要加一个 `is_read` 字段，
-    // 这里先保留接口，实际由 getUnreadCountByPeerId 实时查询。
     await ensureInitialized();
-    // 标记所有收到的消息为已读（未来加 is_read 字段后实现）
-    // 当前未读数 = 收到的消息总数（进入聊天页即视为全部已读）
-    // 所以 clearUnread 在方案A下不需要改 DB，只需在 Controller 里把 unread 置零
+    await db.update(
+      tableMessages,
+      {'is_read': 1},
+      where: 'peer_id = ? AND is_me = 0 AND is_read = 0',
+      whereArgs: [peerId],
+    );
   }
 
   /// 增加某用户的未读数（后台收到消息时调用）
