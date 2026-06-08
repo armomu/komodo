@@ -10,7 +10,10 @@ class PlaylistItem {
   final String avatarUrl;
   final Color accentColor;
 
-  const PlaylistItem({
+  /// 网络歌曲下载到本地的缓存路径，null 表示尚未缓存
+  String? cachedPath;
+
+  PlaylistItem({
     required this.id,
     required this.title,
     required this.artist,
@@ -18,6 +21,7 @@ class PlaylistItem {
     required this.lrcPath,
     required this.avatarUrl,
     required this.accentColor,
+    this.cachedPath,
   });
 }
 
@@ -30,7 +34,7 @@ class LyricLine {
 }
 
 /// 本地播放列表（热歌榜）
-const List<PlaylistItem> localPlaylist = [
+final List<PlaylistItem> localPlaylist = [
   PlaylistItem(
     id: '1',
     title: 'Manta',
@@ -38,7 +42,7 @@ const List<PlaylistItem> localPlaylist = [
     audioPath: 'sounds/Manta-刘柏辛.aac',
     lrcPath: 'sounds/Manta-刘柏辛.lrc',
     avatarUrl: 'https://picsum.photos/id/238/200/200',
-    accentColor: Color(0xFF1A6BAF),
+    accentColor: const Color(0xFF1A6BAF),
   ),
   PlaylistItem(
     id: '2',
@@ -47,24 +51,24 @@ const List<PlaylistItem> localPlaylist = [
     audioPath: 'sounds/离家出走-卫兰.mp3',
     lrcPath: 'sounds/离家出走-卫兰.lrc',
     avatarUrl: 'https://picsum.photos/id/239/200/200',
-    accentColor: Color(0xFF9B59B6),
+    accentColor: const Color(0xFF9B59B6),
   ),
   PlaylistItem(
     id: '3',
-    title: 'SoundHelix-Song',
-    artist: '未知',
+    title: 'SoundHelix',
+    artist: 'Song',
     audioPath: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
     lrcPath: '',
     avatarUrl: 'https://picsum.photos/id/241/200/200',
-    accentColor: Color.fromARGB(255, 0, 222, 177),
+    accentColor: const Color.fromARGB(255, 0, 222, 177),
   ),
   PlaylistItem(
     id: '5',
-    title: '马叫声',
+    title: 'Horse',
     artist: '无名',
     audioPath: 'https://www.w3schools.com/html/horse.mp3',
     lrcPath: '',
     avatarUrl: 'https://picsum.photos/id/1/200/200',
-    accentColor: Color.fromARGB(255, 77, 255, 109),
+    accentColor: const Color.fromARGB(255, 77, 255, 109),
   ),
 ];

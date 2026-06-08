@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:komodo/pages/music/music_cache_service.dart';
 import 'package:komodo/pages/music/music_models.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -25,8 +27,8 @@ import 'package:permission_handler/permission_handler.dart';
 // ═════════════════════════════════════════════════════════════════════════════
 
 class MusicPlayerController extends GetxController {
-  // 播放列表
-  static const List<PlaylistItem> playlist = localPlaylist;
+  // 播放列表（可变，用于支持 cachedPath 更新）
+  final List<PlaylistItem> playlist = List.of(localPlaylist);
 
   // 播放器（just_audio_background 包装 just_audio，额外处理系统媒体通知）
   late final AudioPlayer _audioPlayer;
@@ -52,6 +54,12 @@ class MusicPlayerController extends GetxController {
 
   // JustAudioBackground 是否已初始化
   static bool _backgroundInitDone = false;
+
+  // 是否已扫描过所有网络歌曲的本地缓存
+  bool _cacheChecked = false;
+
+  /// 正在缓存中的歌曲 audioPath 集合，防止重复下载
+  final Set<String> _cachingInProgress = {};
 
   // 当前歌曲
   PlaylistItem get currentTrack => playlist[currentIndex.value];
@@ -99,6 +107,9 @@ class MusicPlayerController extends GetxController {
     // 首次播放前完成 just_audio_background 初始化
     await _ensureBackgroundInit();
 
+    // 扫描所有网络歌曲的本地缓存
+    await _scanCachedPaths();
+
     isLoading.value = true;
     try {
       await _audioPlayer.setAudioSources(
@@ -112,6 +123,28 @@ class MusicPlayerController extends GetxController {
       debugPrint('[MusicPlayer] 加载播放列表失败: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /// 扫描所有网络歌曲是否有本地缓存，并填充 cachedPath
+  Future<void> _scanCachedPaths() async {
+    if (_cacheChecked) return;
+    _cacheChecked = true;
+
+    for (final track in playlist) {
+      final path = track.audioPath;
+      if (!path.startsWith('http://') && !path.startsWith('https://')) {
+        continue;
+      }
+      try {
+        final cached = await MusicCacheService.getCachedPath(path);
+        if (cached != null) {
+          track.cachedPath = cached;
+          debugPrint('[MusicCache] 命中缓存: ${track.title} -> $cached');
+        }
+      } catch (e) {
+        debugPrint('[MusicCache] 扫描缓存失败: $path, $e');
+      }
     }
   }
 
@@ -175,6 +208,22 @@ class MusicPlayerController extends GetxController {
 
     final String src = track.audioPath;
     if (src.startsWith('http://') || src.startsWith('https://')) {
+      // ── 优先使用本地缓存 ──────────────────────────────────────────
+      if (track.cachedPath != null) {
+        final cachedFile = File(track.cachedPath!);
+        if (cachedFile.existsSync()) {
+          debugPrint(
+            '[MusicCache] 播放缓存: ${track.title} <- ${track.cachedPath}',
+          );
+          return AudioSource.uri(
+            Uri.file(track.cachedPath!),
+            tag: mediaItem,
+          );
+        } else {
+          // 缓存文件已被删除，清除无效路径
+          track.cachedPath = null;
+        }
+      }
       return AudioSource.uri(Uri.parse(src), tag: mediaItem);
     } else {
       // asset 文件
@@ -259,12 +308,47 @@ class MusicPlayerController extends GetxController {
     }
   }
 
+  /// 如果当前歌曲是网络歌曲且尚未缓存，在后台下载缓存
+  Future<void> _cacheCurrentTrackIfNeeded() async {
+    final track = currentTrack;
+    final path = track.audioPath;
+
+    // 只处理网络歌曲
+    if (!path.startsWith('http://') && !path.startsWith('https://')) {
+      return;
+    }
+    // 已有缓存则跳过
+    if (track.cachedPath != null) {
+      final cachedFile = File(track.cachedPath!);
+      if (cachedFile.existsSync()) return;
+    }
+    // 已在下载中则跳过，防止并发重复下载
+    if (_cachingInProgress.contains(path)) {
+      debugPrint('[MusicCache] 正在下载中，跳过: ${track.title}');
+      return;
+    }
+
+    _cachingInProgress.add(path);
+    try {
+      debugPrint('[MusicCache] 开始后台缓存: ${track.title}');
+      final cached = await MusicCacheService.cacheSong(path);
+      track.cachedPath = cached;
+      debugPrint('[MusicCache] 缓存完成: ${track.title} -> $cached');
+    } catch (e) {
+      debugPrint('[MusicCache] 缓存失败: ${track.title}, $e');
+    } finally {
+      _cachingInProgress.remove(path);
+    }
+  }
+
   // ── 公开控制接口 ────────────────────────────────────────────────────
 
   Future<void> play() async {
     await _ensurePlaylistLoaded(); // 懒加载：首次播放时才加载列表
     hasStartedPlaying.value = true; // 标记已播过歌，UI 才能显示状态
     await _audioPlayer.play();
+    // 首次播放时后台缓存当前网络歌曲（后续切歌由 next/prev/select 触发）
+    _cacheCurrentTrackIfNeeded();
   }
 
   Future<void> pause() async {
@@ -288,6 +372,8 @@ class MusicPlayerController extends GetxController {
     }
     await _audioPlayer.seekToNext();
     await _audioPlayer.play();
+    // 后台缓存当前网络歌曲
+    _cacheCurrentTrackIfNeeded();
   }
 
   Future<void> previousTrack() async {
@@ -300,6 +386,8 @@ class MusicPlayerController extends GetxController {
     }
     await _audioPlayer.seekToPrevious();
     await _audioPlayer.play();
+    // 后台缓存当前网络歌曲
+    _cacheCurrentTrackIfNeeded();
   }
 
   /// 点击播放列表中某首曲目
@@ -320,6 +408,8 @@ class MusicPlayerController extends GetxController {
     // seek 到指定索引，just_audio 会自动触发 currentIndexStream 更新歌词
     await _audioPlayer.seek(Duration.zero, index: index);
     await play();
+    // 后台缓存当前网络歌曲
+    _cacheCurrentTrackIfNeeded();
   }
 
   String formatDuration(Duration d) {

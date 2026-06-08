@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:komodo/pages/music/music_cache_service.dart';
 
 // ─── 工具函数 ──────────────────────────────────────────────────────────
 
@@ -44,7 +45,8 @@ class CacheBrowserPage extends StatefulWidget {
   State<CacheBrowserPage> createState() => _CacheBrowserPageState();
 }
 
-class _CacheBrowserPageState extends State<CacheBrowserPage> {
+class _CacheBrowserPageState extends State<CacheBrowserPage>
+    with WidgetsBindingObserver {
   List<_CacheGroup> _groups = [];
   bool _loading = true;
   int _grandTotal = 0;
@@ -53,15 +55,36 @@ class _CacheBrowserPageState extends State<CacheBrowserPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadAllCache();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadAllCache();
+    }
   }
 
   Future<List<_CacheGroup>> _buildGroups() async {
     final appDir = await getApplicationDocumentsDirectory();
     final tempDir = await getTemporaryDirectory();
+    final musicCacheDir = await MusicCacheService.getCacheDirectory();
 
     // 缓存目录：按来源分组，即使目录不存在也保留以便提示
     final groups = <_CacheGroup>[
+      _CacheGroup(
+        title: '音乐缓存',
+        subtitle: '网络歌曲离线缓存文件',
+        icon: Icons.music_note,
+        directory: musicCacheDir,
+      ),
       _CacheGroup(
         title: '录音缓存',
         subtitle: '聊天语音消息录音文件',
@@ -245,22 +268,30 @@ class _CacheBrowserPageState extends State<CacheBrowserPage> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _grandTotal == 0
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.inbox_outlined, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text(
+                  const Icon(Icons.inbox_outlined, size: 64, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  const Text(
                     '暂无缓存文件',
                     style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                  const SizedBox(height: 24),
+                  OutlinedButton.icon(
+                    onPressed: _loadAllCache,
+                    icon: const Icon(Icons.refresh, size: 18),
+                    label: const Text('刷新'),
                   ),
                 ],
               ),
             )
-          : SafeArea(
-              bottom: true,
-              child: ListView.builder(
+          : RefreshIndicator(
+              onRefresh: _loadAllCache,
+              child: SafeArea(
+                bottom: true,
+                child: ListView.builder(
                 itemCount: _groups.length,
                 itemBuilder: (context, index) {
                   final group = _groups[index];
@@ -283,6 +314,7 @@ class _CacheBrowserPageState extends State<CacheBrowserPage> {
                   );
                 },
               ),
+            ),
             ),
     );
   }

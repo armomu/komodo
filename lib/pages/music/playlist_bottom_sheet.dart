@@ -38,7 +38,7 @@ class PlaylistBottomSheet extends StatelessWidget {
                 const Spacer(),
                 Obx(
                   () => Text(
-                    '${controller.currentIndex.value + 1}/${MusicPlayerController.playlist.length}',
+                    '${controller.currentIndex.value + 1}/${controller.playlist.length}',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.white.withValues(alpha: 0.5),
@@ -56,10 +56,10 @@ class PlaylistBottomSheet extends StatelessWidget {
           Flexible(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: MusicPlayerController.playlist.length,
+              itemCount: controller.playlist.length,
               itemBuilder: (context, index) {
                 return Obx(() {
-                  final track = MusicPlayerController.playlist[index];
+                  final track = controller.playlist[index];
                   final isCurrent = index == controller.currentIndex.value;
 
                   return ListTile(
