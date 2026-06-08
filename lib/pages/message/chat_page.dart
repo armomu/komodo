@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -67,7 +67,7 @@ class _ChatContentState extends State<_ChatContent>
   bool _isKeyboardVisible = false;
 
   final List<ChatMessage> _messages = [];
-  int? _conversationId;
+  // _conversationId 已移除（方案A：直接用 peerUserId）
 
   bool _showEmojiPicker = false;
   bool _showIconBar = false;
@@ -111,28 +111,23 @@ class _ChatContentState extends State<_ChatContent>
 
   // 视频通话状态
 
-  // ---- 数据库初始化 ----
+  // ---- 数据库初始化（方案A） ─────────────────────────
 
   Future<void> _initConversation() async {
     final db = ChatDatabase.to;
-    final (convId, _) = await db.getOrCreateConversation(
-      widget.peerName,
-      widget.peerAvatar,
-    );
-    _conversationId = convId;
-    final msgs = await db.getMessages(convId);
+    final msgs = await db.getMessagesByPeerId(widget.peerUserId);
     if (!mounted) return;
     setState(() {
       _messages
         ..clear()
         ..addAll(msgs.reversed);
     });
+    // 设置当前聊天 peerId（告诉 WS 客户端：正在聊天页）
+    Get.find<ConsumerWsClient>().currentChatPeerId.value = widget.peerUserId;
   }
 
   Future<void> _saveMessageToDb(ChatMessage msg) async {
-    if (_conversationId != null) {
-      await ChatDatabase.to.insertMessage(_conversationId!, msg);
-    }
+    await ChatDatabase.to.insertMessage(widget.peerUserId, msg);
   }
 
   // ---- WebSocket 订阅 ----
@@ -274,6 +269,8 @@ class _ChatContentState extends State<_ChatContent>
 
   @override
   void dispose() {
+    // 清除当前聊天 peerId
+    Get.find<ConsumerWsClient>().currentChatPeerId.value = null;
     WidgetsBinding.instance.removeObserver(this);
     _textController.dispose();
     _scrollController.dispose();
@@ -812,3 +809,4 @@ class _ChatContentState extends State<_ChatContent>
     );
   }
 }
+

@@ -135,67 +135,6 @@ class VideoCallRejectData {
   const VideoCallRejectData({required this.from, required this.roomId});
 }
 
-/// Consumer 列表项（分页 API 返回）
-class ConsumerItem {
-  final int id;
-  final String nickname;
-  final String avatar;
-  final String recentMsg;
-  final bool enable;
-  final int unread;
-  bool isOnline;
-
-  ConsumerItem({
-    required this.id,
-    required this.nickname,
-    required this.avatar,
-    this.recentMsg = '',
-    required this.enable,
-    this.unread = 0,
-    this.isOnline = false,
-  });
-
-  factory ConsumerItem.fromJson(Map<String, dynamic> json) {
-    return ConsumerItem(
-      id: json['id'] as int,
-      nickname: json['nickname'] as String? ?? '',
-      avatar: json['avatar'] as String? ?? '',
-      enable: json['enable'] as bool? ?? true,
-    );
-  }
-}
-
-/// 分页数据
-class PageData {
-  final List<ConsumerItem> list;
-  final int total;
-  final int page;
-  final int pageSize;
-  final int totalPages;
-
-  const PageData({
-    required this.list,
-    required this.total,
-    required this.page,
-    required this.pageSize,
-    required this.totalPages,
-  });
-
-  factory PageData.fromJson(Map<String, dynamic> json) {
-    return PageData(
-      list:
-          (json['list'] as List<dynamic>?)
-              ?.map((e) => ConsumerItem.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-      total: json['total'] as int? ?? 0,
-      page: json['page'] as int? ?? 1,
-      pageSize: json['pageSize'] as int? ?? 20,
-      totalPages: json['totalPages'] as int? ?? 0,
-    );
-  }
-}
-
 /// 通话状态
 enum CallState {
   /// 空闲

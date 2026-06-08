@@ -93,7 +93,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           _tabPages[pageIndex] = const ShortVideoTab();
           break;
         case 2:
-          _tabPages[pageIndex] = const MessageTab();
+          _tabPages[pageIndex] = MessageTab();
           break;
         case 3:
           _tabPages[pageIndex] = const ProfileTab();

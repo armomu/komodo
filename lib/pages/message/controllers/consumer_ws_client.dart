@@ -26,6 +26,9 @@ class ConsumerWsClient extends GetxService {
   final isAuthenticated = false.obs;
   final onlineUsers = <OnlineUser>[].obs;
 
+  /// 当前正在聊天的 peerId（null 表示不在聊天页）
+  final currentChatPeerId = Rx<int?>(null);
+
   // ===================== Stream 控制器 =====================
 
   final _onChatMessage = StreamController<ChatMessageData>.broadcast();
@@ -191,6 +194,11 @@ class ConsumerWsClient extends GetxService {
   /// 视频通话邀请
   void sendVideoCallInvite(int toUserId, String roomId) {
     _send('video-call-invite', {'to': toUserId, 'roomId': roomId});
+  }
+
+  /// 主动拉取在线用户列表（前端调用）
+  void sendGetOnlineUsers() {
+    _send('get-online-users', {});
   }
 
   void sendVideoCallAccept(int toUserId, String roomId) {
@@ -401,26 +409,36 @@ class ConsumerWsClient extends GetxService {
     });
   }
 
-  /// 处理收到的聊天消息：写入数据库
+  /// 处理收到的聊天消息：写入数据库（方案A）
+  /// UI 更新由 ConsumerListController 通过 onChatMessage stream 驱动
   void _handleIncomingMessage(ChatMessageData data) {
     debugPrint(
-      '收到消息 from=${data.from} msg=${data.message} page${Get.currentRoute} args=${Get.arguments}',
+      '[WS] 收到消息 from=${data.from} msg=${data.message}',
     );
-    if (Get.currentRoute != Routes.chat) {
-      // if (Get.context != null) {
-      //   ScaffoldMessenger.of(Get.context!).showSnackBar(
-      //     SnackBar(
-      //       duration: const Duration(seconds: 3),
-      //       content: Text(data.message),
-      //     ),
-      //   );
-      // }
 
+    final db = ChatDatabase.to;
+    final peerId = data.from;
+
+    // 写入数据库（方案A：直接用 peerId，无 conversations 表）
+    final msg = ChatMessage(
+      type: ChatMsgType.text,
+      isMe: false,
+      content: data.message,
+      time: _formatTime(DateTime.now()),
+    );
+    db.insertMessage(peerId, msg).catchError((e, stack) {
+      debugPrint('[WS] 写入数据库失败: $e\n$stack');
+      return -1;
+    });
+
+    // 如果当前不在聊天页，弹 SnackBar 通知
+    if (Get.currentRoute != Routes.chat) {
       Get.snackbar(
         data.nickname,
         data.message,
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.black87,
         colorText: Colors.white,
+        duration: const Duration(seconds: 3),
         onTap: (snack) {
           Get.closeCurrentSnackbar();
           Get.toNamed(
@@ -434,51 +452,14 @@ class ConsumerWsClient extends GetxService {
         },
       );
     }
-    final db = ChatDatabase.to;
+  }
 
-    // 直接使用事件数据中的昵称和头像（不再依赖 onlineUsers 列表）
-    final peerName = data.nickname;
-    final peerAvatar = data.avatar;
-
-    debugPrint('[HomePage] 准备写入数据库 peerName=$peerName');
-
-    // 获取或创建会话
-    db
-        .getOrCreateConversation(peerName, peerAvatar)
-        .then((result) {
-          final convId = result.$1;
-          // _cachedConvIds[data.from] = convId;
-
-          // 创建消息对象
-          final msg = ChatMessage(
-            type: ChatMsgType.text,
-            isMe: false,
-            content: data.message,
-          );
-
-          // 写入数据库
-          db
-              .insertMessage(convId, msg)
-              .then((_) {
-                debugPrint('[HomePage] 消息已写入数据库 convId=$convId');
-              })
-              .catchError((e, stack) {
-                debugPrint('[HomePage] 写入失败: $e\n$stack');
-              });
-
-          // 更新会话最新消息
-          final now = DateTime.now();
-          final timeStr =
-              '${now.hour}:${now.minute.toString().padLeft(2, '0')}';
-          db
-              .updateConversationLastMessage(convId, data.message, timeStr)
-              .catchError((e, stack) {
-                debugPrint('[HomePage] 更新会话失败: $e\n$stack');
-              });
-        })
-        .catchError((e, stack) {
-          debugPrint('[HomePage] 获取/创建会话失败: $e\n$stack');
-        });
+  String _formatTime(DateTime dt) {
+    final now = DateTime.now();
+    if (dt.year == now.year && dt.month == now.month && dt.day == now.day) {
+      return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    }
+    return '${dt.month}/${dt.day}';
   }
 
   @override

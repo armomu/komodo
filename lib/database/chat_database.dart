@@ -3,9 +3,9 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:get/get.dart';
 import 'package:komodo/pages/message/models/chat_models.dart';
-import 'package:komodo/models/message_models.dart';
 
-/// 聊天本地数据库 — 持久化会话列表 & 聊天消息
+/// 聊天本地数据库 — 方案A：去掉 conversations 表，
+/// messages 表直接用 peer_id 关联用户，无中间会话层。
 ///
 /// 启动优化：注册为全局 GetxService 但不立即初始化。
 ///   通过 ensureInitialized() 在首帧后或消息 Tab 首次访问时懒加载。
@@ -20,7 +20,6 @@ class ChatDatabase extends GetxService {
   Database get db => _db!;
 
   // ── 表名 ──────────────────────────────────────────────────────────
-  static const String tableConversations = 'conversations';
   static const String tableMessages = 'messages';
 
   // ── 懒初始化 ──────────────────────────────────────────────────────────
@@ -48,22 +47,12 @@ class ChatDatabase extends GetxService {
 
     _db = await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
-        await db.execute('''
-          CREATE TABLE $tableConversations (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            peer_name TEXT NOT NULL,
-            peer_avatar TEXT NOT NULL,
-            last_message TEXT,
-            last_time TEXT,
-            unread_count INTEGER DEFAULT 0
-          )
-        ''');
         await db.execute('''
           CREATE TABLE $tableMessages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            conversation_id INTEGER NOT NULL,
+            peer_id INTEGER NOT NULL,
             type TEXT NOT NULL,
             is_me INTEGER NOT NULL DEFAULT 0,
             content TEXT,
@@ -74,219 +63,68 @@ class ChatDatabase extends GetxService {
             gift_emoji TEXT,
             gift_label TEXT,
             time TEXT,
-            created_at TEXT NOT NULL,
-            FOREIGN KEY (conversation_id) REFERENCES $tableConversations(id)
+            created_at TEXT NOT NULL
           )
         ''');
       },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          // 方案A迁移：删掉旧表，重建 messages 表（旧数据不保留）
+          await db.execute('DROP TABLE IF EXISTS conversations');
+          await db.execute('DROP TABLE IF EXISTS messages_old');
+          await db.execute('ALTER TABLE $tableMessages RENAME TO messages_old');
+          await db.execute('''
+            CREATE TABLE $tableMessages (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              peer_id INTEGER NOT NULL,
+              type TEXT NOT NULL,
+              is_me INTEGER NOT NULL DEFAULT 0,
+              content TEXT,
+              image_url TEXT,
+              is_local_image INTEGER DEFAULT 0,
+              duration INTEGER,
+              voice_path TEXT,
+              gift_emoji TEXT,
+              gift_label TEXT,
+              time TEXT,
+              created_at TEXT NOT NULL
+            )
+          ''');
+          // 旧表数据不迁移（方案A：conversations 已删除，peer_id 无法追溯）
+          await db.execute('DROP TABLE IF EXISTS messages_old');
+        }
+      },
     );
-
-    // 首次启动时填充种子数据
-    final count = Sqflite.firstIntValue(
-      await _db!.rawQuery('SELECT COUNT(*) FROM $tableConversations'),
-    );
-    if (count == 0) {
-      // await _seedDefaultData();
-    }
   }
 
-  // ── 种子数据 ──────────────────────────────────────────────────────────
+  // ── 消息 CRUD（方案A：直接用 peer_id）────────────────────────────
 
-  // Future<void> _seedDefaultData() async {
-  //   final conversations = [
-  //     ('Sarah Miller', 'https://picsum.photos/seed/user1/100/100'),
-  //     ('John Doe', 'https://picsum.photos/seed/user2/100/100'),
-  //     ('Emma Wilson', 'https://picsum.photos/seed/user3/100/100'),
-  //     ('Mike Chen', 'https://picsum.photos/seed/user4/100/100'),
-  //   ];
-
-  //   for (final (name, avatar) in conversations) {
-  //     final convId = await _insertConversation(
-  //       name,
-  //       avatar,
-  //       '你好呀～',
-  //       '昨天',
-  //       name == 'Sarah Miller' ? 2 : 0,
-  //     );
-  //     if (name == 'Sarah Miller') {
-  //       // 初始聊天记录
-  //       await _insertMessage(
-  //         convId,
-  //         ChatMsgType.timestamp,
-  //         false,
-  //         time: '19:01',
-  //       );
-  //       await _insertMessage(
-  //         convId,
-  //         ChatMsgType.text,
-  //         false,
-  //         content: '嗨，你好呀～很高兴认识你 😊',
-  //       );
-  //       await _insertMessage(
-  //         convId,
-  //         ChatMsgType.voice,
-  //         false,
-  //         voicePath: 'https://www.w3schools.com/html/horse.mp3',
-  //         duration: 11,
-  //       );
-  //       await _insertMessage(
-  //         convId,
-  //         ChatMsgType.image,
-  //         false,
-  //         imageUrl: 'https://picsum.photos/seed/chatimg1/400/600',
-  //       );
-  //       await _insertMessage(
-  //         convId,
-  //         ChatMsgType.text,
-  //         false,
-  //         content: '回复了一条信息',
-  //       );
-  //       await _insertMessage(convId, ChatMsgType.text, true, content: '你好呀～');
-  //       await _insertMessage(
-  //         convId,
-  //         ChatMsgType.voice,
-  //         true,
-  //         voicePath: 'https://www.w3schools.com/html/horse.mp3',
-  //         duration: 5,
-  //       );
-  //     }
-  //   }
-  // }
-
-  // ── 会话 CRUD ──────────────────────────────────────────────────────
-
-  Future<int> _insertConversation(
-    String peerName,
-    String peerAvatar,
-    String? lastMessage,
-    String? lastTime, [
-    int unread = 0,
-  ]) async {
-    return await db.insert(tableConversations, {
-      'peer_name': peerName,
-      'peer_avatar': peerAvatar,
-      'last_message': lastMessage,
-      'last_time': lastTime,
-      'unread_count': unread,
-    });
-  }
-
-  Future<List<MessageItem>> getConversations() async {
+  /// 插入一条消息，返回新行 id
+  Future<int> insertMessage(int peerId, ChatMessage msg) async {
     await ensureInitialized();
-    final rows = await db.query(tableConversations, orderBy: 'id ASC');
-    return rows
-        .map(
-          (r) => MessageItem(
-            type: MessageType.private,
-            title: r['peer_name'] as String,
-            subtitle: r['last_message'] as String? ?? '',
-            time: r['last_time'] as String? ?? '',
-            avatarUrl: r['peer_avatar'] as String,
-            unread: r['unread_count'] as int? ?? 0,
-          ),
-        )
-        .toList();
-  }
-
-  /// 获取或创建会话，返回 (id, isNew)
-  Future<(int, bool)> getOrCreateConversation(
-    String peerName,
-    String peerAvatar,
-  ) async {
-    await ensureInitialized();
-    final rows = await db.query(
-      tableConversations,
-      where: 'peer_name = ?',
-      whereArgs: [peerName],
-    );
-    if (rows.isNotEmpty) {
-      return (rows.first['id'] as int, false);
-    }
-    final id = await _insertConversation(peerName, peerAvatar, null, null, 0);
-    return (id, true);
-  }
-
-  Future<void> updateConversationLastMessage(
-    int conversationId,
-    String lastMessage,
-    String lastTime,
-  ) async {
-    await ensureInitialized();
-    await db.update(
-      tableConversations,
-      {'last_message': lastMessage, 'last_time': lastTime},
-      where: 'id = ?',
-      whereArgs: [conversationId],
-    );
-  }
-
-  Future<void> updateConversationUnread(
-    int conversationId,
-    int unreadCount,
-  ) async {
-    await ensureInitialized();
-    await db.update(
-      tableConversations,
-      {'unread_count': unreadCount},
-      where: 'id = ?',
-      whereArgs: [conversationId],
-    );
-  }
-
-  // ── 消息 CRUD ──────────────────────────────────────────────────────
-
-  Future<int> _insertMessage(
-    int conversationId,
-    ChatMsgType type,
-    bool isMe, {
-    String? content,
-    String? imageUrl,
-    bool? isLocalImage,
-    int? duration,
-    String? voicePath,
-    String? giftEmoji,
-    String? giftLabel,
-    String? time,
-  }) async {
     return await db.insert(tableMessages, {
-      'conversation_id': conversationId,
-      'type': type.name,
-      'is_me': isMe ? 1 : 0,
-      'content': content,
-      'image_url': imageUrl,
-      'is_local_image': isLocalImage == true ? 1 : 0,
-      'duration': duration,
-      'voice_path': voicePath,
-      'gift_emoji': giftEmoji,
-      'gift_label': giftLabel,
-      'time': time,
+      'peer_id': peerId,
+      'type': msg.type.name,
+      'is_me': msg.isMe ? 1 : 0,
+      'content': msg.content,
+      'image_url': msg.imageUrl,
+      'is_local_image': msg.isLocalImage ? 1 : 0,
+      'duration': msg.duration,
+      'voice_path': msg.voicePath,
+      'gift_emoji': msg.giftEmoji,
+      'gift_label': msg.giftLabel,
+      'time': msg.time,
       'created_at': DateTime.now().toIso8601String(),
     });
   }
 
-  Future<int> insertMessage(int conversationId, ChatMessage msg) async {
-    await ensureInitialized();
-    return await _insertMessage(
-      conversationId,
-      msg.type,
-      msg.isMe,
-      content: msg.content,
-      imageUrl: msg.imageUrl,
-      isLocalImage: msg.isLocalImage,
-      duration: msg.duration,
-      voicePath: msg.voicePath,
-      giftEmoji: msg.giftEmoji,
-      giftLabel: msg.giftLabel,
-      time: msg.time,
-    );
-  }
-
-  Future<List<ChatMessage>> getMessages(int conversationId) async {
+  /// 获取某用户的消息列表（按 id 升序）
+  Future<List<ChatMessage>> getMessagesByPeerId(int peerId) async {
     await ensureInitialized();
     final rows = await db.query(
       tableMessages,
-      where: 'conversation_id = ?',
-      whereArgs: [conversationId],
+      where: 'peer_id = ?',
+      whereArgs: [peerId],
       orderBy: 'id ASC',
     );
     return rows.map((r) {
@@ -309,12 +147,55 @@ class ChatDatabase extends GetxService {
     }).toList();
   }
 
+  /// 获取某用户的最后一条消息（用于列表 subtitle）
+  Future<(String? content, String? time)> getLastMessageByPeerId(int peerId) async {
+    await ensureInitialized();
+    final rows = await db.query(
+      tableMessages,
+      where: 'peer_id = ?',
+      whereArgs: [peerId],
+      orderBy: 'id DESC',
+      limit: 1,
+    );
+    if (rows.isEmpty) return (null, null);
+    final r = rows.first;
+    return (r['content'] as String?, r['time'] as String?);
+  }
+
+  /// 获取某用户的未读消息数（is_me=0 的消息条数）
+  Future<int> getUnreadCountByPeerId(int peerId) async {
+    await ensureInitialized();
+    final rows = await db.rawQuery(
+      'SELECT COUNT(*) as cnt FROM $tableMessages WHERE peer_id = ? AND is_me = 0',
+      [peerId],
+    );
+    return Sqflite.firstIntValue(rows) ?? 0;
+  }
+
+  /// 清除某用户的未读数
+  Future<void> clearUnreadByPeerId(int peerId) async {
+    // 方案A：未读数不单独存，通过 is_me=0 的消息条数实时计算
+    // 如需"已读/未读"状态，需要加一个 `is_read` 字段，
+    // 这里先保留接口，实际由 getUnreadCountByPeerId 实时查询。
+    await ensureInitialized();
+    // 标记所有收到的消息为已读（未来加 is_read 字段后实现）
+    // 当前未读数 = 收到的消息总数（进入聊天页即视为全部已读）
+    // 所以 clearUnread 在方案A下不需要改 DB，只需在 Controller 里把 unread 置零
+  }
+
+  /// 增加某用户的未读数（后台收到消息时调用）
+  /// 方案A：未读数由 Controller 内存维护，DB 层不单独存未读状态
+  /// 如需持久化未读，需加 is_read 字段
+  Future<void> incrementUnreadByPeerId(int peerId) async {
+    // 方案A：未读数不持久化，由 Controller RxInt 维护
+    // 此方法保留接口，实际逻辑在 Controller 中处理
+  }
+
   // ── 清空数据 ─────────────────────────────────────────────────────
 
   Future<void> clearAllData() async {
     await ensureInitialized();
     await db.delete(tableMessages);
-    await db.delete(tableConversations);
   }
 
   // ── 查询工具（demo 页使用） ───────────────────────────────────────
@@ -326,7 +207,7 @@ class ChatDatabase extends GetxService {
     );
     return rows
         .map((r) => r['name'] as String)
-        .where((n) => n != 'android_metadata')
+        .where((n) => n != 'android_metadata' && n != 'sqlite_sequence')
         .toList();
   }
 

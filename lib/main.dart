@@ -6,6 +6,7 @@ import 'package:get_storage/get_storage.dart';
 import 'controllers/user_controller.dart';
 import 'pages/music/music_player_controller.dart';
 import 'pages/message/controllers/consumer_ws_client.dart';
+import 'pages/message/controllers/consumer_list_controller.dart';
 import 'database/chat_database.dart';
 import 'routes/app_routes.dart';
 import 'theme/app_theme.dart';
@@ -41,6 +42,8 @@ void main() async {
   Get.put(ChatDatabase());
   // Consumer WebSocket 统一客户端（全局单例，登录后自动连接）
   Get.put(ConsumerWsClient());
+  // 消费者列表控制器（全局单例，驱动消息 Tab 列表）
+  Get.put(ConsumerListController());
 
   // 初始化完成，移除启动页
   FlutterNativeSplash.remove();
@@ -151,3 +154,5 @@ class NotFoundPage extends StatelessWidget {
     );
   }
 }
+
+
