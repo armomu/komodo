@@ -45,8 +45,7 @@ class CacheBrowserPage extends StatefulWidget {
   State<CacheBrowserPage> createState() => _CacheBrowserPageState();
 }
 
-class _CacheBrowserPageState extends State<CacheBrowserPage>
-    with WidgetsBindingObserver {
+class _CacheBrowserPageState extends State<CacheBrowserPage> {
   List<_CacheGroup> _groups = [];
   bool _loading = true;
   int _grandTotal = 0;
@@ -55,21 +54,7 @@ class _CacheBrowserPageState extends State<CacheBrowserPage>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _loadAllCache();
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _loadAllCache();
-    }
   }
 
   Future<List<_CacheGroup>> _buildGroups() async {
@@ -256,13 +241,13 @@ class _CacheBrowserPageState extends State<CacheBrowserPage>
               tooltip: '删除选中 (${_selected.length})',
               onPressed: _deleteSelected,
             ),
-          if (_grandTotal > 0)
-            IconButton(
-              icon: const Icon(Icons.delete_sweep),
-              tooltip: '清空全部缓存',
-              onPressed: _clearAll,
-            ),
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadAllCache),
+          // if (_grandTotal > 0)
+          //   IconButton(
+          //     icon: const Icon(Icons.delete_sweep),
+          //     tooltip: '清空全部缓存',
+          //     onPressed: _clearAll,
+          //   ),
+          // IconButton(icon: const Icon(Icons.refresh), onPressed: _loadAllCache),
         ],
       ),
       body: _loading
@@ -272,7 +257,11 @@ class _CacheBrowserPageState extends State<CacheBrowserPage>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.inbox_outlined, size: 64, color: Colors.grey),
+                  const Icon(
+                    Icons.inbox_outlined,
+                    size: 64,
+                    color: Colors.grey,
+                  ),
                   const SizedBox(height: 16),
                   const Text(
                     '暂无缓存文件',
@@ -292,29 +281,29 @@ class _CacheBrowserPageState extends State<CacheBrowserPage>
               child: SafeArea(
                 bottom: true,
                 child: ListView.builder(
-                itemCount: _groups.length,
-                itemBuilder: (context, index) {
-                  final group = _groups[index];
-                  if (group.files.isEmpty) return const SizedBox.shrink();
-                  return _CacheGroupTile(
-                    group: group,
-                    selected: _selected,
-                    onDeleteFile: _deleteFile,
-                    onClearGroup: () => _clearGroup(group),
-                    onToggleSelect: (path, value) {
-                      setState(() {
-                        if (value) {
-                          _selected.add(path);
-                        } else {
-                          _selected.remove(path);
-                        }
-                      });
-                    },
-                    theme: theme,
-                  );
-                },
+                  itemCount: _groups.length,
+                  itemBuilder: (context, index) {
+                    final group = _groups[index];
+                    if (group.files.isEmpty) return const SizedBox.shrink();
+                    return _CacheGroupTile(
+                      group: group,
+                      selected: _selected,
+                      onDeleteFile: _deleteFile,
+                      onClearGroup: () => _clearGroup(group),
+                      onToggleSelect: (path, value) {
+                        setState(() {
+                          if (value) {
+                            _selected.add(path);
+                          } else {
+                            _selected.remove(path);
+                          }
+                        });
+                      },
+                      theme: theme,
+                    );
+                  },
+                ),
               ),
-            ),
             ),
     );
   }
