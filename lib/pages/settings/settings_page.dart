@@ -81,19 +81,6 @@ class SettingsPage extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Get.toNamed(Routes.cacheBrowser),
           ),
-          ListTile(
-            leading: const Icon(Icons.developer_mode),
-            title: Text(BaseUrl.inPrd ? '生产环境' : '测试环境'),
-            subtitle: Text('切换为${BaseUrl.inPrd ? '测试环境' : '生产环境'}'),
-            trailing: Switch(
-              value: BaseUrl.inPrd,
-              onChanged: (value) {
-                BaseUrl.inPrd = value;
-                Get.back();
-              },
-            ),
-          ),
-
           // 注销登录
           Obx(() {
             final userController = Get.find<UserController>();
