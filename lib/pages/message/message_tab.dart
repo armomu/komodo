@@ -12,11 +12,22 @@ class MessageTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('消息'),
-        centerTitle: true,
-      ),
+    return NestedScrollView(
+      headerSliverBuilder: (BuildContext context, bool _) {
+        return <Widget>[
+          const SliverAppBar(
+            expandedHeight: 100,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(
+                'Messages',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              titlePadding: EdgeInsets.fromLTRB(16, 16, 3, 12),
+            ),
+          ),
+        ];
+      },
       body: ConsumerListView(),
     );
   }

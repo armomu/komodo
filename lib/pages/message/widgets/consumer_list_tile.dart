@@ -9,31 +9,22 @@ class ConsumerListTile extends StatelessWidget {
   final ConsumerListItem item;
   final VoidCallback? onTap;
 
-  const ConsumerListTile({
-    super.key,
-    required this.item,
-    this.onTap,
-  });
+  const ConsumerListTile({super.key, required this.item, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: _buildLeading(),
-      title: Text(
-        item.nickname,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+      title: Text(item.nickname, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Text(
+          item.lastMessage ?? "",
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
-      subtitle: item.lastMessage != null
-          ? Text(
-              item.lastMessage!,
-              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            )
-          : null,
       trailing: _buildTrailing(),
       onTap: onTap,
     );
@@ -48,7 +39,9 @@ class ConsumerListTile extends StatelessWidget {
           backgroundImage: item.avatar.isNotEmpty
               ? NetworkImage(item.avatar)
               : null,
-          child: item.avatar.isEmpty ? const Icon(Icons.person, size: 28) : null,
+          child: item.avatar.isEmpty
+              ? const Icon(Icons.person, size: 28)
+              : null,
         ),
         // 在线绿点
         if (item.isOnline)
@@ -89,7 +82,11 @@ class ConsumerListTile extends StatelessWidget {
             ),
             child: Text(
               '${item.unread > 99 ? "99+" : item.unread}',
-              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           )
         else
