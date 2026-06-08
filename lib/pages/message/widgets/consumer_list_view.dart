@@ -27,7 +27,10 @@ class ConsumerListView extends StatelessWidget {
 
       // 空列表
       if (controller.consumers.isEmpty && !controller.isLoading.value) {
-        return _buildEmpty();
+        return RefreshIndicator(
+          onRefresh: () => controller.refreshList(),
+          child: _buildEmpty(),
+        );
       }
 
       // 列表
@@ -73,7 +76,7 @@ class ConsumerListView extends StatelessWidget {
         children: [
           Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey[400]),
           const SizedBox(height: 16),
-          Text('暂无聊天', style: TextStyle(fontSize: 16, color: Colors.grey[600])),
+          Text('暂无数据', style: TextStyle(fontSize: 16, color: Colors.grey[600])),
         ],
       ),
     );

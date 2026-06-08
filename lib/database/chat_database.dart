@@ -148,7 +148,9 @@ class ChatDatabase extends GetxService {
   }
 
   /// 获取某用户的最后一条消息（用于列表 subtitle）
-  Future<(String? content, String? time)> getLastMessageByPeerId(int peerId) async {
+  Future<(String? content, String? time)> getLastMessageByPeerId(
+    int peerId,
+  ) async {
     await ensureInitialized();
     final rows = await db.query(
       tableMessages,
