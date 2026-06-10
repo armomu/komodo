@@ -56,35 +56,35 @@ Future<ApiResponse<T>> appDio<T>(
     );
 
     final resData = response.data as Map<String, dynamic>;
+    final code = resData['code'] as int? ?? -1;
+    final message = resData['message'] as String? ?? '';
 
-    // 401 未授权
-    if (resData['code'] == 401) {
+    // 401 未授权 → 跳转登录页，仍返回 ApiResponse
+    if (code == 401) {
       Get.toNamed<dynamic>(Routes.login);
-      throw Exception('Unauthorized');
+      return ApiResponse<T>.error(code, message);
     }
 
     // 业务错误
-    if (resData['code'] != 0) {
+    if (code != 0) {
       if (errTip) {
-        AppSnackBar.show(resData['message'] ?? '请求失败');
+        AppSnackBar.show(message);
       }
-      throw Exception(resData['message'] ?? '请求失败');
+      return ApiResponse<T>.error(code, message);
     }
 
-    // 🔥 关键：使用 ApiResponse.fromJson 构造返回值
-    // 注意：这里需要传递泛型参数 T 和转换函数 fromJsonT
     return ApiResponse<T>.fromJson(resData, fromJsonT);
   } on DioException catch (e) {
     debugPrint('DioError: $e');
     if (errTip) {
       AppSnackBar.show(e.type.toString());
     }
-    throw Exception(e.type.toString());
+    return ApiResponse<T>.error(-1, e.type.toString());
   } catch (e) {
     debugPrint('=========appDio Error: $e==========================');
     if (errTip) {
       AppSnackBar.show(e.toString());
     }
-    throw Exception(e.toString());
+    return ApiResponse<T>.error(-1, e.toString());
   }
 }

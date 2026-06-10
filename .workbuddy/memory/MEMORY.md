@@ -14,6 +14,10 @@
 - `ConsumerListController` 是全局单例，驱动消息 Tab 列表
 - `ConsumerWsClient.currentChatPeerId` 追踪当前打开的聊天 peerId
 
+## request.dart 错误处理约定
+- `appDio<T>()` 不再 throw，所有错误路径统一返回 `ApiResponse<T>`，调用方通过 `isSuccess` 判断
+- `ApiResponse.error(code, message)` 工厂构造方法用于快速创建失败响应
+
 ## WebSocket 协议
 - `get-online-users` → 主动拉取在线列表，后端回 `online-list`
 - 后端位于 `C:\Users\qq894\dev\cubeverse\apps\ws\src\modules\websocket`

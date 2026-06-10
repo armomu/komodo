@@ -21,6 +21,11 @@ class ApiResponse<T> {
   /// 请求是否成功（code == 0）
   bool get isSuccess => code == 0;
 
+  /// 构造一个错误响应
+  factory ApiResponse.error(int code, String message) {
+    return ApiResponse(code: code, message: message);
+  }
+
   /// 从 JSON 构造，需提供 data 的转换函数 [fromJsonT]
   factory ApiResponse.fromJson(
     Map<String, dynamic> json,
