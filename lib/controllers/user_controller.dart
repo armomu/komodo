@@ -153,7 +153,7 @@ class UserController extends GetxController {
         isLogin.value = true;
         // 连接 WebSocket
         _connectWs();
-
+        Get.find<ConsumerListController>().refreshList();
         return true;
       } else {
         _errorMessage.value = response.message;
