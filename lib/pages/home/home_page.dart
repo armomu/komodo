@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:komodo/controllers/user_controller.dart';
 import 'package:komodo/pages/video/video_feed_view.dart';
 import 'package:komodo/pages/music/mini_player_bar.dart';
-import 'package:komodo/routes/app_routes.dart';
 import 'package:komodo/pages/message/controllers/consumer_ws_client.dart';
 import '../music/music_tab.dart';
 import '../video/short_video_tab.dart';
@@ -183,7 +182,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 label: '短视频',
                 navIndex: 1,
               ),
-              // 中间 + 号按钮
               _buildPlusItem(context),
               _buildNavItem(
                 context,
@@ -267,7 +265,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          Get.toNamed(Routes.anchorSetup);
+          // Get.toNamed(Routes.anchorSetup);
         },
         child: Center(
           child: Container(

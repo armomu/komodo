@@ -4,8 +4,8 @@ import 'package:komodo/routes/app_routes.dart';
 import 'controllers/live_repository.dart';
 import 'models/live_models.dart';
 
-/// 直播间列表页（卡片布局）
-/// 入口：消息 Tab 右上角直播图标
+/// 直播间列表页
+/// 使用"首页-我的"可点击卡片规范，封面用 picsum.photos 占位
 class LiveRoomListPage extends StatefulWidget {
   const LiveRoomListPage({super.key});
 
@@ -38,9 +38,7 @@ class _LiveRoomListPageState extends State<LiveRoomListPage> {
     final result = await LiveRepository.getRoomList(page: _page);
     if (result.isSuccess && result.data != null) {
       setState(() {
-        if (refresh) {
-          _rooms.clear();
-        }
+        if (refresh) _rooms.clear();
         _rooms.addAll(result.data!);
         _hasMore = result.data!.length >= 20;
         _page++;
@@ -52,11 +50,17 @@ class _LiveRoomListPageState extends State<LiveRoomListPage> {
   }
 
   void _enterRoom(LiveRoom room) {
-    Get.toNamed(Routes.live, arguments: {
-      'roomId': room.id,
-      'isAnchor': false,
-    });
+    Get.toNamed(Routes.live, arguments: {'roomId': room.id, 'isAnchor': false});
   }
+
+  static const _coverColors = [
+    Color(0xFFE3F2FD),
+    Color(0xFFFCE4EC),
+    Color(0xFFE8F5E9),
+    Color(0xFFFFF3E0),
+    Color(0xFFF3E5F5),
+    Color(0xFFE0F7FA),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -66,9 +70,14 @@ class _LiveRoomListPageState extends State<LiveRoomListPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.history),
+            tooltip: '直播历史',
             onPressed: () => Get.toNamed(Routes.liveHistory),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Get.toNamed(Routes.anchorSetup),
+        child: const Icon(Icons.add),
       ),
       body: _rooms.isEmpty && _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -88,144 +97,150 @@ class _LiveRoomListPageState extends State<LiveRoomListPage> {
             )
           : RefreshIndicator(
               onRefresh: () => _loadRooms(refresh: true),
-              child: GridView.builder(
+              child: ListView.builder(
                 padding: const EdgeInsets.all(12),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.7,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                ),
                 itemCount: _rooms.length + (_hasMore ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index >= _rooms.length) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
                   }
-                  return _buildRoomCard(_rooms[index]);
+                  return _buildRoomCard(_rooms[index], index);
                 },
               ),
             ),
     );
   }
 
-  Widget _buildRoomCard(LiveRoom room) {
-    return GestureDetector(
-      onTap: () => _enterRoom(room),
+  Widget _buildRoomCard(LiveRoom room, int index) {
+    final coverColor = _coverColors[index % _coverColors.length];
+    final coverSeed = room.id.hashCode;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
       child: Card(
         clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 3,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 封面
-            Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  room.coverUrl.isNotEmpty
-                      ? Image.network(room.coverUrl, fit: BoxFit.cover)
-                      : Container(color: Colors.grey[900]),
-                  // 在线人数 badge
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withValues(alpha: 0.8),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.person,
-                            size: 12,
+        child: InkWell(
+          onTap: () => _enterRoom(room),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 封面图（可点击卡片规范）
+              Container(
+                height: 140,
+                width: double.infinity,
+                color: coverColor,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.network(
+                      'https://picsum.photos/seed/$coverSeed/400/225',
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) =>
+                          Container(color: coverColor),
+                    ),
+                    // 直播中标签
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          '直播',
+                          style: TextStyle(
                             color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
                           ),
-                          const SizedBox(width: 2),
-                          Text(
-                            '${room.viewerCount}',
-                            style: const TextStyle(
+                        ),
+                      ),
+                    ),
+                    // 在线人数
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.person,
+                              size: 12,
                               color: Colors.white,
-                              fontSize: 11,
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              '${room.viewerCount}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // 底部信息
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            room.title.isNotEmpty ? room.title : '未命名直播',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            room.hostNickname ?? '主播',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  // 直播中标签
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text(
-                        '直播',
-                        style: TextStyle(color: Colors.white, fontSize: 10),
-                      ),
+                    const Icon(
+                      Icons.chevron_right,
+                      size: 20,
+                      color: Colors.grey,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            // 底部信息
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    room.title.isNotEmpty ? room.title : '未命名直播',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 8,
-                        backgroundImage: room.hostAvatar != null
-                            ? NetworkImage(room.hostAvatar!)
-                            : null,
-                        child: room.hostAvatar == null
-                            ? const Icon(Icons.person, size: 8)
-                            : null,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          room.hostNickname ?? '主播',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 11,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

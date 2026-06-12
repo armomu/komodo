@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:komodo/config/base_url.dart';
 import 'package:komodo/controllers/user_controller.dart';
 import 'package:komodo/theme/theme_controller.dart';
 import 'package:komodo/routes/app_routes.dart';

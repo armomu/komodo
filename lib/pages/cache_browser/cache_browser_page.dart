@@ -189,45 +189,6 @@ class _CacheBrowserPageState extends State<CacheBrowserPage> {
     }
   }
 
-  Future<void> _clearAll() async {
-    final filesCount = _groups.fold(0, (sum, g) => sum + g.files.length);
-    if (filesCount == 0) return;
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('确认清空全部'),
-        content: Text(
-          '删除所有目录下共 $filesCount 个缓存文件（${_formatSize(_grandTotal)}），确定吗？',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('确认', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-    if (confirm != true) return;
-    try {
-      for (final group in _groups) {
-        for (final f in group.files) {
-          await f.delete();
-        }
-      }
-      _loadAllCache();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('清空失败: $e')));
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

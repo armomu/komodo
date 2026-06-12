@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:komodo/components/app_bottom_sheet.dart';
 import 'package:komodo/controllers/user_controller.dart';
 import 'controllers/live_repository.dart';
 import 'models/live_models.dart';
 
 /// 我的直播历史页
+/// 遵循"首页-我的"列表规范：无背景色、标准 ListTile 样式
 class LiveHistoryPage extends StatefulWidget {
   const LiveHistoryPage({super.key});
 
@@ -55,81 +57,81 @@ class _LiveHistoryPageState extends State<LiveHistoryPage> {
   }
 
   void _showDetail(LiveRoomHistory history) {
-    Get.bottomSheet(
-      Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.7,
-        ),
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        child: FutureBuilder<LiveHistoryDetail?>(
-          future: LiveRepository.getHistoryDetail(history.roomId).then((r) => r.data),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (!snapshot.hasData) {
-              return const Center(child: Text('加载失败'));
-            }
-            final detail = snapshot.data!;
-            return DraggableScrollableSheet(
-              expand: false,
-              initialChildSize: 0.9,
-              builder: (context, scrollController) {
-                return ListView(
-                  controller: scrollController,
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    const Text('直播详情',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 16),
-                    _infoRow('直播标题', history.title),
-                    _infoRow('观看次数', '${history.totalViews}'),
-                    _infoRow('峰值在线', '${history.peakViewers}'),
-                    _infoRow('评论数', '${history.commentCount}'),
-                    _infoRow('礼物数', '${history.giftCount}'),
-                    _infoRow('时长', history.durationText),
-                    const SizedBox(height: 16),
-                    if (detail.comments.isNotEmpty) ...[
-                      const Text('评论',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 8),
-                      ...detail.comments.map((c) => ListTile(
-                            dense: true,
-                            leading: CircleAvatar(
-                              radius: 14,
-                              backgroundImage:
-                                  c.avatar.isNotEmpty ? NetworkImage(c.avatar) : null,
-                              child: c.avatar.isEmpty ? const Icon(Icons.person, size: 14) : null,
-                            ),
-                            title: Text(c.nickname,
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-                            subtitle: Text(c.message, style: const TextStyle(fontSize: 13)),
-                          )),
-                    ],
-                    if (detail.gifts.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      const Text('礼物',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 8),
-                      ...detail.gifts.map((g) => ListTile(
-                            dense: true,
-                            leading: Text(g.giftIcon, style: const TextStyle(fontSize: 24)),
-                            title: Text(g.senderNickname,
-                                style: const TextStyle(fontSize: 13)),
-                            subtitle: Text('赠送了 ${g.giftName}',
-                                style: const TextStyle(fontSize: 13)),
-                          )),
-                    ],
-                  ],
-                );
-              },
+    AppBottomSheet.show(
+      child: FutureBuilder<LiveHistoryDetail?>(
+        future: LiveRepository.getHistoryDetail(history.roomId).then((r) => r.data),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const SizedBox(
+              height: 120,
+              child: Center(child: CircularProgressIndicator()),
             );
-          },
-        ),
+          }
+          if (!snapshot.hasData) {
+            return const SizedBox(
+              height: 120,
+              child: Center(child: Text('加载失败')),
+            );
+          }
+          final detail = snapshot.data!;
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 统计信息
+                _infoRow('直播标题', history.title.isNotEmpty ? history.title : '未命名'),
+                _infoRow('观看次数', '${history.totalViews}'),
+                _infoRow('峰值在线', '${history.peakViewers}'),
+                _infoRow('评论数', '${history.commentCount}'),
+                _infoRow('礼物数', '${history.giftCount}'),
+                _infoRow('时长', history.durationText),
+                const SizedBox(height: 16),
+                // 评论列表
+                if (detail.comments.isNotEmpty) ...[
+                  _buildSectionTitle('评论'),
+                  const SizedBox(height: 4),
+                  ...detail.comments.map((c) => ListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        leading: CircleAvatar(
+                          radius: 14,
+                          backgroundImage:
+                              c.avatar.isNotEmpty ? NetworkImage(c.avatar) : null,
+                          child:
+                              c.avatar.isEmpty ? const Icon(Icons.person, size: 14) : null,
+                        ),
+                        title: Text(c.nickname,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                        subtitle: Text(c.message, style: const TextStyle(fontSize: 13)),
+                      )),
+                ],
+                // 礼物列表
+                if (detail.gifts.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  _buildSectionTitle('礼物'),
+                  const SizedBox(height: 4),
+                  ...detail.gifts.map((g) => ListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        leading: Text(g.giftIcon, style: const TextStyle(fontSize: 24)),
+                        title: Text(g.senderNickname, style: const TextStyle(fontSize: 13)),
+                        subtitle:
+                            Text('赠送了 ${g.giftName}', style: const TextStyle(fontSize: 13)),
+                      )),
+                ],
+              ],
+            ),
+          );
+        },
       ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
     );
   }
 
@@ -140,7 +142,14 @@ class _LiveHistoryPageState extends State<LiveHistoryPage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: TextStyle(color: Colors.grey[600])),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
+          Flexible(
+            child: Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );
@@ -170,7 +179,7 @@ class _LiveHistoryPageState extends State<LiveHistoryPage> {
               : RefreshIndicator(
                   onRefresh: () => _loadHistories(refresh: true),
                   child: ListView.builder(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.symmetric(vertical: 4),
                     itemCount: _histories.length + (_hasMore ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index >= _histories.length) {
@@ -184,70 +193,33 @@ class _LiveHistoryPageState extends State<LiveHistoryPage> {
   }
 
   Widget _buildHistoryCard(LiveRoomHistory history) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => _showDetail(history),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              // 封面
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  color: Colors.grey[300],
-                  child: history.coverUrl.isNotEmpty
-                      ? Image.network(history.coverUrl, fit: BoxFit.cover)
-                      : const Icon(Icons.live_tv, color: Colors.grey),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // 信息
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      history.title.isNotEmpty ? history.title : '未命名直播',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const Icon(Icons.visibility, size: 14, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text('${history.totalViews} 次观看',
-                            style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                        const SizedBox(width: 12),
-                        const Icon(Icons.comment, size: 14, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text('${history.commentCount} 评论',
-                            style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                        const SizedBox(width: 12),
-                        const Icon(Icons.card_giftcard, size: 14, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text('${history.giftCount} 礼物',
-                            style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(history.durationText,
-                        style: TextStyle(color: Colors.grey[500], fontSize: 12)),
-                  ],
-                ),
-              ),
-              const Icon(Icons.chevron_right, color: Colors.grey),
-            ],
-          ),
+    return ListTile(
+      onTap: () => _showDetail(history),
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          width: 44,
+          height: 44,
+          color: Colors.grey[200],
+          child: history.coverUrl.isNotEmpty
+              ? Image.network(history.coverUrl, fit: BoxFit.cover)
+              : const Icon(Icons.live_tv, color: Colors.grey, size: 22),
         ),
       ),
+      title: Text(
+        history.title.isNotEmpty ? history.title : '未命名直播',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Row(
+        children: [
+          Text('${history.totalViews} 次观看 · ',
+              style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+          Text(history.durationText,
+              style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+        ],
+      ),
+      trailing: const Icon(Icons.chevron_right, size: 20),
     );
   }
 }

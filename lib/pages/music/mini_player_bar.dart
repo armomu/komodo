@@ -170,7 +170,6 @@ class MiniPlayerBar extends StatelessWidget {
     PlaylistItem track,
   ) {
     return Obx(() {
-      final isBuffering = controller.isBuffering.value;
       final progress = controller.duration.value.inMilliseconds > 0
           ? controller.position.value.inMilliseconds /
                 controller.duration.value.inMilliseconds

@@ -3,9 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:komodo/components/app_bottom_sheet.dart';
 import 'package:komodo/config/base_url.dart';
-import 'package:komodo/controllers/user_controller.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rtmp_streaming/camera.dart';
 import 'package:video_player/video_player.dart';
@@ -152,7 +150,7 @@ class _LivePageState extends State<LivePage>
       _initCamera(); // 不 await
     } else {
       LiveRepository.recordView(_roomId!);
-      _initHlsPlayer(room.rtmpKey);
+      _initHlsPlayer(_roomDetail?.rtmpKey ?? '');
     }
 
     // 连接 WS（异步），就绪后标记直播开始再推流
@@ -302,19 +300,19 @@ class _LivePageState extends State<LivePage>
   // ═══════════════════════════════════════════════════════════════
 
   void _initHlsPlayer(String rtmpKey) {
-    final hlsUrl = '${BaseUrl.host()}/live/$rtmpKey.m3u8';
-    _hlsUrl = hlsUrl;
-    debugPrint('[LivePage] HLS URL: $hlsUrl');
+    _hlsUrl = '${BaseUrl.host()}/live/$rtmpKey.m3u8';
+    debugPrint('[LivePage] HLS URL: $_hlsUrl');
     try {
-      _videoController = VideoPlayerController.networkUrl(Uri.parse(hlsUrl))
-        ..initialize()
-            .then((_) {
-              if (mounted) setState(() {});
-              _videoController?.play();
-            })
-            .catchError((e) {
-              debugPrint('[LivePage] HLS 初始化失败: $e');
-            });
+      _videoController =
+          VideoPlayerController.networkUrl(Uri.parse(_hlsUrl ?? ''))
+            ..initialize()
+                .then((_) {
+                  if (mounted) setState(() {});
+                  _videoController?.play();
+                })
+                .catchError((e) {
+                  debugPrint('[LivePage] HLS 初始化失败: $e');
+                });
     } catch (e) {
       debugPrint('[LivePage] 创建视频控制器失败: $e');
     }
@@ -479,8 +477,9 @@ class _LivePageState extends State<LivePage>
       if (_flyingWidgets.length > 8) {
         final oldest = _flyingWidgets.removeAt(0);
         final oldestId = (oldest.key as ValueKey?)?.value;
-        if (oldestId != null)
+        if (oldestId != null) {
           _danmakuTracks.removeWhere((t) => t.id == oldestId);
+        }
       }
     });
   }
