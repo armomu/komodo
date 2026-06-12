@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:komodo/routes/app_routes.dart';
 import 'controllers/live_repository.dart';
 import 'models/live_models.dart';
-import 'live_page.dart';
 
 /// 直播间列表页（卡片布局）
 /// 入口：消息 Tab 右上角直播图标
@@ -53,7 +52,10 @@ class _LiveRoomListPageState extends State<LiveRoomListPage> {
   }
 
   void _enterRoom(LiveRoom room) {
-    Get.to(() => LivePage(roomId: room.id));
+    Get.toNamed(Routes.live, arguments: {
+      'roomId': room.id,
+      'isAnchor': false,
+    });
   }
 
   @override

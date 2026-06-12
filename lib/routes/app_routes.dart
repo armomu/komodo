@@ -76,7 +76,8 @@ class AppPages {
       page: () {
         final args = Get.arguments as Map<String, dynamic>?;
         final roomId = args?['roomId'] as String?;
-        return LivePage(roomId: roomId);
+        final isAnchor = args?['isAnchor'] as bool? ?? false;
+        return LivePage(roomId: roomId, isAnchor: isAnchor);
       },
       middlewares: [AuthMiddleware()],
       transition: Transition.downToUp,

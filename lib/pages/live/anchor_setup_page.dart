@@ -68,10 +68,10 @@ class _AnchorSetupPageState extends State<AnchorSetupPage> {
       return;
     }
 
-    // 跳转到推流页，传入 roomId
-    Get.toNamed(Routes.livePush, arguments: {
+    // 进入直播间（主播模式）
+    Get.toNamed(Routes.live, arguments: {
       'roomId': room.id,
-      'rtmpKey': room.rtmpKey,
+      'isAnchor': true,
       'title': room.title,
       'announcement': room.announcement,
     });
