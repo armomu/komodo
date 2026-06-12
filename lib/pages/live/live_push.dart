@@ -56,7 +56,7 @@ class _LivePushPageState extends State<LivePushPage> {
 
     // 如果有 rtmpKey，生成推流地址
     if (rtmpKey != null && rtmpKey.isNotEmpty) {
-      _rtmpUrl = 'rtmp://192.168.1.38:1935/live/$rtmpKey';
+      _rtmpUrl = BaseUrl.rtmpPushWithKey(rtmpKey);
     }
 
     _liveWs = Get.find<LiveWsClient>();

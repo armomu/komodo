@@ -141,7 +141,7 @@ class _LivePageState extends State<LivePage>
     _anchorNickname = room.hostNickname ?? '主播';
     _anchorAvatar = room.hostAvatar ?? '';
     _announcement = room.announcement;
-    _rtmpUrl = 'rtmp://192.168.1.38:1935/live/${room.rtmpKey}';
+    _rtmpUrl = BaseUrl.rtmpPushWithKey(room.rtmpKey);
 
     // 先结束 loading 显示直播画面，再异步初始化其余功能
     setState(() => _isLoading = false);
