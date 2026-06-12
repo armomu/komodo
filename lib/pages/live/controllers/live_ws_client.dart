@@ -104,6 +104,7 @@ class LiveWsClient extends GetxService {
   final _onNewComment = StreamController<LiveCommentData>.broadcast();
   final _onNewGift = StreamController<LiveGiftData>.broadcast();
   final _onAnnouncementUpdated = StreamController<String>.broadcast();
+  final _onRoomUnavailable = StreamController<String>.broadcast();
   final _onLiveStarted = StreamController<String>.broadcast();
   final _onLiveEnded = StreamController<String>.broadcast();
   final _onError = StreamController<String>.broadcast();
@@ -117,6 +118,7 @@ class LiveWsClient extends GetxService {
   Stream<LiveCommentData> get onNewComment => _onNewComment.stream;
   Stream<LiveGiftData> get onNewGift => _onNewGift.stream;
   Stream<String> get onAnnouncementUpdated => _onAnnouncementUpdated.stream;
+  Stream<String> get onRoomUnavailable => _onRoomUnavailable.stream;
   Stream<String> get onLiveStarted => _onLiveStarted.stream;
   Stream<String> get onLiveEnded => _onLiveEnded.stream;
   Stream<String> get onError => _onError.stream;
@@ -350,6 +352,10 @@ class LiveWsClient extends GetxService {
           _onLiveEnded.add(data['roomId'] as String? ?? '');
           break;
 
+        case 'room-unavailable':
+          _onRoomUnavailable.add(data['message'] as String? ?? '直播间不可用');
+          break;
+
         case 'pong':
           break;
 
@@ -382,6 +388,7 @@ class LiveWsClient extends GetxService {
     _onAnnouncementUpdated.close();
     _onLiveStarted.close();
     _onLiveEnded.close();
+    _onRoomUnavailable.close();
     _onError.close();
     super.onClose();
   }

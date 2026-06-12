@@ -49,8 +49,10 @@ class _LiveRoomListPageState extends State<LiveRoomListPage> {
     }
   }
 
-  void _enterRoom(LiveRoom room) {
-    Get.toNamed(Routes.live, arguments: {'roomId': room.id, 'isAnchor': false});
+  Future<void> _enterRoom(LiveRoom room) async {
+    await Get.toNamed(Routes.live, arguments: {'roomId': room.id, 'isAnchor': false});
+    // 从直播间返回后刷新列表
+    _loadRooms(refresh: true);
   }
 
   static const _coverColors = [

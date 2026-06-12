@@ -191,7 +191,6 @@ class _CacheBrowserPageState extends State<CacheBrowserPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('缓存管理'),
@@ -260,7 +259,6 @@ class _CacheBrowserPageState extends State<CacheBrowserPage> {
                           }
                         });
                       },
-                      theme: theme,
                     );
                   },
                 ),
@@ -270,14 +268,13 @@ class _CacheBrowserPageState extends State<CacheBrowserPage> {
   }
 }
 
-/// 单个缓存来源的展开面板
-class _CacheGroupTile extends StatelessWidget {
+/// 单个缓存来源的展开面板 — 使用规范列表组件样式
+class _CacheGroupTile extends StatefulWidget {
   final _CacheGroup group;
   final Set<String> selected;
   final Function(File) onDeleteFile;
   final VoidCallback onClearGroup;
   final void Function(String path, bool selected) onToggleSelect;
-  final ThemeData theme;
 
   const _CacheGroupTile({
     required this.group,
@@ -285,70 +282,120 @@ class _CacheGroupTile extends StatelessWidget {
     required this.onDeleteFile,
     required this.onClearGroup,
     required this.onToggleSelect,
-    required this.theme,
   });
 
   @override
+  State<_CacheGroupTile> createState() => _CacheGroupTileState();
+}
+
+class _CacheGroupTileState extends State<_CacheGroupTile> {
+  bool _expanded = true;
+
+  @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      child: ExpansionTile(
-        leading: Icon(group.icon),
-        title: Text(
-          group.title,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+    final theme = Theme.of(context);
+    final group = widget.group;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── 可点击的分组标题（点击展开/折叠） ──
+        InkWell(
+          onTap: () => setState(() => _expanded = !_expanded),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Icon(group.icon, size: 30, color: theme.colorScheme.primary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 分组名（titleMedium + bold，与 _ListCategory 一致）
+                      Text(
+                        group.title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      // 描述：文件数 + 总大小（bodySmall + onSurfaceVariant）
+                      Text(
+                        '${group.subtitle} · ${group.files.length} 个文件 · ${_formatSize(group.totalSize)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, size: 20),
+                  tooltip: '清空此分组',
+                  onPressed: widget.onClearGroup,
+                ),
+                AnimatedRotation(
+                  turns: _expanded ? 0.5 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: const Icon(Icons.expand_more),
+                ),
+              ],
+            ),
+          ),
         ),
-        subtitle: Text(
-          '${group.files.length} 个文件 · ${_formatSize(group.totalSize)}',
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              _formatSize(group.totalSize),
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
-            const SizedBox(width: 4),
-            IconButton(
-              icon: const Icon(Icons.delete_outline, size: 20),
-              tooltip: '清空此分组',
-              onPressed: onClearGroup,
-            ),
-            const Icon(Icons.expand_more),
-          ],
-        ),
-        childrenPadding: EdgeInsets.zero,
-        children: group.files.map((file) {
-          final stat = file.statSync();
-          final name = file.uri.pathSegments.last;
-          final isSelected = selected.contains(file.path);
-          return ListTile(
-            dense: true,
-            selected: isSelected,
-            selectedTileColor: theme.colorScheme.primaryContainer.withValues(
-              alpha: 0.3,
-            ),
-            leading: Checkbox(
-              value: isSelected,
-              onChanged: (v) => onToggleSelect(file.path, v ?? false),
-            ),
-            title: Text(
-              name,
-              style: const TextStyle(fontSize: 13),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            subtitle: Text(
-              '${_formatSize(stat.size)}  ·  ${_formatDate(stat.modified)}',
-              style: const TextStyle(fontSize: 11),
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete_outline, size: 20),
-              onPressed: () => onDeleteFile(file),
-            ),
-          );
-        }).toList(),
-      ),
+        // ── 文件列表（展开时显示） ──
+        if (_expanded)
+          ...group.files.map((file) {
+            final stat = file.statSync();
+            final name = file.uri.pathSegments.last;
+            final isSelected = widget.selected.contains(file.path);
+            return Column(
+              children: [
+                ListTile(
+                  dense: true,
+                  selected: isSelected,
+                  selectedTileColor: theme.colorScheme.primaryContainer
+                      .withValues(alpha: 0.3),
+                  leading: Checkbox(
+                    value: isSelected,
+                    onChanged: (v) =>
+                        widget.onToggleSelect(file.path, v ?? false),
+                  ),
+                  title: Text(
+                    name,
+                    style: const TextStyle(fontSize: 13),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    '${_formatSize(stat.size)}  ·  ${_formatDate(stat.modified)}',
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    onPressed: () => widget.onDeleteFile(file),
+                  ),
+                ),
+                const Divider(height: 1, indent: 56),
+              ],
+            );
+          }),
+        // ── 分组操作区域 ──
+        // if (_expanded && group.files.isNotEmpty)
+        // Padding(
+        //   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        //   child: SizedBox(
+        //     width: double.infinity,
+        //     child: OutlinedButton.icon(
+        //       onPressed: widget.onClearGroup,
+        //       icon: const Icon(Icons.delete_outline, size: 18),
+        //       label: Text('清空「${group.title}」'),
+        //     ),
+        //   ),
+        // ),
+        // const Divider(height: 1),
+      ],
     );
   }
 }

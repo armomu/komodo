@@ -97,6 +97,7 @@ class _LivePageState extends State<LivePage>
   StreamSubscription? _onNewGiftSub;
   StreamSubscription? _onAnnouncementSub;
   StreamSubscription? _onLiveEndedSub;
+  StreamSubscription? _onRoomUnavailableSub;
 
   @override
   void initState() {
@@ -409,6 +410,17 @@ class _LivePageState extends State<LivePage>
       });
     }
 
+    // 监听房间不可用（非 LIVE 状态拒绝）
+    _onRoomUnavailableSub?.cancel();
+    _onRoomUnavailableSub = _liveWs.onRoomUnavailable.listen((message) {
+      if (!mounted) return;
+      Get.snackbar('无法进入', message,
+          backgroundColor: Colors.red, colorText: Colors.white);
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) Navigator.of(context).pop();
+      });
+    });
+
     _liveWs.joinRoom(_roomId!);
     return true;
   }
@@ -561,6 +573,7 @@ class _LivePageState extends State<LivePage>
     _onNewGiftSub?.cancel();
     _onAnnouncementSub?.cancel();
     _onLiveEndedSub?.cancel();
+    _onRoomUnavailableSub?.cancel();
 
     _stopStatsTimer();
     _cameraController?.dispose();
