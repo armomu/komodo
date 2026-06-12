@@ -79,6 +79,9 @@ class LiveWsClient extends GetxService {
   // ignore: unused_field — tracked for future reconnection use
   String? _currentRoomId;
 
+  /// 用于等待认证完成的 Completer
+  Completer<void>? _authCompleter;
+
   Timer? _heartbeatTimer;
 
   // ===================== Rx 响应式状态 =====================
@@ -133,6 +136,9 @@ class LiveWsClient extends GetxService {
       await Future.delayed(const Duration(milliseconds: 100));
     }
 
+    // 创建新的 auth completer
+    _authCompleter = Completer<void>();
+
     final url = BaseUrl.liveWsHost();
     try {
       _ws = await WebSocket.connect(url);
@@ -155,9 +161,23 @@ class LiveWsClient extends GetxService {
       _startHeartbeat();
       _send('auth', {'token': GetStorage().read<String>('access_token') ?? ''});
     } catch (e) {
+      _authCompleter?.completeError(e);
+      _authCompleter = null;
       _connected = false;
       isConnected.value = false;
       _onError.add('连接失败: $e');
+    }
+  }
+
+  /// 等待认证完成（超时 10 秒）
+  Future<bool> waitForAuth() async {
+    if (isAuthenticated.value) return true;
+    if (_authCompleter == null) return false;
+    try {
+      await _authCompleter!.future.timeout(const Duration(seconds: 10));
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -169,6 +189,8 @@ class LiveWsClient extends GetxService {
   }
 
   void _resetState() {
+    _authCompleter?.completeError('disconnected');
+    _authCompleter = null;
     _connected = false;
     isConnected.value = false;
     isAuthenticated.value = false;
@@ -236,6 +258,8 @@ class LiveWsClient extends GetxService {
       switch (event) {
         case 'auth-success':
           isAuthenticated.value = true;
+          _authCompleter?.complete();
+          _authCompleter = null;
           debugPrint('[LiveWS] 认证成功');
           break;
 

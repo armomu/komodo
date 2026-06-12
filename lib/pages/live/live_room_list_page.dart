@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:komodo/routes/app_routes.dart';
 import 'controllers/live_repository.dart';
 import 'models/live_models.dart';
 import 'live_page.dart';
@@ -60,41 +61,48 @@ class _LiveRoomListPageState extends State<LiveRoomListPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('直播中'),
-        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            onPressed: () => Get.toNamed(Routes.liveHistory),
+          ),
+        ],
       ),
       body: _rooms.isEmpty && _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _rooms.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.live_tv, size: 64, color: Colors.grey[400]),
-                      const SizedBox(height: 16),
-                      Text('暂无正在直播的房间',
-                          style: TextStyle(color: Colors.grey[500], fontSize: 16)),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.live_tv, size: 64, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    '暂无正在直播的房间',
+                    style: TextStyle(color: Colors.grey[500], fontSize: 16),
                   ),
-                )
-              : RefreshIndicator(
-                  onRefresh: () => _loadRooms(refresh: true),
-                  child: GridView.builder(
-                    padding: const EdgeInsets.all(12),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.7,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                    ),
-                    itemCount: _rooms.length + (_hasMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index >= _rooms.length) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      return _buildRoomCard(_rooms[index]);
-                    },
-                  ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: () => _loadRooms(refresh: true),
+              child: GridView.builder(
+                padding: const EdgeInsets.all(12),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.7,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
                 ),
+                itemCount: _rooms.length + (_hasMore ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index >= _rooms.length) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  return _buildRoomCard(_rooms[index]);
+                },
+              ),
+            ),
     );
   }
 
@@ -121,7 +129,10 @@ class _LiveRoomListPageState extends State<LiveRoomListPage> {
                     top: 8,
                     right: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.red.withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(10),
@@ -129,10 +140,19 @@ class _LiveRoomListPageState extends State<LiveRoomListPage> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.person, size: 12, color: Colors.white),
+                          const Icon(
+                            Icons.person,
+                            size: 12,
+                            color: Colors.white,
+                          ),
                           const SizedBox(width: 2),
-                          Text('${room.viewerCount}',
-                              style: const TextStyle(color: Colors.white, fontSize: 11)),
+                          Text(
+                            '${room.viewerCount}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -142,12 +162,18 @@ class _LiveRoomListPageState extends State<LiveRoomListPage> {
                     top: 8,
                     left: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.red,
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Text('直播', style: TextStyle(color: Colors.white, fontSize: 10)),
+                      child: const Text(
+                        '直播',
+                        style: TextStyle(color: Colors.white, fontSize: 10),
+                      ),
                     ),
                   ),
                 ],
@@ -163,7 +189,10 @@ class _LiveRoomListPageState extends State<LiveRoomListPage> {
                     room.title.isNotEmpty ? room.title : '未命名直播',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -183,7 +212,10 @@ class _LiveRoomListPageState extends State<LiveRoomListPage> {
                           room.hostNickname ?? '主播',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 11,
+                          ),
                         ),
                       ),
                     ],

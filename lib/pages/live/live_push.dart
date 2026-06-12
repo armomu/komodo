@@ -186,9 +186,14 @@ class _LivePushPageState extends State<LivePushPage> {
       await _controller.startVideoStreaming(_rtmpUrl);
       await WakelockPlus.enable();
 
-      // 通知 WS：直播开始
+      // 通知 WS：直播开始（等待认证完成）
       if (_roomId != null && _liveWs.isConnected.value) {
-        _liveWs.startLive(_roomId!);
+        final ready = await _liveWs.waitForAuth();
+        if (ready) {
+          _liveWs.startLive(_roomId!);
+        } else {
+          _showSnackBar('WS 未就绪，直播状态可能不同步');
+        }
       }
 
       setState(() => isStreaming = true);
@@ -209,8 +214,13 @@ class _LivePushPageState extends State<LivePushPage> {
       _stopStatsTimer();
 
       // 通知 WS：直播结束
-      if (_roomId != null && _liveWs.isConnected.value) {
-        _liveWs.endLive(_roomId!);
+      if (_roomId != null) {
+        final ready = await _liveWs.waitForAuth();
+        if (ready) {
+          _liveWs.endLive(_roomId!);
+        } else {
+          debugPrint('[推流] WS 未认证，无法发送 end-live');
+        }
       }
     } on CameraException catch (e) {
       debugPrint('[推流] 停止推流失败: ${e.description}');
@@ -270,6 +280,18 @@ class _LivePushPageState extends State<LivePushPage> {
 
   @override
   void dispose() {
+    // 如果离开时仍在推流，尝试结束直播
+    if (isStreaming) {
+      try {
+        _controller.stopVideoStreaming();
+        WakelockPlus.disable();
+      } catch (_) {}
+      _stopStatsTimer();
+      // 发送 end-live 到 WS
+      if (_roomId != null) {
+        _liveWs.endLive(_roomId!);
+      }
+    }
     _stopStatsTimer();
     _controller.dispose();
     _announcementController.dispose();

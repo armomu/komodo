@@ -56,12 +56,16 @@ class _AnchorSetupPageState extends State<AnchorSetupPage> {
       return;
     }
 
-    // 连接 Live WS
+    // 连接 Live WS 并等待认证完成
     final liveWs = Get.find<LiveWsClient>();
     if (!liveWs.isConnected.value) {
       await liveWs.connect();
-      // 等认证完成
-      await Future.delayed(const Duration(milliseconds: 500));
+    }
+    final authed = await liveWs.waitForAuth();
+    if (!authed) {
+      Get.snackbar('WS 连接失败', '无法连接到直播服务，请重试',
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return;
     }
 
     // 跳转到推流页，传入 roomId
