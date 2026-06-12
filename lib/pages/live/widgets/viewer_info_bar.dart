@@ -1,34 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// 直播间顶部右侧：观众头像 + 人数 + 关闭按钮
+/// 直播间顶部右侧：在线观众头像堆叠 + 人数 + 关闭按钮
+/// viewerAvatars 从 WS 实时推送更新
 class ViewerInfoBar extends StatelessWidget {
+  final int viewerCount;
+  final List<String> viewerAvatars;
   final VoidCallback onClose;
 
-  const ViewerInfoBar({super.key, required this.onClose});
+  const ViewerInfoBar({
+    super.key,
+    this.viewerCount = 0,
+    this.viewerAvatars = const [],
+    required this.onClose,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final displayAvatars = viewerAvatars.take(3).toList();
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          width: 54,
+          width: (displayAvatars.length * 12.0 + 16).clamp(28, 54),
           height: 28,
           child: Stack(
             children: [
-              for (int i = 0; i < 3; i++)
+              for (int i = 0; i < displayAvatars.length; i++)
                 Positioned(
                   left: i * 12.0,
-                  child: Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: [Colors.purple[200], Colors.teal[200], Colors.orange[200]][i],
-                      border: Border.all(color: Colors.white, width: 1.5),
-                    ),
-                    child: Icon(Icons.person, size: 14, color: Colors.grey[700]),
+                  child: CircleAvatar(
+                    radius: 14,
+                    backgroundColor: Colors.grey[600],
+                    backgroundImage: displayAvatars[i].isNotEmpty
+                        ? NetworkImage(displayAvatars[i])
+                        : null,
+                    child: displayAvatars[i].isEmpty
+                        ? Icon(Icons.person, size: 14, color: Colors.grey[300])
+                        : null,
                   ),
                 ),
             ],
@@ -41,9 +51,13 @@ class ViewerInfoBar extends StatelessWidget {
             color: Colors.black38,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Text(
-            '8888',
-            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+          child: Text(
+            '$viewerCount',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
         const SizedBox(width: 2),

@@ -1,5 +1,8 @@
 import 'package:get/get.dart';
 import 'package:komodo/pages/live/live_push.dart';
+import 'package:komodo/pages/live/anchor_setup_page.dart';
+import 'package:komodo/pages/live/live_room_list_page.dart';
+import 'package:komodo/pages/live/live_history_page.dart';
 import 'package:komodo/pages/live/push_demo.dart';
 import 'package:komodo/pages/music/music_player_page.dart';
 import 'package:komodo/pages/message/chat_page.dart';
@@ -24,6 +27,9 @@ abstract class Routes {
   static const String lifecycleDetail = '/lifecycle-detail';
   static const String lifecycleDemo = '/lifecycle-demo';
   static const String live = '/live';
+  static const String anchorSetup = '/anchor-setup';
+  static const String liveRoomList = '/live-room-list';
+  static const String liveHistory = '/live-history';
   static const String bleDemo = '/ble-demo';
   static const String livePushDemo = '/live-push-demo';
   static const String livePush = '/live-push';
@@ -67,9 +73,34 @@ class AppPages {
     ),
     GetPage(
       name: Routes.live,
-      page: () => const LivePage(),
+      page: () {
+        final args = Get.arguments as Map<String, dynamic>?;
+        final roomId = args?['roomId'] as String?;
+        return LivePage(roomId: roomId);
+      },
       middlewares: [AuthMiddleware()],
       transition: Transition.downToUp,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: Routes.anchorSetup,
+      page: () => const AnchorSetupPage(),
+      middlewares: [AuthMiddleware()],
+      transition: Transition.downToUp,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: Routes.liveRoomList,
+      page: () => const LiveRoomListPage(),
+      middlewares: [AuthMiddleware()],
+      transition: Transition.downToUp,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: Routes.liveHistory,
+      page: () => const LiveHistoryPage(),
+      middlewares: [AuthMiddleware()],
+      transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 300),
     ),
     GetPage(

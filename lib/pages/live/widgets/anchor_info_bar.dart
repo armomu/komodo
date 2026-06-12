@@ -1,27 +1,36 @@
 import 'package:flutter/material.dart';
 
-/// 直播间顶部左侧：主播头像 + 昵称 + 关注按钮
+/// 直播间顶部左侧：主播头像 + 昵称 + 粉丝/关注
+/// 纯静态展示，不做交互逻辑
 class AnchorInfoBar extends StatelessWidget {
-  final VoidCallback onAvatarTap;
+  final String nickname;
+  final String avatar;
+  final String fansText;
 
-  const AnchorInfoBar({super.key, required this.onAvatarTap});
+  const AnchorInfoBar({
+    super.key,
+    this.nickname = '主播',
+    this.avatar = '',
+    this.fansText = '粉丝 0',
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        GestureDetector(
-          onTap: onAvatarTap,
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 1),
-            ),
-            child: const CircleAvatar(
-              radius: 16,
-              backgroundColor: Color(0xFF3A3A3A),
-              child: Icon(Icons.person, color: Colors.white70, size: 20),
-            ),
+        Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 1),
+          ),
+          child: CircleAvatar(
+            radius: 16,
+            backgroundColor: Colors.grey[700],
+            backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
+            child: avatar.isEmpty
+                ? const Icon(Icons.person, color: Colors.white70, size: 20)
+                : null,
           ),
         ),
         const SizedBox(width: 8),
@@ -29,9 +38,9 @@ class AnchorInfoBar extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              '小毛驴的毛…',
-              style: TextStyle(
+            Text(
+              nickname,
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -42,7 +51,7 @@ class AnchorInfoBar extends StatelessWidget {
             ),
             const SizedBox(height: 2),
             Text(
-              '粉丝 938',
+              fansText,
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.75),
                 fontSize: 10,

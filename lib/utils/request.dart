@@ -57,7 +57,10 @@ Future<ApiResponse<T>> appDio<T>(
 
     final resData = response.data as Map<String, dynamic>;
     final code = resData['code'] as int? ?? -1;
-    final message = resData['message'] as String? ?? '';
+    final rawMessage = resData['message'];
+    final message = rawMessage is String
+        ? rawMessage
+        : (rawMessage is List<dynamic> ? (rawMessage).join('; ') : '');
 
     // 401 未授权 → 跳转登录页，仍返回 ApiResponse
     if (code == 401) {
@@ -69,6 +72,7 @@ Future<ApiResponse<T>> appDio<T>(
     if (code != 0) {
       if (errTip) {
         AppSnackBar.show(message);
+        debugPrint('=========appDio Error: $message==========================');
       }
       return ApiResponse<T>.error(code, message);
     }

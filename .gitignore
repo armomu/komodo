@@ -45,3 +45,4 @@ app.*.map.json
 
 # 配置
 /lib/config/base_url.dart
+.workbuddy

@@ -7,6 +7,7 @@ import 'controllers/user_controller.dart';
 import 'pages/music/music_player_controller.dart';
 import 'pages/message/controllers/consumer_ws_client.dart';
 import 'pages/message/controllers/consumer_list_controller.dart';
+import 'pages/live/controllers/live_ws_client.dart';
 import 'database/chat_database.dart';
 import 'routes/app_routes.dart';
 import 'theme/app_theme.dart';
@@ -44,6 +45,8 @@ void main() async {
   Get.put(ConsumerWsClient());
   // 消费者列表控制器（全局单例，驱动消息 Tab 列表）
   Get.put(ConsumerListController());
+  // Live WebSocket 客户端（全局单例，直播间实时通信）
+  Get.put(LiveWsClient());
 
   // 初始化完成，移除启动页
   FlutterNativeSplash.remove();

@@ -267,7 +267,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          Get.toNamed(Routes.live);
+          Get.toNamed(Routes.anchorSetup);
         },
         child: Center(
           child: Container(

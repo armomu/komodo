@@ -1,11 +1,16 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:komodo/components/app_bottom_sheet.dart';
+import 'package:komodo/config/base_url.dart';
 import 'package:video_player/video_player.dart';
+import 'controllers/live_repository.dart';
+import 'controllers/live_ws_client.dart';
 import 'gift_lottie_overlay.dart';
 import 'models/danmaku_item.dart';
 import 'models/danmaku_track.dart';
+import 'models/live_models.dart';
 import 'widgets/flying_danmaku_item.dart';
 import 'widgets/video_player_area.dart';
 import 'widgets/top_gradient.dart';
@@ -15,12 +20,11 @@ import 'widgets/danmaku_chat_list.dart';
 import 'widgets/live_action_bar.dart';
 import 'widgets/chat_input_bar.dart';
 
-// ═════════════════════════════════════════════════════════════════════════
-// 直播间页面（含飞行弹幕）
-// ═════════════════════════════════════════════════════════════════════════
-
+/// 直播间页面 — 全量 WS 驱动
 class LivePage extends StatefulWidget {
-  const LivePage({super.key});
+  final String? roomId;
+
+  const LivePage({super.key, this.roomId});
 
   @override
   State<LivePage> createState() => _LivePageState();
@@ -28,81 +32,243 @@ class LivePage extends StatefulWidget {
 
 class _LivePageState extends State<LivePage>
     with SingleTickerProviderStateMixin {
-  late VideoPlayerController _controller = VideoPlayerController.networkUrl(
-    Uri.parse('https://www.youtube.com/watch?v=_lvYy_YXZxQ'),
-  );
-
+  late final LiveWsClient _liveWs;
   final TextEditingController _chatController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  // 飞行弹幕 Widget 列表 —— 每条弹幕是独立 StatefulWidget，飞出后自动销毁
+  // ── 直播间数据 ──
+  String? _roomId;
+  LiveRoom? _roomDetail;
+  bool _isLoading = true;
+  String? _loadError;
+
+  // ── 主播信息（静态展示） ──
+  String _anchorNickname = '主播';
+  String _anchorAvatar = '';
+
+  // ── 在线观众（WS 驱动） ──
+  final List<String> _viewerAvatars = [];
+  int _viewerCount = 0;
+
+  // ── 公告 ──
+  String _announcement = '';
+
+  // ── 飞行弹幕 ──
   final List<Widget> _flyingWidgets = [];
   int _danmakuIdCounter = 0;
-
-  // 弹幕轨道系统 —— 防止弹幕堆叠遮挡
   static const int _trackCount = 5;
   static const List<double> _trackPercents = [0.12, 0.20, 0.28, 0.36, 0.44];
-
-  /// 弹幕飞行轨迹记录：id + 飞行时间窗口 + 所在轨道
   final List<DanmakuTrack> _danmakuTracks = [];
 
-  // 左下角聊天弹幕数据
-  final List<DanmakuItem> _danmakuList = [
-    const DanmakuItem('公告', '直播间严禁黄赌毒，共建绿色健康网络环境', Colors.white),
-    const DanmakuItem('西二旗华仔', '画质清晰，点赞！', Color(0xFF9C27B0)),
-    const DanmakuItem('小米女神', '第一次来，支持一下', Color(0xFF2196F3)),
-    const DanmakuItem('北漂小王', '求关注求关注', Color(0xFF00BCD4)),
-  ];
+  // ── 左下角聊天列表 ──
+  final List<DanmakuItem> _danmakuList = [];
+
+  // ── 视频播放 ──
+  VideoPlayerController? _videoController;
+  String? _hlsUrl;
 
   bool _showInput = false;
-  String? _playUrl;
 
-  void _initVlcPlayer(String url) {
-    _controller.dispose();
-    _playUrl = url;
-    _controller = VideoPlayerController.networkUrl(Uri.parse(url))
-      ..initialize().then((_) {
-        setState(() {});
-        _controller.play();
-      });
-  }
+  // ── Stream 订阅 ──
+  StreamSubscription? _onViewerListSub;
+  StreamSubscription? _onViewerJoinedSub;
+  StreamSubscription? _onViewerLeftSub;
+  StreamSubscription? _onNewCommentSub;
+  StreamSubscription? _onNewGiftSub;
+  StreamSubscription? _onAnnouncementSub;
+  StreamSubscription? _onLiveEndedSub;
 
   @override
   void initState() {
     super.initState();
+    _roomId = widget.roomId;
+    _liveWs = Get.find<LiveWsClient>();
+
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,
       overlays: [SystemUiOverlay.top],
     );
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.light,
+    ));
 
-    SystemUiOverlayStyle systemUiOverlayStyle = const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent, // 状态栏背景色
-      statusBarIconBrightness: Brightness.light, // 图标亮度：light=白色，dark=黑色
-      statusBarBrightness: Brightness.light, // iOS 专用
-    );
-
-    // 应用到当前界面
-    SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
-    _playInitialDanmaku();
+    _initRoom();
   }
 
-  /// 进入直播间时，依次触发默认聊天信息的飞行弹幕
-  void _playInitialDanmaku() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      for (int i = 0; i < _danmakuList.length; i++) {
-        final item = _danmakuList[i];
-        Future.delayed(Duration(milliseconds: 300 + i * 250), () {
-          if (mounted) {
-            _addFlyingDanmaku('${item.username}：${item.content}', item.color);
-          }
+  Future<void> _initRoom() async {
+    if (_roomId == null) {
+      setState(() => _loadError = '未指定直播间');
+      return;
+    }
+
+    // 1. 加载房间详情
+    final detailRes = await LiveRepository.getRoomDetail(_roomId!);
+    if (!detailRes.isSuccess || detailRes.data == null) {
+      setState(() {
+        _loadError = '加载直播间失败: ${detailRes.message}';
+        _isLoading = false;
+      });
+      return;
+    }
+
+    final room = detailRes.data!;
+    _roomDetail = room;
+    _anchorNickname = room.hostNickname ?? '主播';
+    _anchorAvatar = room.hostAvatar ?? '';
+    _announcement = room.announcement;
+
+    // 2. 记录观看
+    LiveRepository.recordView(_roomId!);
+
+    // 3. 初始化视频播放（HLS）
+    _initHlsPlayer(room.rtmpKey);
+
+    // 4. 连接 WS 并加入房间
+    await _connectWs();
+
+    setState(() => _isLoading = false);
+  }
+
+  void _initHlsPlayer(String rtmpKey) {
+    final hlsUrl = '${BaseUrl.host()}/live/$rtmpKey.m3u8';
+    _hlsUrl = hlsUrl;
+    debugPrint('[LivePage] HLS URL: $hlsUrl');
+
+    try {
+      _videoController = VideoPlayerController.networkUrl(Uri.parse(hlsUrl))
+        ..initialize().then((_) {
+          if (mounted) setState(() {});
+          _videoController?.play();
+        }).catchError((e) {
+          debugPrint('[LivePage] 视频播放初始化失败: $e');
+          // 推流尚未开始时不报错，留空画面
         });
+    } catch (e) {
+      debugPrint('[LivePage] 创建视频控制器失败: $e');
+    }
+  }
+
+  Future<void> _connectWs() async {
+    if (!_liveWs.isConnected.value) {
+      await _liveWs.connect();
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+    if (!_liveWs.isAuthenticated.value) {
+      // 等待认证
+      await Future.delayed(const Duration(seconds: 1));
+    }
+
+    // 订阅 WS 事件
+    _onViewerListSub = _liveWs.onViewerList.listen((viewers) {
+      if (!mounted) return;
+      setState(() {
+        _viewerAvatars
+          ..clear()
+          ..addAll(viewers.map((v) => v.avatar).take(8));
+        _viewerCount = _liveWs.viewerCount.value;
+      });
+    });
+
+    _onViewerJoinedSub = _liveWs.onViewerJoined.listen((viewer) {
+      if (!mounted) return;
+      setState(() {
+        _viewerAvatars.add(viewer.avatar);
+        if (_viewerAvatars.length > 8) _viewerAvatars.removeAt(0);
+        _viewerCount = _liveWs.viewerCount.value;
+      });
+    });
+
+    _onViewerLeftSub = _liveWs.onViewerLeft.listen((_) {
+      if (!mounted) return;
+      setState(() {
+        _viewerCount = _liveWs.viewerCount.value;
+      });
+    });
+
+    _onNewCommentSub = _liveWs.onNewComment.listen((data) {
+      if (!mounted) return;
+      _addComment(data.nickname, data.message);
+    });
+
+    _onNewGiftSub = _liveWs.onNewGift.listen((data) {
+      if (!mounted) return;
+      if (mounted) {
+        LottieOverlayManager.playGiftAnimation(
+          context,
+          GiftData(
+            name: data.giftName,
+            lottiePath: data.lottiePath,
+            iconName: data.giftIcon,
+          ),
+        );
+      }
+      _addComment(data.senderNickname, '赠送了 ${data.giftName}');
+    });
+
+    _onAnnouncementSub = _liveWs.onAnnouncementUpdated.listen((text) {
+      if (!mounted) return;
+      setState(() => _announcement = text);
+    });
+
+    _onLiveEndedSub = _liveWs.onLiveEnded.listen((_) {
+      if (!mounted) return;
+      Get.snackbar('直播已结束', '主播已关闭直播',
+          backgroundColor: Colors.black87, colorText: Colors.white);
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) Navigator.of(context).pop();
+      });
+    });
+
+    // 加入房间
+    _liveWs.joinRoom(_roomId!);
+  }
+
+  /// 添加一条评论到弹幕列表 + 飞行弹幕
+  void _addComment(String nickname, String message) {
+    final colors = [
+      Colors.white,
+      const Color(0xFF9C27B0),
+      const Color(0xFF2196F3),
+      const Color(0xFF00BCD4),
+      const Color(0xFFFF9800),
+    ];
+    final color = colors[_danmakuList.length % colors.length];
+
+    setState(() {
+      _danmakuList.add(DanmakuItem(nickname, message, color));
+      _addFlyingDanmaku('$nickname：$message', color);
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
       }
     });
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    // 离开 WS 房间
+    if (_roomId != null && _liveWs.isConnected.value) {
+      _liveWs.leaveRoom(_roomId!);
+    }
+
+    // 取消订阅
+    _onViewerListSub?.cancel();
+    _onViewerJoinedSub?.cancel();
+    _onViewerLeftSub?.cancel();
+    _onNewCommentSub?.cancel();
+    _onNewGiftSub?.cancel();
+    _onAnnouncementSub?.cancel();
+    _onLiveEndedSub?.cancel();
+
+    _videoController?.dispose();
     _chatController.dispose();
     _scrollController.dispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -114,51 +280,115 @@ class _LivePageState extends State<LivePage>
     return Scaffold(
       backgroundColor: Colors.black,
       resizeToAvoidBottomInset: false,
-      body: Stack(
-        fit: StackFit.expand,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.white))
+          : _loadError != null
+              ? _buildErrorView()
+              : _buildLiveView(),
+    );
+  }
+
+  Widget _buildErrorView() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const TopGradient(),
-          // 全屏背景图 — 模拟直播画面
-          Image.network(
-            'https://picsum.photos/seed/mv3/800/800',
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
+          const Icon(Icons.error_outline, color: Colors.white70, size: 48),
+          const SizedBox(height: 16),
+          Text(_loadError!, style: const TextStyle(color: Colors.white70)),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('返回'),
           ),
-          VideoPlayerArea(
-            controller: _controller,
-            playUrl: _playUrl,
-            onTap: () {},
-          ),
-          _buildTopBar(),
-          Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomBar()),
-          if (!_showInput)
-            DanmakuChatList(
-              danmakuList: _danmakuList,
-              scrollController: _scrollController,
-            ),
-          // 飞行弹幕层
-          ..._flyingWidgets,
         ],
       ),
     );
   }
 
-  Widget _buildTopBar() {
-    return SafeArea(
-      top: true,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(child: AnchorInfoBar(onAvatarTap: _showUrlInputDialog)),
-            const SizedBox(width: 20),
-            ViewerInfoBar(onClose: () => Navigator.of(context).pop()),
-          ],
+  Widget _buildLiveView() {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const TopGradient(),
+        // 全屏背景
+        Image.network(
+          'https://picsum.photos/seed/${_roomId ?? 'live'}/800/800',
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
         ),
-      ),
+        // 视频播放区域（如果可用）
+        if (_videoController != null)
+          VideoPlayerArea(
+            controller: _videoController!,
+            playUrl: _hlsUrl,
+            onTap: () {},
+          ),
+        // 公告条
+        if (_announcement.isNotEmpty)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 60,
+            left: 12,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Text('📢 ', style: TextStyle(fontSize: 12)),
+                  Expanded(
+                    child: Text(
+                      _announcement,
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        // 顶部栏
+        SafeArea(
+          top: true,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: AnchorInfoBar(
+                    nickname: _anchorNickname,
+                    avatar: _anchorAvatar,
+                    fansText: '粉丝 0',
+                  ),
+                ),
+                const SizedBox(width: 20),
+                ViewerInfoBar(
+                  viewerCount: _viewerCount,
+                  viewerAvatars: _viewerAvatars,
+                  onClose: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // 底部操作栏
+        Positioned(left: 0, right: 0, bottom: 0, child: _buildBottomBar()),
+        // 弹幕列表
+        if (!_showInput)
+          DanmakuChatList(
+            danmakuList: _danmakuList,
+            scrollController: _scrollController,
+          ),
+        // 飞行弹幕层
+        ..._flyingWidgets,
+      ],
     );
   }
 
@@ -172,47 +402,37 @@ class _LivePageState extends State<LivePage>
     }
     return LiveActionBar(
       onChatTap: () => setState(() => _showInput = true),
-      onEmojiTap: () => _showToast('表情面板（待实现）'),
-      onCartTap: () => _showToast('购物车'),
+      onEmojiTap: () {}, // 静态图标，不做交互
+      onCartTap: () {}, // 静态图标，不做交互
       onGiftTap: _showGiftSheet,
-      onShareTap: _showShareSheet,
+      onShareTap: () {}, // 静态图标，不做交互
     );
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // 交互方法
+  //  交互方法
   // ═══════════════════════════════════════════════════════════════
 
   void _sendMessage() {
     final text = _chatController.text.trim();
-    if (text.isEmpty) return;
-    setState(() {
-      _danmakuList.add(DanmakuItem('我', text, Colors.red));
-      _chatController.clear();
-      _showInput = false;
-      _addFlyingDanmaku(text, Colors.red);
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-        );
-      }
-    });
+    if (text.isEmpty || _roomId == null) return;
+
+    // 通过 WS 发送评论（服务器会广播给所有人）
+    if (_liveWs.isConnected.value) {
+      _liveWs.sendComment(_roomId!, text);
+    }
+
+    // 本地显示
+    _addComment('我', text);
+    _chatController.clear();
+    setState(() => _showInput = false);
   }
 
-  /// 添加一条飞行弹幕 —— 创建独立 Widget 加入列表，飞出后自动移除
   void _addFlyingDanmaku(String text, Color color) {
     final id = _danmakuIdCounter++;
     final now = DateTime.now();
     final endTime = now.add(const Duration(milliseconds: 4000));
-
-    // 找到第一个在此时刻空闲的轨道
     int trackIndex = _findFreeTrack(now);
-
-    // 记录轨迹信息，用于碰撞检测
     final track = DanmakuTrack(
       id: id,
       startTime: now,
@@ -230,7 +450,6 @@ class _LivePageState extends State<LivePage>
           color: color,
           topPercent: _trackPercents[trackIndex],
           onComplete: () {
-            // 清理轨迹记录和 Widget
             _danmakuTracks.removeWhere((t) => t.id == id);
             setState(() {
               _flyingWidgets.removeWhere((w) {
@@ -243,7 +462,6 @@ class _LivePageState extends State<LivePage>
           },
         ),
       );
-      // 最多保留 8 条，防止叠加太多
       if (_flyingWidgets.length > 8) {
         final oldest = _flyingWidgets.removeAt(0);
         if (oldest is FlyingDanmakuItem) {
@@ -256,7 +474,6 @@ class _LivePageState extends State<LivePage>
     });
   }
 
-  /// 找到第一个在指定时刻空闲的轨道索引
   int _findFreeTrack(DateTime time) {
     for (int i = 0; i < _trackCount; i++) {
       final trackPercent = _trackPercents[i];
@@ -268,8 +485,24 @@ class _LivePageState extends State<LivePage>
       );
       if (!isOccupied) return i;
     }
-    // 所有轨道都被占用，返回时间最早的轨道
     return 0;
+  }
+
+  void _showGiftSheet() {
+    if (_roomId == null) return;
+
+    GiftBottomSheet.show(context, (gift) {
+      // 通过 WS 发送礼物
+      if (_liveWs.isConnected.value) {
+        _liveWs.sendGift(_roomId!, gift.name, gift.iconName, gift.lottiePath);
+      }
+
+      // 本地也播放动画（因为 WS 广播包括发送者自己）
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (!mounted) return;
+        LottieOverlayManager.playGiftAnimation(context, gift);
+      });
+    });
   }
 
   void _showToast(String msg) {
@@ -280,82 +513,6 @@ class _LivePageState extends State<LivePage>
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.grey[800],
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-  }
-
-  void _showUrlInputDialog() {
-    if (!mounted) return;
-    final urlController = TextEditingController(
-      text: _playUrl ?? 'http://192.168.1.38:8085/live/stream.m3u8',
-    );
-    // ignore: use_build_context_synchronously
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        insetPadding: const EdgeInsets.all(16),
-        actionsPadding: const EdgeInsets.all(16),
-        title: const Text('输入播放地址', style: TextStyle(color: Colors.white)),
-        content: TextField(
-          controller: urlController,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            hintText: '请输入RTMP/HTTPS直播地址',
-            hintStyle: TextStyle(color: Colors.grey[500]),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey[600]!),
-            ),
-            focusedBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.blue),
-            ),
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('取消', style: TextStyle(color: Colors.grey[400])),
-          ),
-          TextButton(
-            onPressed: () {
-              final url = urlController.text.trim();
-              if (url.isNotEmpty) {
-                Navigator.of(context).pop();
-                _initVlcPlayer(url);
-              }
-            },
-            child: const Text('确认', style: TextStyle(color: Colors.blue)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showGiftSheet() {
-    GiftBottomSheet.show(context, (gift) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (!mounted) return;
-        LottieOverlayManager.playGiftAnimation(context, gift);
-      });
-    });
-  }
-
-  void _showShareSheet() {
-    AppBottomSheet.show(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.share),
-            title: const Text('分享'),
-            onTap: () => Get.back(),
-          ),
-          ListTile(
-            leading: const Icon(Icons.copy),
-            title: const Text('复制链接'),
-            onTap: () => Get.back(),
-          ),
-        ],
       ),
     );
   }

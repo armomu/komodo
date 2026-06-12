@@ -2,8 +2,11 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:komodo/config/base_url.dart';
+import 'package:komodo/controllers/user_controller.dart';
+import 'package:komodo/pages/live/controllers/live_repository.dart';
+import 'package:komodo/pages/live/controllers/live_ws_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rtmp_streaming/camera.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -31,13 +34,33 @@ class _LivePushPageState extends State<LivePushPage> {
   Timer? _statsTimer;
   String _statsLine = '';
 
-  final TextEditingController _rtmpController = TextEditingController(
-    text: BaseUrl.rtmpPush(),
-  );
+  // 直播间数据
+  String? _roomId;
+  String _rtmpUrl = BaseUrl.rtmpPush();
+  String _title = '';
+  String _announcement = '';
+
+  final TextEditingController _announcementController = TextEditingController();
+
+  late final LiveWsClient _liveWs;
 
   @override
   void initState() {
     super.initState();
+
+    // 读取路由参数
+    final args = Get.arguments as Map<String, dynamic>?;
+    _roomId = args?['roomId'] as String?;
+    final rtmpKey = args?['rtmpKey'] as String?;
+    _title = args?['title'] as String? ?? '';
+
+    // 如果有 rtmpKey，生成推流地址
+    if (rtmpKey != null && rtmpKey.isNotEmpty) {
+      _rtmpUrl = 'rtmp://192.168.1.38:1935/live/$rtmpKey';
+    }
+
+    _liveWs = Get.find<LiveWsClient>();
+
     _initCamera();
   }
 
@@ -154,15 +177,20 @@ class _LivePushPageState extends State<LivePushPage> {
 
   Future<void> _startStreaming() async {
     if (!_isInitialized) return;
-    final rtmpUrl = _rtmpController.text.trim();
-    if (rtmpUrl.isEmpty) {
-      _showSnackBar('请输入推流地址');
+    if (_rtmpUrl.isEmpty) {
+      _showSnackBar('推流地址无效');
       return;
     }
-    debugPrint('[推流] 开始推流: $rtmpUrl');
+    debugPrint('[推流] 开始推流: $_rtmpUrl');
     try {
-      await _controller.startVideoStreaming(rtmpUrl);
+      await _controller.startVideoStreaming(_rtmpUrl);
       await WakelockPlus.enable();
+
+      // 通知 WS：直播开始
+      if (_roomId != null && _liveWs.isConnected.value) {
+        _liveWs.startLive(_roomId!);
+      }
+
       setState(() => isStreaming = true);
       _startStatsTimer();
       _showSnackBar('开始推流');
@@ -179,11 +207,20 @@ class _LivePushPageState extends State<LivePushPage> {
       await _controller.stopVideoStreaming();
       await WakelockPlus.disable();
       _stopStatsTimer();
+
+      // 通知 WS：直播结束
+      if (_roomId != null && _liveWs.isConnected.value) {
+        _liveWs.endLive(_roomId!);
+      }
     } on CameraException catch (e) {
       debugPrint('[推流] 停止推流失败: ${e.description}');
       _showSnackBar('停止推流失败: ${e.description}');
     } finally {
       if (mounted) setState(() => isStreaming = false);
+      // 延迟返回上一页
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) Get.back();
+      });
     }
   }
 
@@ -193,25 +230,112 @@ class _LivePushPageState extends State<LivePushPage> {
     );
   }
 
+  void _showUpdateAnnouncementDialog() {
+    _announcementController.text = _announcement;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('修改公告'),
+        content: TextField(
+          controller: _announcementController,
+          maxLines: 3,
+          maxLength: 200,
+          decoration: const InputDecoration(
+            hintText: '输入新公告内容',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () {
+              final text = _announcementController.text.trim();
+              if (text.isNotEmpty && _roomId != null) {
+                _announcement = text;
+                _liveWs.updateAnnouncement(_roomId!, text);
+                // 同步更新后端
+                LiveRepository.updateRoom(_roomId!, announcement: text);
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text('确认'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _stopStatsTimer();
     _controller.dispose();
-    _rtmpController.dispose();
+    _announcementController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final userCtrl = Get.find<UserController>();
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: const Text('主播端', style: TextStyle(color: Colors.white)),
+        title: Text(_title.isNotEmpty ? _title : '主播端',
+            style: const TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          if (_roomId != null)
+            IconButton(
+              icon: const Icon(Icons.campaign, color: Colors.white),
+              tooltip: '修改公告',
+              onPressed: _showUpdateAnnouncementDialog,
+            ),
+        ],
       ),
       body: Column(
         children: [
+          // 主播信息条
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: Colors.grey[900],
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 16,
+                  backgroundImage: userCtrl.avatar.isNotEmpty
+                      ? NetworkImage(userCtrl.avatar)
+                      : null,
+                  child: userCtrl.avatar.isEmpty
+                      ? const Icon(Icons.person, size: 16)
+                      : null,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  userCtrl.nickname,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                ),
+                const Spacer(),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isStreaming ? Colors.red : Colors.grey,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    isStreaming ? '直播中' : '等待中',
+                    style:
+                        const TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           // 相机预览
           Expanded(
             child: Container(
@@ -230,17 +354,15 @@ class _LivePushPageState extends State<LivePushPage> {
                   children: [
                     Positioned.fill(child: _buildPreview()),
                     if (_cameras.length >= 2 && !isStreaming)
-                      Positioned(right: 12, top: 12, child: _switchCameraBtn()),
-                    // 实时数据叠加层
+                      Positioned(
+                          right: 12, top: 12, child: _switchCameraBtn()),
                     if (isStreaming && _statsLine.isNotEmpty)
                       Positioned(
                         left: 12,
                         bottom: 12,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
+                              horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
                             color: Colors.black54,
                             borderRadius: BorderRadius.circular(8),
@@ -261,102 +383,32 @@ class _LivePushPageState extends State<LivePushPage> {
             ),
           ),
 
-          // 推流状态 + 按钮
+          // 推流按钮
           Container(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isStreaming ? Colors.red : Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      isStreaming ? '推流中' : '等待推流',
-                      style: TextStyle(
-                        color: isStreaming ? Colors.red : Colors.white54,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+            child: SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: !_isInitialized
+                    ? null
+                    : (isStreaming ? _stopStreaming : _startStreaming),
+                icon: Icon(
+                  isStreaming ? Icons.stop : Icons.live_tv,
+                  size: 22,
                 ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _rtmpController,
-                  enabled: !isStreaming,
-                  style: const TextStyle(color: Colors.white70, fontSize: 13),
-                  decoration: InputDecoration(
-                    hintText: '输入 RTMP 推流地址',
-                    hintStyle: const TextStyle(color: Colors.white24),
-                    filled: true,
-                    fillColor: Colors.white10,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    isDense: true,
-                    prefixIcon: const Icon(
-                      Icons.link,
-                      color: Colors.white38,
-                      size: 18,
-                    ),
-                    suffixIcon: isStreaming
-                        ? null
-                        : IconButton(
-                            icon: const Icon(
-                              Icons.paste,
-                              color: Colors.white38,
-                              size: 18,
-                            ),
-                            onPressed: () async {
-                              final data = await Clipboard.getData(
-                                'text/plain',
-                              );
-                              if (data?.text != null) {
-                                _rtmpController.text = data!.text!;
-                                _showSnackBar('已粘贴');
-                              }
-                            },
-                          ),
+                label: Text(
+                  isStreaming ? '停止推流' : '开始推流',
+                  style: const TextStyle(fontSize: 17),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isStreaming ? Colors.red : Colors.orange,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(26),
                   ),
                 ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton.icon(
-                    onPressed: !_isInitialized
-                        ? null
-                        : (isStreaming ? _stopStreaming : _startStreaming),
-                    icon: Icon(
-                      isStreaming ? Icons.stop : Icons.live_tv,
-                      size: 22,
-                    ),
-                    label: Text(
-                      isStreaming ? '停止推流' : '开始推流',
-                      style: const TextStyle(fontSize: 17),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isStreaming ? Colors.red : Colors.orange,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(26),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -374,7 +426,8 @@ class _LivePushPageState extends State<LivePushPage> {
           borderRadius: BorderRadius.circular(30),
           border: Border.all(color: Colors.white30),
         ),
-        child: const Icon(Icons.cameraswitch, color: Colors.white, size: 24),
+        child:
+            const Icon(Icons.cameraswitch, color: Colors.white, size: 24),
       ),
     );
   }
