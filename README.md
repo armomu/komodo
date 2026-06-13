@@ -14,67 +14,6 @@
   <img width="24.6%" src="https://github.com/armomu/komodo/raw/main/assets/img/8.jpg">
 </p>
 
-## 功能概览
-
-### 注册/登录 (带完整后台服务)
-
-- **用户注册** — 邮箱、密码
-
-### 即时通讯 IM (带后台服务，只支持文本发送，后台只转发数据不存储，只在前端 SQLite 存储)
-
-- **WebSocket 实时通讯** — 基于 JWT 认证的 WS 长连接，支持心跳保活、断线重连、多设备踢出
-- **多类型消息** — 文本、语音、图片（选择+查看+缓存）、礼物动画
-- **消息持久化** — SQLite 本地存储，支持离线消息拉取、未读计数、按会话查询
-- **在线状态** — 实时显示好友在线/离线状态
-
-### 1v1 视频通话 (带完整后台服务)
-
-- **WebRTC** — 完整的信令流程（Offer/Answer/ICE），通过 WebSocket 通道传输
-- **通话状态机** — idle → waiting/incoming → connecting → connected → ended
-- **媒体控制** — 前后摄像头切换、麦克风/摄像头开关
-- **网络质量监控** — 实时 RTT + 丢包率检测，显示 good/fair/poor 状态
-- **通话计时** — 连接后实时计时
-
-### 音乐播放（不连接后台API数据纯模拟交互）
-
-- **全局音乐播放器** — 跨页面保持状态，支持后台播放
-- **系统媒体集成** — 通知栏、锁屏、控制中心媒体控制（audio_service）
-- **LRC 歌词同步** — 实时高亮当前歌词行，支持全屏歌词/迷你歌词两种视图
-- **网络歌曲缓存** — 后台下载，优先播放本地缓存
-
-
-### 短视频（不连接后台API数据纯模拟交互）
-
-- **上下滑动信息流** — PageView 纵向滑动，自动播放/暂停
-- **互动操作** — 点赞、评论、收藏、分享
-- **横屏全屏** — 自动检测宽高比，支持横屏视频全屏播放
-
-## 技术栈
-
-### 客户端 (Flutter)
-
-| 技术 | 用途 |
-|------|------|
-| [GetX](https://pub.dev/packages/get) | 状态管理 + 路由 + 依赖注入 |
-| [Dio](https://pub.dev/packages/dio) | HTTP 客户端 |
-| [flutter_webrtc](https://pub.dev/packages/flutter_webrtc) | 1v1 视频通话 |
-| [rtmp_streaming](https://pub.dev/packages/rtmp_streaming) | RTMP 直播推流 |
-| [video_player](https://pub.dev/packages/video_player) | 视频/直播流播放 |
-| [just_audio](https://pub.dev/packages/just_audio) | 音乐播放 |
-| [audio_service](https://pub.dev/packages/audio_service) | 系统媒体通知栏集成 |
-| [audioplayers](https://pub.dev/packages/audioplayers) | 聊天语音独立播放 |
-| [sqflite](https://pub.dev/packages/sqflite) | 本地消息持久化 |
-| [record](https://pub.dev/packages/record) | 语音录制 |
-| [lottie](https://pub.dev/packages/lottie) | 礼物动画 |
-| [image_picker](https://pub.dev/packages/image_picker) | 图片选择 |
-
-### 服务端 (NestJS)
-
-- HTTP API（认证、用户管理、消息等）
-- WebSocket 网关（聊天消息、WebRTC 信令、在线状态）
-- JWT 认证与鉴权
-- RTMP 媒体服务器（直播推拉流）
-
 ## 项目结构
 
 ```
